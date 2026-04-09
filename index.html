@@ -13,77 +13,51 @@
       padding: 20px;
       min-height: 100vh;
     }
-    h1 {
-      font-size: 20px;
-      color: #222;
-      text-align: center;
-      margin-bottom: 24px;
-      padding-top: 12px;
-    }
-    .section {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    .section h2 {
-      font-size: 15px;
-      color: #555;
-      margin-bottom: 12px;
-    }
-    .row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-      align-items: center;
-    }
+    h1 { font-size: 20px; color: #222; text-align: center; margin-bottom: 24px; padding-top: 12px; }
+    .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .section h2 { font-size: 15px; color: #555; margin-bottom: 12px; }
+    .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
     input[type="text"], input[type="number"] {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 15px;
-      width: 100%;
+      border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 15px; width: 100%;
     }
     input[type="text"] { flex: 2; }
     input[type="number"] { flex: 1; }
     .unit { font-size: 13px; color: #888; white-space: nowrap; }
     .add-btn {
-      background: none;
-      border: 1px dashed #ccc;
-      border-radius: 8px;
-      padding: 10px;
-      width: 100%;
-      color: #aaa;
-      font-size: 14px;
-      cursor: pointer;
-      margin-top: 4px;
+      background: none; border: 1px dashed #ccc; border-radius: 8px;
+      padding: 10px; width: 100%; color: #aaa; font-size: 14px; cursor: pointer; margin-top: 4px;
     }
+    .search-btn {
+      background: #c8a97e; color: white; border: none; border-radius: 8px;
+      padding: 10px 14px; font-size: 13px; cursor: pointer; white-space: nowrap;
+    }
+    .search-btn:disabled { background: #ddd; }
     .pfc-result {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 12px;
-      padding: 12px;
-      background: #f5f0eb;
-      border-radius: 10px;
+      display: flex; justify-content: space-around; margin-top: 12px;
+      padding: 12px; background: #f5f0eb; border-radius: 10px;
     }
     .pfc-item { text-align: center; }
     .pfc-label { font-size: 11px; color: #888; }
     .pfc-value { font-size: 20px; font-weight: bold; color: #333; }
     .pfc-unit { font-size: 11px; color: #888; }
+    .manual-pfc { display: flex; gap: 6px; margin-top: 8px; }
+    .manual-pfc input { flex: 1; font-size: 13px; padding: 8px; }
+    .manual-pfc .label { font-size: 11px; color: #888; text-align: center; }
+    .checklist-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .checklist-item:last-child { border-bottom: none; }
+    .checklist-item input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; flex-shrink: 0; }
+    .checklist-item label { font-size: 15px; color: #333; cursor: pointer; }
+    .checklist-item input[type="checkbox"]:checked + label { color: #aaa; text-decoration: line-through; }
     .submit-btn {
-      background: #1a1a2e;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 16px;
-      width: 100%;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 8px;
+      background: #1a1a2e; color: white; border: none; border-radius: 12px;
+      padding: 16px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px;
     }
     .submit-btn:active { opacity: 0.8; }
     #message { text-align: center; color: #c8a97e; margin-top: 12px; font-size: 14px; }
+    .food-row-pfc { font-size: 11px; color: #c8a97e; margin-bottom: 6px; padding-left: 4px; }
   </style>
 </head>
 <body>
@@ -98,39 +72,37 @@
     </div>
   </div>
 
+  <!-- 体温 -->
+  <div class="section">
+    <h2>🌡️ 今日の体温</h2>
+    <div class="row">
+      <input type="number" id="temperature" placeholder="36.5" step="0.1">
+      <span class="unit">℃</span>
+    </div>
+  </div>
+
   <!-- 食事 -->
   <div class="section">
     <h2>🍽️ 今日食べたもの</h2>
-    <div id="food-list">
-      <div class="row">
-        <input type="text" placeholder="白米" class="food-name">
-        <input type="number" placeholder="150" class="food-gram">
-        <span class="unit">g</span>
+    <div id="food-list"></div>
+    <button class="add-btn" onclick="addFoodRow()">＋ 食材を追加</button>
+
+    <!-- その他（手動PFC入力） -->
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
+      <div style="font-size: 13px; color: #888; margin-bottom: 8px;">その他（PFCを直接入力）</div>
+      <div class="manual-pfc">
+        <div><div class="label">P(g)</div><input type="number" id="manual-p" placeholder="0" step="0.1" oninput="calcTotal()"></div>
+        <div><div class="label">F(g)</div><input type="number" id="manual-f" placeholder="0" step="0.1" oninput="calcTotal()"></div>
+        <div><div class="label">C(g)</div><input type="number" id="manual-c" placeholder="0" step="0.1" oninput="calcTotal()"></div>
+        <div><div class="label">kcal</div><input type="number" id="manual-kcal" placeholder="0" oninput="calcTotal()"></div>
       </div>
     </div>
-    <button class="add-btn" onclick="addFoodRow()">＋ 追加</button>
 
     <div class="pfc-result">
-      <div class="pfc-item">
-        <div class="pfc-label">タンパク質</div>
-        <div class="pfc-value" id="total-p">0</div>
-        <div class="pfc-unit">g</div>
-      </div>
-      <div class="pfc-item">
-        <div class="pfc-label">脂質</div>
-        <div class="pfc-value" id="total-f">0</div>
-        <div class="pfc-unit">g</div>
-      </div>
-      <div class="pfc-item">
-        <div class="pfc-label">炭水化物</div>
-        <div class="pfc-value" id="total-c">0</div>
-        <div class="pfc-unit">g</div>
-      </div>
-      <div class="pfc-item">
-        <div class="pfc-label">カロリー</div>
-        <div class="pfc-value" id="total-kcal">0</div>
-        <div class="pfc-unit">kcal</div>
-      </div>
+      <div class="pfc-item"><div class="pfc-label">タンパク質</div><div class="pfc-value" id="total-p">0</div><div class="pfc-unit">g</div></div>
+      <div class="pfc-item"><div class="pfc-label">脂質</div><div class="pfc-value" id="total-f">0</div><div class="pfc-unit">g</div></div>
+      <div class="pfc-item"><div class="pfc-label">炭水化物</div><div class="pfc-value" id="total-c">0</div><div class="pfc-unit">g</div></div>
+      <div class="pfc-item"><div class="pfc-label">カロリー</div><div class="pfc-value" id="total-kcal">0</div><div class="pfc-unit">kcal</div></div>
     </div>
   </div>
 
@@ -143,86 +115,145 @@
     </div>
   </div>
 
-  <!-- 送信 -->
+  <!-- 宿題チェックリスト -->
+  <div class="section">
+    <h2>📋 今日の宿題</h2>
+    <div id="checklist">
+      <p style="color:#aaa; font-size:14px;">読み込み中...</p>
+    </div>
+  </div>
+
   <button class="submit-btn" onclick="submitData()">今日の記録を送る</button>
   <p id="message"></p>
 
   <script>
     const LIFF_ID = '2009746243-PAAQuZkb';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
 
-    // 簡易PFCデータベース（100gあたり）
-    const foodDB = {
-      '白米': { p: 2.5, f: 0.3, c: 37.1, kcal: 168 },
-      '玄米': { p: 2.8, f: 1.0, c: 35.6, kcal: 165 },
-      '食パン': { p: 8.9, f: 4.1, c: 46.7, kcal: 264 },
-      '鮭': { p: 22.3, f: 4.1, c: 0.1, kcal: 133 },
-      '鶏むね肉': { p: 23.3, f: 1.9, c: 0, kcal: 116 },
-      '鶏もも肉': { p: 17.3, f: 14.0, c: 0, kcal: 204 },
-      '豚ロース': { p: 19.3, f: 19.2, c: 0.2, kcal: 263 },
-      '牛もも肉': { p: 21.3, f: 10.7, c: 0.4, kcal: 193 },
-      '卵': { p: 12.3, f: 10.3, c: 0.3, kcal: 151 },
-      '豆腐': { p: 6.6, f: 4.2, c: 1.6, kcal: 72 },
-      'ブロッコリー': { p: 4.3, f: 0.5, c: 5.2, kcal: 37 },
-      'ほうれん草': { p: 2.2, f: 0.4, c: 3.1, kcal: 23 },
-      'バナナ': { p: 1.1, f: 0.2, c: 22.5, kcal: 93 },
-      'プロテイン': { p: 75.0, f: 4.0, c: 10.0, kcal: 380 },
-    };
+    // 食材ごとのPFCキャッシュ
+    const pfcCache = {};
 
-    liff.init({ liffId: LIFF_ID }).catch(err => console.error(err));
+    // 宿題リスト（デフォルト。将来的にサーバーから取得）
+    const defaultTasks = [
+      '朝食を食べた',
+      '水を1.5L以上飲んだ',
+      '有酸素運動をした',
+      '腹筋トレーニングをした',
+      '早寝した（23時前）'
+    ];
 
-    function addFoodRow() {
-      const row = document.createElement('div');
-      row.className = 'row';
-      row.innerHTML = `
-        <input type="text" placeholder="食材名" class="food-name" oninput="calcPFC()">
-        <input type="number" placeholder="0" class="food-gram" oninput="calcPFC()">
-        <span class="unit">g</span>
-      `;
-      document.getElementById('food-list').appendChild(row);
+    function initChecklist() {
+      const container = document.getElementById('checklist');
+      container.innerHTML = '';
+      defaultTasks.forEach((task, i) => {
+        const div = document.createElement('div');
+        div.className = 'checklist-item';
+        div.innerHTML = `
+          <input type="checkbox" id="task-${i}">
+          <label for="task-${i}">${task}</label>
+        `;
+        container.appendChild(div);
+      });
     }
 
-    function calcPFC() {
+    function addFoodRow() {
+      const list = document.getElementById('food-list');
+      const idx = list.children.length;
+      const div = document.createElement('div');
+      div.className = 'food-entry';
+      div.innerHTML = `
+        <div class="row">
+          <input type="text" placeholder="食材名（例：白米、鶏むね肉）" class="food-name" data-idx="${idx}">
+          <input type="number" placeholder="量(g)" class="food-gram" data-idx="${idx}" oninput="calcTotal()">
+          <button class="search-btn" onclick="searchPFC(${idx})" id="search-btn-${idx}">調べる</button>
+        </div>
+        <div class="food-row-pfc" id="pfc-row-${idx}"></div>
+      `;
+      list.appendChild(div);
+    }
+
+    async function searchPFC(idx) {
+      const nameEl = document.querySelector(`.food-name[data-idx="${idx}"]`);
+      const btn = document.getElementById(`search-btn-${idx}`);
+      const name = nameEl.value.trim();
+      if (!name) return;
+
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      try {
+        const res = await fetch('/api/pfc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ food: name })
+        });
+        const pfc = await res.json();
+        pfcCache[idx] = pfc;
+        document.getElementById(`pfc-row-${idx}`).textContent =
+          `100gあたり P:${pfc.p}g F:${pfc.f}g C:${pfc.c}g ${pfc.kcal}kcal`;
+        calcTotal();
+      } catch (e) {
+        document.getElementById(`pfc-row-${idx}`).textContent = '取得できませんでした';
+      }
+
+      btn.disabled = false;
+      btn.textContent = '調べる';
+    }
+
+    function calcTotal() {
       let p = 0, f = 0, c = 0, kcal = 0;
-      const names = document.querySelectorAll('.food-name');
-      const grams = document.querySelectorAll('.food-gram');
-      names.forEach((nameEl, i) => {
-        const name = nameEl.value.trim();
-        const gram = parseFloat(grams[i].value) || 0;
-        if (foodDB[name] && gram > 0) {
+
+      document.querySelectorAll('.food-gram').forEach((gramEl) => {
+        const idx = gramEl.dataset.idx;
+        const gram = parseFloat(gramEl.value) || 0;
+        if (pfcCache[idx] && gram > 0) {
           const ratio = gram / 100;
-          p += foodDB[name].p * ratio;
-          f += foodDB[name].f * ratio;
-          c += foodDB[name].c * ratio;
-          kcal += foodDB[name].kcal * ratio;
+          p += pfcCache[idx].p * ratio;
+          f += pfcCache[idx].f * ratio;
+          c += pfcCache[idx].c * ratio;
+          kcal += pfcCache[idx].kcal * ratio;
         }
       });
+
+      // 手動入力分を加算
+      p += parseFloat(document.getElementById('manual-p').value) || 0;
+      f += parseFloat(document.getElementById('manual-f').value) || 0;
+      c += parseFloat(document.getElementById('manual-c').value) || 0;
+      kcal += parseFloat(document.getElementById('manual-kcal').value) || 0;
+
       document.getElementById('total-p').textContent = p.toFixed(1);
       document.getElementById('total-f').textContent = f.toFixed(1);
       document.getElementById('total-c').textContent = c.toFixed(1);
       document.getElementById('total-kcal').textContent = Math.round(kcal);
     }
 
-    document.addEventListener('input', calcPFC);
-
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
-
     async function submitData() {
       const weight = document.getElementById('weight').value;
+      const temperature = document.getElementById('temperature').value;
       const cardio = document.getElementById('cardio').value;
-      const names = document.querySelectorAll('.food-name');
-      const grams = document.querySelectorAll('.food-gram');
 
       let foods = [];
-      names.forEach((el, i) => {
-        if (el.value.trim()) {
-          foods.push(el.value.trim() + ' ' + (grams[i].value || 0) + 'g');
-        }
+      document.querySelectorAll('.food-entry').forEach((entry, i) => {
+        const name = entry.querySelector('.food-name').value.trim();
+        const gram = entry.querySelector('.food-gram').value;
+        if (name) foods.push(name + ' ' + (gram || 0) + 'g');
       });
 
       const p = document.getElementById('total-p').textContent;
       const f = document.getElementById('total-f').textContent;
       const c = document.getElementById('total-c').textContent;
       const kcal = document.getElementById('total-kcal').textContent;
+
+      // 宿題チェック結果
+      let checkedTasks = [];
+      let uncheckedTasks = [];
+      defaultTasks.forEach((task, i) => {
+        if (document.getElementById('task-' + i).checked) {
+          checkedTasks.push(task);
+        } else {
+          uncheckedTasks.push(task);
+        }
+      });
 
       document.getElementById('message').textContent = '送信中...';
 
@@ -246,9 +277,12 @@
           body: JSON.stringify({
             name: userName,
             weight: weight,
+            temperature: temperature,
             foods: foods.join(', '),
             p: p, f: f, c: c, kcal: kcal,
-            cardio: cardio
+            cardio: cardio,
+            checkedTasks: checkedTasks.join('、'),
+            uncheckedTasks: uncheckedTasks.join('、')
           })
         });
         document.getElementById('message').textContent = '✅ 記録しました！';
@@ -257,6 +291,11 @@
         console.error(e);
       }
     }
+
+    // 初期化
+    liff.init({ liffId: LIFF_ID }).catch(e => console.log(e));
+    initChecklist();
+    addFoodRow();
   </script>
 </body>
 </html>
