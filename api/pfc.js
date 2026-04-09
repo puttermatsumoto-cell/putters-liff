@@ -28,6 +28,11 @@ JSONのみ返してください。不明な場合は全て0。`
   });
 
   const data = await response.json();
+  console.log('API response:', JSON.stringify(data));
+  if (!data.content || !data.content[0]) {
+    console.error('Unexpected response:', data);
+    return res.json({ p: 0, f: 0, c: 0, kcal: 0 });
+  }
   const text = data.content[0].text.trim();
 
   try {
