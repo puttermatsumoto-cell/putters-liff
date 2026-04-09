@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'x-api-key': process.env.ANTHROPIC_API_KEY || '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',
       'anthropic-version': '2023-06-01'
     },
     body: JSON.stringify({
