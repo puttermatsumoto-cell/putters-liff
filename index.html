@@ -204,6 +204,8 @@
 
     document.addEventListener('input', calcPFC);
 
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+
     async function submitData() {
       const weight = document.getElementById('weight').value;
       const cardio = document.getElementById('cardio').value;
@@ -213,7 +215,7 @@
       let foods = [];
       names.forEach((el, i) => {
         if (el.value.trim()) {
-          foods.push(`${el.value.trim()} ${grams[i].value || 0}g`);
+          foods.push(el.value.trim() + ' ' + (grams[i].value || 0) + 'g');
         }
       });
 
@@ -222,23 +224,37 @@
       const c = document.getElementById('total-c').textContent;
       const kcal = document.getElementById('total-kcal').textContent;
 
-      const today = new Date().toLocaleDateString('ja-JP');
-      const text = `【食事記録 ${today}】\n体重: ${weight || '-'}kg\n\n食事:\n${foods.join('\n') || '-'}\n\nPFC: P${p}g / F${f}g / C${c}g / ${kcal}kcal\n\n有酸素: ${cardio || 0}分`;
-
       document.getElementById('message').textContent = '送信中...';
 
+      let userName = '不明';
       try {
         await liff.init({ liffId: LIFF_ID });
         if (liff.isLoggedIn()) {
-          await liff.sendMessages([{ type: 'text', text }]);
-          document.getElementById('message').textContent = '✅ 送信しました！';
+          const profile = await liff.getProfile();
+          userName = profile.displayName;
         } else {
           liff.login();
+          return;
         }
       } catch (e) {
-        // LIFF外での確認用
-        document.getElementById('message').textContent = `記録内容:\n${text}`;
-        console.log(text);
+        console.log('LIFF init error:', e);
+      }
+
+      try {
+        await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            name: userName,
+            weight: weight,
+            foods: foods.join(', '),
+            p: p, f: f, c: c, kcal: kcal,
+            cardio: cardio
+          })
+        });
+        document.getElementById('message').textContent = '✅ 記録しました！';
+      } catch (e) {
+        document.getElementById('message').textContent = '❌ 送信に失敗しました';
+        console.error(e);
       }
     }
   </script>
