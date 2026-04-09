@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUTTERS 食事管理</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: #f5f0eb;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 20px;
+      color: #222;
+      text-align: center;
+      margin-bottom: 24px;
+      padding-top: 12px;
+    }
+    .section {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .section h2 {
+      font-size: 15px;
+      color: #555;
+      margin-bottom: 12px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    input[type="text"], input[type="number"] {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 15px;
+      width: 100%;
+    }
+    input[type="text"] { flex: 2; }
+    input[type="number"] { flex: 1; }
+    .unit { font-size: 13px; color: #888; white-space: nowrap; }
+    .add-btn {
+      background: none;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      width: 100%;
+      color: #aaa;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .pfc-result {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 12px;
+      padding: 12px;
+      background: #f5f0eb;
+      border-radius: 10px;
+    }
+    .pfc-item { text-align: center; }
+    .pfc-label { font-size: 11px; color: #888; }
+    .pfc-value { font-size: 20px; font-weight: bold; color: #333; }
+    .pfc-unit { font-size: 11px; color: #888; }
+    .submit-btn {
+      background: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      width: 100%;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .submit-btn:active { opacity: 0.8; }
+    #message { text-align: center; color: #c8a97e; margin-top: 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>PUTTERS 食事管理</h1>
+
+  <!-- 体重 -->
+  <div class="section">
+    <h2>⚖️ 今日の体重</h2>
+    <div class="row">
+      <input type="number" id="weight" placeholder="65.0" step="0.1">
+      <span class="unit">kg</span>
+    </div>
+  </div>
+
+  <!-- 食事 -->
+  <div class="section">
+    <h2>🍽️ 今日食べたもの</h2>
+    <div id="food-list">
+      <div class="row">
+        <input type="text" placeholder="白米" class="food-name">
+        <input type="number" placeholder="150" class="food-gram">
+        <span class="unit">g</span>
+      </div>
+    </div>
+    <button class="add-btn" onclick="addFoodRow()">＋ 追加</button>
+
+    <div class="pfc-result">
+      <div class="pfc-item">
+        <div class="pfc-label">タンパク質</div>
+        <div class="pfc-value" id="total-p">0</div>
+        <div class="pfc-unit">g</div>
+      </div>
+      <div class="pfc-item">
+        <div class="pfc-label">脂質</div>
+        <div class="pfc-value" id="total-f">0</div>
+        <div class="pfc-unit">g</div>
+      </div>
+      <div class="pfc-item">
+        <div class="pfc-label">炭水化物</div>
+        <div class="pfc-value" id="total-c">0</div>
+        <div class="pfc-unit">g</div>
+      </div>
+      <div class="pfc-item">
+        <div class="pfc-label">カロリー</div>
+        <div class="pfc-value" id="total-kcal">0</div>
+        <div class="pfc-unit">kcal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 有酸素 -->
+  <div class="section">
+    <h2>🏃 有酸素運動</h2>
+    <div class="row">
+      <input type="number" id="cardio" placeholder="0" min="0">
+      <span class="unit">分</span>
+    </div>
+  </div>
+
+  <!-- 送信 -->
+  <button class="submit-btn" onclick="submitData()">今日の記録を送る</button>
+  <p id="message"></p>
+
+  <script>
+    const LIFF_ID = '2009746243-PAAQuZkb';
+
+    // 簡易PFCデータベース（100gあたり）
+    const foodDB = {
+      '白米': { p: 2.5, f: 0.3, c: 37.1, kcal: 168 },
+      '玄米': { p: 2.8, f: 1.0, c: 35.6, kcal: 165 },
+      '食パン': { p: 8.9, f: 4.1, c: 46.7, kcal: 264 },
+      '鮭': { p: 22.3, f: 4.1, c: 0.1, kcal: 133 },
+      '鶏むね肉': { p: 23.3, f: 1.9, c: 0, kcal: 116 },
+      '鶏もも肉': { p: 17.3, f: 14.0, c: 0, kcal: 204 },
+      '豚ロース': { p: 19.3, f: 19.2, c: 0.2, kcal: 263 },
+      '牛もも肉': { p: 21.3, f: 10.7, c: 0.4, kcal: 193 },
+      '卵': { p: 12.3, f: 10.3, c: 0.3, kcal: 151 },
+      '豆腐': { p: 6.6, f: 4.2, c: 1.6, kcal: 72 },
+      'ブロッコリー': { p: 4.3, f: 0.5, c: 5.2, kcal: 37 },
+      'ほうれん草': { p: 2.2, f: 0.4, c: 3.1, kcal: 23 },
+      'バナナ': { p: 1.1, f: 0.2, c: 22.5, kcal: 93 },
+      'プロテイン': { p: 75.0, f: 4.0, c: 10.0, kcal: 380 },
+    };
+
+    liff.init({ liffId: LIFF_ID }).catch(err => console.error(err));
+
+    function addFoodRow() {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <input type="text" placeholder="食材名" class="food-name" oninput="calcPFC()">
+        <input type="number" placeholder="0" class="food-gram" oninput="calcPFC()">
+        <span class="unit">g</span>
+      `;
+      document.getElementById('food-list').appendChild(row);
+    }
+
+    function calcPFC() {
+      let p = 0, f = 0, c = 0, kcal = 0;
+      const names = document.querySelectorAll('.food-name');
+      const grams = document.querySelectorAll('.food-gram');
+      names.forEach((nameEl, i) => {
+        const name = nameEl.value.trim();
+        const gram = parseFloat(grams[i].value) || 0;
+        if (foodDB[name] && gram > 0) {
+          const ratio = gram / 100;
+          p += foodDB[name].p * ratio;
+          f += foodDB[name].f * ratio;
+          c += foodDB[name].c * ratio;
+          kcal += foodDB[name].kcal * ratio;
+        }
+      });
+      document.getElementById('total-p').textContent = p.toFixed(1);
+      document.getElementById('total-f').textContent = f.toFixed(1);
+      document.getElementById('total-c').textContent = c.toFixed(1);
+      document.getElementById('total-kcal').textContent = Math.round(kcal);
+    }
+
+    document.addEventListener('input', calcPFC);
+
+    async function submitData() {
+      const weight = document.getElementById('weight').value;
+      const cardio = document.getElementById('cardio').value;
+      const names = document.querySelectorAll('.food-name');
+      const grams = document.querySelectorAll('.food-gram');
+
+      let foods = [];
+      names.forEach((el, i) => {
+        if (el.value.trim()) {
+          foods.push(`${el.value.trim()} ${grams[i].value || 0}g`);
+        }
+      });
+
+      const p = document.getElementById('total-p').textContent;
+      const f = document.getElementById('total-f').textContent;
+      const c = document.getElementById('total-c').textContent;
+      const kcal = document.getElementById('total-kcal').textContent;
+
+      const today = new Date().toLocaleDateString('ja-JP');
+      const text = `【食事記録 ${today}】\n体重: ${weight || '-'}kg\n\n食事:\n${foods.join('\n') || '-'}\n\nPFC: P${p}g / F${f}g / C${c}g / ${kcal}kcal\n\n有酸素: ${cardio || 0}分`;
+
+      document.getElementById('message').textContent = '送信中...';
+
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (liff.isLoggedIn()) {
+          await liff.sendMessages([{ type: 'text', text }]);
+          document.getElementById('message').textContent = '✅ 送信しました！';
+        } else {
+          liff.login();
+        }
+      } catch (e) {
+        // LIFF外での確認用
+        document.getElementById('message').textContent = `記録内容:\n${text}`;
+        console.log(text);
+      }
+    }
+  </script>
+</body>
+</html>
