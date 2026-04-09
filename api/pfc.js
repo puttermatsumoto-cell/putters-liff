@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY || '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',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
       'anthropic-version': '2023-06-01'
     },
     body: JSON.stringify({
@@ -33,7 +33,9 @@ JSONのみ返してください。不明な場合は全て0。`
     console.error('Unexpected response:', data);
     return res.json({ p: 0, f: 0, c: 0, kcal: 0 });
   }
-  const text = data.content[0].text.trim();
+  let text = data.content[0].text.trim();
+  // ```json ... ``` を除去
+  text = text.replace(/```json\n?/g, '').replace(/```/g, '').trim();
 
   try {
     const pfc = JSON.parse(text);
