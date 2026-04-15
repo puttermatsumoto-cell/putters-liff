@@ -203,8 +203,8 @@
       <div id="meal-image-preview" style="display:none; margin-bottom:12px;">
         <img id="meal-preview-img" style="width:100%; border-radius:12px; max-height:220px; object-fit:cover;">
         <button onclick="analyzeMealImage()" id="analyze-btn" style="width:100%; margin-top:8px; padding:12px; background:#1a1a2e; color:white; border:none; border-radius:10px; font-size:15px; cursor:pointer;">✨ 解析する</button>
-        <div id="analyze-result" style="margin-top:10px; font-size:13px; color:#555; background:#f5f0eb; border-radius:8px; padding:10px; display:none;"></div>
       </div>
+      <div id="analyze-result-list" style="margin-top:8px;"></div>
     </div>
 
     <!-- 食事指導コース：通常UI -->
@@ -708,7 +708,7 @@
     const pfcCache = {};
     const restaurantPfcCache = {};
     let currentTasks = [];
-    let liteAnalysis = null; // ライトコース解析結果
+    let liteAnalyses = []; // ライトコース解析結果（複数）
 
     const defaultTasks = [
       '朝食を食べた', '水を1.5L以上飲んだ', '有酸素運動をした', '腹筋トレーニングをした', '早寝した（23時前）'
@@ -764,7 +764,7 @@
           f: row.querySelector('.mpfc-f').value,
           c: row.querySelector('.mpfc-c').value
         })),
-        liteAnalysis: liteAnalysis,
+        liteAnalyses: liteAnalyses,
         foods: [],
         restaurants: []
       };
@@ -805,19 +805,9 @@
         if (data.goalWeight) document.getElementById('goal-weight').value = data.goalWeight;
         if (data.temperature) document.getElementById('temperature').value = data.temperature;
         if (data.cardio) document.getElementById('cardio').value = data.cardio;
-        if (data.liteAnalysis) {
-          liteAnalysis = data.liteAnalysis;
-          document.getElementById('total-p').textContent = (liteAnalysis.p || 0).toFixed(1);
-          document.getElementById('total-f').textContent = (liteAnalysis.f || 0).toFixed(1);
-          document.getElementById('total-c').textContent = (liteAnalysis.c || 0).toFixed(1);
-          document.getElementById('total-kcal').textContent = Math.round(liteAnalysis.kcal || 0);
-          const resultEl = document.getElementById('analyze-result');
-          if (resultEl) {
-            const timePrefix = liteAnalysis.time ? liteAnalysis.time + ' | ' : '';
-            resultEl.textContent = '📋 ' + timePrefix + liteAnalysis.description;
-            resultEl.style.display = 'block';
-            document.getElementById('meal-image-preview').style.display = 'block';
-          }
+        if (data.liteAnalyses && data.liteAnalyses.length > 0) {
+          liteAnalyses = data.liteAnalyses;
+          renderLiteAnalyses();
           renderPFCGoalCharts();
         }
         if (data.customTasks && data.customTasks.length > 0) {
@@ -991,14 +981,18 @@
     }
 
     function calcTotal() {
-      // liteモードは liteAnalysis の値をそのまま使う
+      // liteモードはliteAnalysesの合計を使う
       const mode = localStorage.getItem(MODE_KEY) || 'food';
       if (mode === 'lite') {
-        if (liteAnalysis) {
-          document.getElementById('total-p').textContent = (liteAnalysis.p || 0).toFixed(1);
-          document.getElementById('total-f').textContent = (liteAnalysis.f || 0).toFixed(1);
-          document.getElementById('total-c').textContent = (liteAnalysis.c || 0).toFixed(1);
-          document.getElementById('total-kcal').textContent = Math.round(liteAnalysis.kcal || 0);
+        if (liteAnalyses.length > 0) {
+          const tp = liteAnalyses.reduce((s, a) => s + (a.p || 0), 0);
+          const tf = liteAnalyses.reduce((s, a) => s + (a.f || 0), 0);
+          const tc = liteAnalyses.reduce((s, a) => s + (a.c || 0), 0);
+          const tk = liteAnalyses.reduce((s, a) => s + (a.kcal || 0), 0);
+          document.getElementById('total-p').textContent = tp.toFixed(1);
+          document.getElementById('total-f').textContent = tf.toFixed(1);
+          document.getElementById('total-c').textContent = tc.toFixed(1);
+          document.getElementById('total-kcal').textContent = Math.round(tk);
           renderPFCGoalCharts();
         }
         return;
@@ -1108,7 +1102,7 @@
       let foods = [];
       const mode = localStorage.getItem(MODE_KEY) || 'food';
       if (mode === 'lite') {
-        if (liteAnalysis && liteAnalysis.description) foods.push('[写真解析] ' + liteAnalysis.description);
+        liteAnalyses.forEach(a => { if (a.description) foods.push('[写真解析] ' + (a.time ? a.time + ' ' : '') + a.description); });
       } else {
         document.querySelectorAll('.food-entry').forEach(entry => {
           const name = entry.querySelector('.food-name').value.trim();
@@ -1185,10 +1179,8 @@
     async function analyzeMealImage() {
       if (!mealImageBase64) return;
       const btn = document.getElementById('analyze-btn');
-      const resultEl = document.getElementById('analyze-result');
       btn.disabled = true;
       btn.textContent = '解析中...';
-      resultEl.style.display = 'none';
       try {
         const res = await fetch('/api/analyze-meal', {
           method: 'POST',
@@ -1199,22 +1191,23 @@
         const now = new Date();
         const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
         data.time = timeStr;
-        liteAnalysis = data;
-        // PFC結果を表示欄に反映
-        document.getElementById('total-p').textContent = (data.p || 0).toFixed(1);
-        document.getElementById('total-f').textContent = (data.f || 0).toFixed(1);
-        document.getElementById('total-c').textContent = (data.c || 0).toFixed(1);
-        document.getElementById('total-kcal').textContent = Math.round(data.kcal || 0);
-        resultEl.textContent = '📋 ' + timeStr + ' | ' + (data.description || '解析完了');
-        resultEl.style.display = 'block';
-        renderPFCGoalCharts();
+        liteAnalyses.push(data);
+        renderLiteAnalyses();
+        calcTotal();
         saveCache();
       } catch (e) {
-        resultEl.textContent = '解析に失敗しました';
-        resultEl.style.display = 'block';
+        alert('解析に失敗しました');
       }
       btn.disabled = false;
       btn.textContent = '✨ 解析する';
+    }
+
+    function renderLiteAnalyses() {
+      const list = document.getElementById('analyze-result-list');
+      if (!list) return;
+      list.innerHTML = liteAnalyses.map(a =>
+        `<div style="font-size:13px; color:#555; background:#f5f0eb; border-radius:8px; padding:10px; margin-bottom:6px;">📋 ${a.time ? a.time + ' | ' : ''}${a.description || ''}</div>`
+      ).join('');
     }
 
     // 送信完了画面
