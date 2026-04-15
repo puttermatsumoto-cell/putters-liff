@@ -1046,18 +1046,28 @@
         } catch (e) {}
       }
       currentTasks = tasks;
+      // 再描画前に現在のチェック状態を保持
+      const currentChecked = Array.from(container.querySelectorAll('input[type="checkbox"]'))
+        .map((cb, i) => cb.checked ? i : null).filter(i => i !== null);
       container.innerHTML = '';
-      // キャッシュからチェック済みインデックスを取得
+      // キャッシュからチェック済みインデックスを取得（当日のみ）
       let savedChecked = [];
       try {
         const raw = localStorage.getItem(CACHE_KEY);
-        if (raw) savedChecked = JSON.parse(raw).checkedIndexes || [];
+        if (raw) {
+          const cached = JSON.parse(raw);
+          if (cached.date === new Date().toDateString()) {
+            savedChecked = cached.checkedIndexes || [];
+          }
+        }
       } catch(e) {}
+      // 現在のチェック状態とキャッシュをマージ
+      const mergedChecked = [...new Set([...savedChecked, ...currentChecked])];
 
       tasks.forEach((task, i) => {
         const div = document.createElement('div');
         div.className = 'checklist-item';
-        div.innerHTML = `<input type="checkbox" id="task-${i}" ${savedChecked.includes(i) ? 'checked' : ''}><label for="task-${i}">${task}</label>`;
+        div.innerHTML = `<input type="checkbox" id="task-${i}" ${mergedChecked.includes(i) ? 'checked' : ''}><label for="task-${i}">${task}</label>`;
         div.querySelector('input').addEventListener('change', saveCache);
         container.appendChild(div);
       });
