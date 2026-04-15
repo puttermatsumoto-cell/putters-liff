@@ -813,7 +813,8 @@
           document.getElementById('total-kcal').textContent = Math.round(liteAnalysis.kcal || 0);
           const resultEl = document.getElementById('analyze-result');
           if (resultEl) {
-            resultEl.textContent = '📋 ' + liteAnalysis.description;
+            const timePrefix = liteAnalysis.time ? liteAnalysis.time + ' | ' : '';
+            resultEl.textContent = '📋 ' + timePrefix + liteAnalysis.description;
             resultEl.style.display = 'block';
             document.getElementById('meal-image-preview').style.display = 'block';
           }
@@ -1185,13 +1186,16 @@
           body: JSON.stringify({ image: mealImageBase64 })
         });
         const data = await res.json();
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+        data.time = timeStr;
         liteAnalysis = data;
         // PFC結果を表示欄に反映
         document.getElementById('total-p').textContent = (data.p || 0).toFixed(1);
         document.getElementById('total-f').textContent = (data.f || 0).toFixed(1);
         document.getElementById('total-c').textContent = (data.c || 0).toFixed(1);
         document.getElementById('total-kcal').textContent = Math.round(data.kcal || 0);
-        resultEl.textContent = '📋 ' + (data.description || '解析完了');
+        resultEl.textContent = '📋 ' + timeStr + ' | ' + (data.description || '解析完了');
         resultEl.style.display = 'block';
         renderPFCGoalCharts();
         saveCache();
