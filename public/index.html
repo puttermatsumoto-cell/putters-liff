@@ -201,7 +201,7 @@
         📷 食事の写真を撮る
       </button>
       <div id="meal-image-preview" style="display:none; margin-bottom:12px;">
-        <img id="meal-preview-img" style="width:100%; border-radius:12px; max-height:220px; object-fit:cover;">
+        <img id="meal-preview-img" style="width:100%; border-radius:12px; max-height:220px; object-fit:cover; image-orientation: from-image;">
         <button onclick="analyzeMealImage()" id="analyze-btn" style="width:100%; margin-top:8px; padding:12px; background:#1a1a2e; color:white; border:none; border-radius:10px; font-size:15px; cursor:pointer;">✨ 解析する</button>
       </div>
       <div id="analyze-result-list" style="margin-top:8px;"></div>
@@ -1166,21 +1166,13 @@
     function onMealImageSelected(input) {
       const file = input.files[0];
       if (!file) return;
-      // createImageBitmapでEXIF向きを自動補正してcanvasに描画
       const reader = new FileReader();
       reader.onload = (e) => {
-        const blob = new Blob([new Uint8Array(e.target.result)], { type: file.type });
-        createImageBitmap(blob).then(bitmap => {
-          const canvas = document.createElement('canvas');
-          canvas.width = bitmap.width;
-          canvas.height = bitmap.height;
-          canvas.getContext('2d').drawImage(bitmap, 0, 0);
-          mealImageBase64 = canvas.toDataURL('image/jpeg', 0.85);
-          document.getElementById('meal-preview-img').src = mealImageBase64;
-          document.getElementById('meal-image-preview').style.display = 'block';
-        });
+        mealImageBase64 = e.target.result;
+        document.getElementById('meal-preview-img').src = mealImageBase64;
+        document.getElementById('meal-image-preview').style.display = 'block';
       };
-      reader.readAsArrayBuffer(file);
+      reader.readAsDataURL(file);
     }
 
     async function analyzeMealImage() {
