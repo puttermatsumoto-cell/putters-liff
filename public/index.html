@@ -1166,14 +1166,21 @@
     function onMealImageSelected(input) {
       const file = input.files[0];
       if (!file) return;
+      // createImageBitmapでEXIF向きを自動補正してcanvasに描画
       const reader = new FileReader();
       reader.onload = (e) => {
-        mealImageBase64 = e.target.result;
-        document.getElementById('meal-preview-img').src = mealImageBase64;
-        document.getElementById('meal-image-preview').style.display = 'block';
-        document.getElementById('analyze-result').style.display = 'none';
+        const blob = new Blob([new Uint8Array(e.target.result)], { type: file.type });
+        createImageBitmap(blob).then(bitmap => {
+          const canvas = document.createElement('canvas');
+          canvas.width = bitmap.width;
+          canvas.height = bitmap.height;
+          canvas.getContext('2d').drawImage(bitmap, 0, 0);
+          mealImageBase64 = canvas.toDataURL('image/jpeg', 0.85);
+          document.getElementById('meal-preview-img').src = mealImageBase64;
+          document.getElementById('meal-image-preview').style.display = 'block';
+        });
       };
-      reader.readAsDataURL(file);
+      reader.readAsArrayBuffer(file);
     }
 
     async function analyzeMealImage() {
@@ -1205,9 +1212,19 @@
     function renderLiteAnalyses() {
       const list = document.getElementById('analyze-result-list');
       if (!list) return;
-      list.innerHTML = liteAnalyses.map(a =>
-        `<div style="font-size:13px; color:#555; background:#f5f0eb; border-radius:8px; padding:10px; margin-bottom:6px;">📋 ${a.time ? a.time + ' | ' : ''}${a.description || ''}</div>`
+      list.innerHTML = liteAnalyses.map((a, i) =>
+        `<div style="display:flex; align-items:flex-start; gap:8px; font-size:13px; color:#555; background:#f5f0eb; border-radius:8px; padding:10px; margin-bottom:6px;">
+          <span style="flex:1;">📋 ${a.time ? a.time + ' | ' : ''}${a.description || ''}</span>
+          <button onclick="removeLiteAnalysis(${i})" style="background:none; border:none; color:#aaa; font-size:16px; cursor:pointer; padding:0; line-height:1; flex-shrink:0;">×</button>
+        </div>`
       ).join('');
+    }
+
+    function removeLiteAnalysis(i) {
+      liteAnalyses.splice(i, 1);
+      renderLiteAnalyses();
+      calcTotal();
+      saveCache();
     }
 
     // 送信完了画面
