@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUTTERS 生活指導</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PUTTERS">
+  <link rel="apple-touch-icon" href="/icon.jpg">
+  <meta name="theme-color" content="#1a1a2e">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    h1 { font-size: 20px; color: #222; text-align: center; margin-bottom: 8px; padding-top: 12px; }
+    .goal-bar { background: #1a1a2e; color: white; border-radius: 12px; padding: 12px 20px; text-align: center; margin-bottom: 16px; font-size: 14px; }
+    .goal-bar span { font-size: 20px; font-weight: bold; color: #c8a97e; }
+    .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .section h2 { font-size: 15px; color: #555; margin-bottom: 12px; }
+    .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    input[type="text"], input[type="number"] { border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 15px; width: 100%; }
+    input[type="text"] { flex: 2; }
+    input[type="number"] { flex: 1; }
+    .unit { font-size: 13px; color: #888; white-space: nowrap; }
+    .tab-btns { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tab-btn { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 8px; background: white; font-size: 13px; cursor: pointer; color: #888; }
+    .tab-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .add-btn { background: none; border: 1px dashed #ccc; border-radius: 8px; padding: 10px; width: 100%; color: #aaa; font-size: 14px; cursor: pointer; margin-top: 4px; }
+    .search-btn { background: #c8a97e; color: white; border: none; border-radius: 8px; padding: 10px 14px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+    .search-btn:disabled { background: #ddd; }
+    .pfc-result { display: flex; justify-content: space-around; margin-top: 12px; padding: 12px; background: #f5f0eb; border-radius: 10px; }
+    .pfc-item { text-align: center; }
+    .pfc-label { font-size: 11px; color: #888; }
+    .pfc-value { font-size: 20px; font-weight: bold; color: #333; }
+    .pfc-unit { font-size: 11px; color: #888; }
+    .manual-pfc { display: flex; gap: 6px; margin-top: 8px; }
+    .manual-pfc input { flex: 1; font-size: 13px; padding: 8px; }
+    .manual-pfc .label { font-size: 11px; color: #888; text-align: center; }
+    .checklist-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .checklist-item:last-child { border-bottom: none; }
+    .checklist-item input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; flex-shrink: 0; }
+    .checklist-item label { font-size: 15px; color: #333; cursor: pointer; }
+    .checklist-item input[type="checkbox"]:checked + label { color: #aaa; text-decoration: line-through; }
+    .submit-btn { background: #1a1a2e; color: white; border: none; border-radius: 12px; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .submit-btn:active { opacity: 0.8; }
+    #message { text-align: center; color: #c8a97e; margin-top: 12px; font-size: 14px; }
+    .food-row-pfc { font-size: 11px; color: #c8a97e; margin-bottom: 6px; padding-left: 4px; }
+    .pfc-goal-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .pfc-goal-item { flex: 1; text-align: center; }
+    .pfc-goal-item label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; }
+    .pfc-goal-item input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; text-align: center; }
+    .donut-row { display: flex; gap: 8px; margin-top: 8px; }
+    .donut-item { flex: 1; text-align: center; }
+    .donut-item canvas { max-width: 90px; max-height: 90px; }
+    .donut-label { font-size: 11px; color: #888; margin-top: 4px; }
+    .donut-pct { font-size: 15px; font-weight: bold; color: #333; }
+    .hw-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .hw-cal-header { text-align: center; font-size: 10px; color: #aaa; padding: 2px 0; }
+    .hw-day { aspect-ratio: 1; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #aaa; background: #eee; cursor: default; }
+    .hw-day.full { background: #81c784; color: white; }
+    .hw-day.partial { background: #ffb74d; color: white; }
+    .hw-day.today { outline: 2px solid #1a1a2e; }
+    .hw-day.empty-cell { background: transparent; }
+    .chart-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .chart-tab { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 8px; background: white; font-size: 13px; cursor: pointer; color: #888; }
+    .chart-tab.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+    .chart-wrap { display: none; }
+    .chart-wrap.active { display: block; }
+    .chart-empty { text-align: center; color: #aaa; font-size: 13px; padding: 20px 0; }
+    .auth-block { position: fixed; inset: 0; background: #1a1a2e; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .auth-block-inner { text-align: center; padding: 32px 24px; }
+    .auth-block-inner h2 { color: #c8a97e; font-size: 22px; margin-bottom: 16px; }
+    .auth-block-inner p { color: #aaa; font-size: 14px; line-height: 1.8; }
+    .auth-block-inner button { margin-top: 24px; padding: 12px 24px; background: none; border: 1px solid #555; border-radius: 8px; color: #888; font-size: 13px; cursor: pointer; }
+    .menu-overlay { position: fixed; inset: 0; z-index: 998; display: none; }
+    .menu-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
+    .menu-drawer { position: absolute; left: 0; top: 0; bottom: 0; width: 72%; max-width: 280px; background: #1a1a2e; padding: 60px 0 24px; display: flex; flex-direction: column; }
+    .menu-drawer a { display: block; padding: 18px 28px; color: white; text-decoration: none; font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .menu-drawer a:hover { background: rgba(200,169,126,0.15); }
+    .menu-drawer .menu-label { padding: 12px 28px 6px; font-size: 11px; color: #c8a97e; letter-spacing: 1px; }
+    .hamburger { position: absolute; top: 12px; left: 0; background: none; border: none; cursor: pointer; padding: 4px; display: flex; flex-direction: column; gap: 5px; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: #555; border-radius: 2px; }
+    .name-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; }
+    .name-modal { background: white; border-radius: 20px; padding: 32px 24px; width: 88%; max-width: 340px; text-align: center; }
+    .name-modal h2 { font-size: 18px; color: #1a1a2e; margin-bottom: 8px; }
+    .name-modal p { font-size: 13px; color: #888; margin-bottom: 20px; line-height: 1.6; }
+    .name-modal input { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; margin-bottom: 12px; text-align: center; }
+    .name-modal button { width: 100%; padding: 14px; background: #1a1a2e; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <!-- 送信完了画面 -->
+  <div id="complete-screen" style="display:none; position:fixed; inset:0; background:#1a1a2e; z-index:2000; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px 24px;">
+    <div style="font-size:64px; margin-bottom:24px;">💪</div>
+    <div style="font-size:22px; font-weight:bold; color:#c8a97e; margin-bottom:16px;" id="complete-title">お疲れ様でした！</div>
+    <div style="font-size:16px; color:#ddd; line-height:1.8; margin-bottom:40px;" id="complete-message"></div>
+    <button onclick="closeCompleteScreen()" style="background:#c8a97e; color:#1a1a2e; border:none; border-radius:50px; padding:16px 48px; font-size:16px; font-weight:bold; cursor:pointer;">閉じる</button>
+  </div>
+
+  <!-- 名前入力オーバーレイ -->
+  <!-- 会員認証ブロック画面 -->
+  <div id="auth-block" class="auth-block" style="display:none">
+    <div class="auth-block-inner">
+      <h2>PUTTERS</h2>
+      <p>このアプリは会員専用です。<br>松本さんに登録してもらってから<br>再度お試しください。</p>
+      <button onclick="resetName()">名前を変更する</button>
+    </div>
+  </div>
+
+  <!-- マイセットモーダル -->
+  <div id="myset-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; align-items:flex-end; justify-content:center;">
+    <div style="background:white; border-radius:20px 20px 0 0; padding:24px 20px; width:100%; max-height:70vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div style="font-size:16px; font-weight:bold; color:#1a1a2e;">📦 マイセットを選ぶ</div>
+        <button onclick="closeMysetModal()" style="background:none; border:none; font-size:22px; color:#aaa; cursor:pointer;">×</button>
+      </div>
+      <div id="myset-modal-list"></div>
+    </div>
+  </div>
+
+  <div id="name-overlay" class="name-overlay" style="display:none">
+    <div class="name-modal">
+      <h2>はじめまして！</h2>
+      <p>Googleカレンダーの予約名と<br>同じ名前を入力してください</p>
+      <input type="text" id="name-input" placeholder="例：田中 太郎" maxlength="20">
+      <button onclick="saveName()">決定</button>
+    </div>
+  </div>
+
+  <!-- メニュードロワー -->
+  <div id="menu-overlay" class="menu-overlay">
+    <div class="menu-bg" onclick="closeMenu()"></div>
+    <div class="menu-drawer">
+      <div class="menu-label">MENU</div>
+      <a href="#" onclick="openModeModal(); return false;" id="mode-menu-btn">⚙️ コース切替</a>
+      <a href="/goals.html">🎯 目標設定</a>
+      <a href="/chart-full.html">📈 グラフ（全期間）</a>
+      <a href="/schedule.html">📅 今月の予約</a>
+      <a href="/myset.html">📦 マイセット管理</a>
+      <a href="/feedback.html">📮 意見箱</a>
+      <div class="menu-label">PICKUP</div>
+      <a href="/protein.html" style="color:#c8a97e;">💪 おすすめのプロテイン</a>
+      <a href="https://beauty.hotpepper.jp/kr/slnH000674679/" target="_blank" style="color:#c8a97e;">✨ Crescent まつげパーマ・マツエク専門店（松本トレーナー経営）</a>
+    </div>
+  </div>
+
+  <div style="position:relative; text-align:center; padding-top:12px;">
+    <button class="hamburger" onclick="openMenu()">
+      <span></span><span></span><span></span>
+    </button>
+    <h1 id="page-title">PUTTERS 生活指導</h1>
+    <p id="user-greeting" style="font-size:13px; color:#888; margin-top:4px;"></p>
+    <button onclick="saveTempAndClose()" style="position:absolute; top:12px; right:0; background:#e0e0e0; border:none; border-radius:50%; width:32px; height:32px; font-size:16px; color:#555; cursor:pointer; display:flex; align-items:center; justify-content:center;">×</button>
+  </div>
+  <div id="save-toast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#1a1a2e; color:#c8a97e; padding:10px 20px; border-radius:20px; font-size:13px; z-index:999;">一時保存しました</div>
+
+  <!-- 目標体重バー -->
+  <div class="goal-bar" id="goal-bar" style="display:none">
+    目標まであと <span id="goal-diff">-</span> kg
+  </div>
+
+  <!-- 体重・体温 横並び -->
+  <div style="display:flex; gap:12px; margin-bottom:16px;">
+    <div class="section" style="flex:1; margin-bottom:0;">
+      <h2>⚖️ 体重</h2>
+      <div class="row">
+        <input type="number" id="weight" placeholder="" step="0.1" oninput="updateGoalBar(); saveCache()">
+        <span class="unit">kg</span>
+      </div>
+      <div style="margin-top:8px; display:flex; align-items:center; gap:6px;">
+        <span style="font-size:11px; color:#555;">目標</span>
+        <span id="goal-weight-display" style="font-size:11px; color:#555; font-weight:bold;">-</span>
+        <span style="font-size:11px; color:#555;">kg</span>
+        <input type="hidden" id="goal-weight">
+      </div>
+    </div>
+    <div class="section" style="flex:1; margin-bottom:0;">
+      <h2>🌡️ 体温</h2>
+      <div class="row">
+        <input type="number" id="temperature" placeholder="" step="0.1" oninput="saveCache()">
+        <span class="unit">℃</span>
+      </div>
+      <div style="margin-top:8px; font-size:11px; color:#555; font-weight:bold;">30日平均 <span id="temp-avg">-</span>℃</div>
+    </div>
+  </div>
+
+  <!-- 食事 -->
+  <div class="section" id="meal-section">
+    <h2>🍽️ 今日食べたもの</h2>
+
+    <!-- 食事指導ライトコース：画像解析UI -->
+    <div id="lite-meal-ui" style="display:none;">
+      <input type="file" id="meal-image-input" accept="image/*" capture="environment" style="display:none;" onchange="onMealImageSelected(this)">
+      <button onclick="document.getElementById('meal-image-input').click()" style="width:100%; padding:20px; background:#f5f0eb; border:2px dashed #c8a97e; border-radius:12px; font-size:15px; color:#c8a97e; cursor:pointer; margin-bottom:12px;">
+        📷 食事の写真を撮る
+      </button>
+      <div id="meal-image-preview" style="display:none; margin-bottom:12px;">
+        <img id="meal-preview-img" style="width:100%; border-radius:12px; max-height:220px; object-fit:cover;">
+        <button onclick="analyzeMealImage()" id="analyze-btn" style="width:100%; margin-top:8px; padding:12px; background:#1a1a2e; color:white; border:none; border-radius:10px; font-size:15px; cursor:pointer;">✨ 解析する</button>
+        <div id="analyze-result" style="margin-top:10px; font-size:13px; color:#555; background:#f5f0eb; border-radius:8px; padding:10px; display:none;"></div>
+      </div>
+    </div>
+
+    <!-- 食事指導コース：通常UI -->
+    <div id="full-meal-ui">
+      <!-- タブ -->
+      <div class="tab-btns">
+        <button class="tab-btn active" onclick="switchTab('food')">🥩 食材</button>
+        <button class="tab-btn" onclick="switchTab('restaurant')">🏪 外食</button>
+      </div>
+
+      <!-- 食材タブ -->
+      <div id="tab-food" class="tab-content active">
+        <div id="food-list"></div>
+        <div style="display:flex; gap:8px; margin-top:4px;">
+          <button class="add-btn" style="flex:1; margin-top:0;" onclick="addFoodRow()">＋ 食材を追加</button>
+          <button class="add-btn" style="flex:1; margin-top:0; border-color:#c8a97e; color:#c8a97e;" onclick="openMysetModal()">📦 マイセット</button>
+        </div>
+      </div>
+
+      <!-- 外食タブ -->
+      <div id="tab-restaurant" class="tab-content">
+        <div id="restaurant-list"></div>
+        <button class="add-btn" onclick="addRestaurantRow()">＋ 外食を追加</button>
+      </div>
+
+      <!-- その他（手動PFC入力） -->
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
+        <div style="font-size: 13px; color: #888; margin-bottom: 8px;">その他（PFCを直接入力）</div>
+        <div id="manual-pfc-list"></div>
+        <button class="add-btn" onclick="addManualPFCRow()" style="margin-top:4px;">＋ PFCを追加</button>
+      </div>
+    </div>
+
+    <div class="pfc-result">
+      <div class="pfc-item"><div class="pfc-label">タンパク質</div><div class="pfc-value" id="total-p">0</div><div class="pfc-unit">g</div></div>
+      <div class="pfc-item"><div class="pfc-label">脂質</div><div class="pfc-value" id="total-f">0</div><div class="pfc-unit">g</div></div>
+      <div class="pfc-item"><div class="pfc-label">炭水化物</div><div class="pfc-value" id="total-c">0</div><div class="pfc-unit">g</div></div>
+      <div class="pfc-item"><div class="pfc-label">カロリー</div><div class="pfc-value" id="total-kcal">0</div><div class="pfc-unit">kcal</div></div>
+    </div>
+
+    <!-- PFC目標達成率 -->
+    <div style="margin-top:16px; padding-top:16px; border-top:1px solid #eee;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <div style="font-size:12px; color:#555; font-weight:bold;">🎯 目標 P:<span id="disp-goal-p">-</span>g F:<span id="disp-goal-f">-</span>g C:<span id="disp-goal-c">-</span>g</div>
+      </div>
+      <input type="hidden" id="goal-p">
+      <input type="hidden" id="goal-f">
+      <input type="hidden" id="goal-c">
+      <div class="donut-row">
+        <div class="donut-item">
+          <canvas id="donut-p"></canvas>
+          <div class="donut-pct" id="donut-pct-p">-</div>
+          <div class="donut-label">タンパク質</div>
+        </div>
+        <div class="donut-item">
+          <canvas id="donut-f"></canvas>
+          <div class="donut-pct" id="donut-pct-f">-</div>
+          <div class="donut-label">脂質</div>
+        </div>
+        <div class="donut-item">
+          <canvas id="donut-c"></canvas>
+          <div class="donut-pct" id="donut-pct-c">-</div>
+          <div class="donut-label">炭水化物</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 有酸素 -->
+  <div class="section">
+    <h2>🏃 有酸素運動</h2>
+    <div class="row">
+      <input type="number" id="cardio" placeholder="0" min="0" oninput="saveCache()">
+      <span class="unit">分</span>
+    </div>
+  </div>
+
+  <!-- 宿題チェックリスト -->
+  <div class="section">
+    <h2>📋 今日の宿題</h2>
+    <div id="checklist">
+      <p style="color:#aaa; font-size:14px;">読み込み中...</p>
+    </div>
+    <!-- 自分で追加 -->
+    <div id="custom-task-list"></div>
+    <div id="custom-task-input-row" style="display:none; gap:8px; margin-top:8px;">
+      <input type="text" id="custom-task-input" placeholder="宿題を入力..." style="flex:1; border:1px solid #ddd; border-radius:8px; padding:10px 12px; font-size:14px;">
+      <button onclick="addCustomTask()" style="background:#1a1a2e; color:white; border:none; border-radius:8px; padding:10px 16px; font-size:14px; cursor:pointer;">追加</button>
+    </div>
+    <button onclick="toggleCustomInput()" id="custom-task-btn" class="add-btn" style="margin-top:8px;">＋ 自分で追加</button>
+    <!-- カレンダー -->
+    <div style="margin-top:16px; padding-top:16px; border-top:1px solid #eee;">
+      <div style="font-size:13px; color:#888; margin-bottom:10px;">達成カレンダー</div>
+      <div id="hw-calendar"></div>
+      <div style="display:flex; gap:12px; margin-top:8px; font-size:11px; color:#888;">
+        <span><span style="display:inline-block;width:12px;height:12px;background:#81c784;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>全達成</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:#ffb74d;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>一部達成</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:#eee;border-radius:3px;vertical-align:middle;margin-right:3px;"></span>未記録</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- グラフ -->
+  <div class="section">
+    <h2>📈 グラフ（過去14日）</h2>
+    <div class="chart-tabs">
+      <button class="chart-tab active" onclick="switchChartTab('weight', this)">⚖️ 体重</button>
+      <button class="chart-tab" onclick="switchChartTab('pfc', this)">🍽️ PFC</button>
+    </div>
+    <div id="chart-wrap-weight" class="chart-wrap active">
+      <div id="chart-empty-weight" class="chart-empty">記録を送ると表示されます</div>
+      <canvas id="chart-weight" style="display:none"></canvas>
+    </div>
+    <div id="chart-wrap-pfc" class="chart-wrap">
+      <div id="chart-empty-pfc" class="chart-empty">記録を送ると表示されます</div>
+      <canvas id="chart-pfc" style="display:none"></canvas>
+    </div>
+    <div style="text-align:right; margin-top:12px;">
+      <a href="/history.html" style="font-size:13px; color:#c8a97e; text-decoration:none;">全期間を見る →</a>
+    </div>
+  </div>
+
+  <button class="submit-btn" onclick="submitData()">今日の記録を送る</button>
+  <p id="message"></p>
+
+
+  <script>
+    function toggleCustomInput() {
+      const row = document.getElementById('custom-task-input-row');
+      const btn = document.getElementById('custom-task-btn');
+      const visible = row.style.display !== 'none' && row.style.display !== '';
+      row.style.display = visible ? 'none' : 'flex';
+      btn.style.display = visible ? '' : 'none';
+      if (!visible) document.getElementById('custom-task-input').focus();
+    }
+
+    function addCustomTask(text, checked = false) {
+      if (text === undefined) {
+        const input = document.getElementById('custom-task-input');
+        text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+      }
+      const list = document.getElementById('custom-task-list');
+      const id = 'custom-' + Date.now() + list.children.length;
+      const div = document.createElement('div');
+      div.className = 'checklist-item custom-task-item';
+      div.innerHTML = `
+        <input type="checkbox" id="${id}" ${checked ? 'checked' : ''}>
+        <label for="${id}">${text}</label>
+        <button onclick="this.closest('.custom-task-item').remove(); saveCache();" style="background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;margin-left:auto;padding:0 4px;">×</button>
+      `;
+      div.querySelector('input').addEventListener('change', saveCache);
+      list.appendChild(div);
+      saveCache();
+    }
+
+    function openMenu() { document.getElementById('menu-overlay').style.display = 'block'; }
+    function closeMenu() { document.getElementById('menu-overlay').style.display = 'none'; }
+
+    const MODE_KEY = 'putters_mode';
+    const MODES = {
+      food: { label: '食事指導コース', title: 'PUTTERS 食事指導' },
+      lite: { label: '食事指導ライトコース', title: 'PUTTERS 食事指導ライト' },
+      life: { label: '生活指導コース', title: 'PUTTERS 生活指導' }
+    };
+
+    function applyMode() {
+      const mode = localStorage.getItem(MODE_KEY) || 'food';
+      const mealSection = document.getElementById('meal-section');
+      const fullUI = document.getElementById('full-meal-ui');
+      const liteUI = document.getElementById('lite-meal-ui');
+      const title = document.getElementById('page-title');
+      if (mode === 'life') {
+        mealSection.style.display = 'none';
+      } else if (mode === 'lite') {
+        mealSection.style.display = '';
+        fullUI.style.display = 'none';
+        liteUI.style.display = '';
+      } else {
+        mealSection.style.display = '';
+        fullUI.style.display = '';
+        liteUI.style.display = 'none';
+      }
+      if (title) title.textContent = (MODES[mode] || MODES.food).title;
+    }
+
+    function openModeModal() {
+      closeMenu();
+      const current = localStorage.getItem(MODE_KEY) || 'food';
+      const modal = document.createElement('div');
+      modal.id = 'mode-modal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center;';
+      modal.innerHTML = `
+        <div style="background:white;border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:480px;">
+          <div style="font-size:16px;font-weight:bold;color:#1a1a2e;margin-bottom:16px;text-align:center;">コースを選択</div>
+          ${Object.entries(MODES).map(([key, m]) => `
+            <button onclick="setMode('${key}')" style="width:100%;padding:14px;margin-bottom:10px;background:${current===key?'#1a1a2e':'white'};color:${current===key?'white':'#333'};border:1px solid ${current===key?'#1a1a2e':'#ddd'};border-radius:12px;font-size:15px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">
+              <span style="font-size:18px;">${current===key?'✅':''}</span>${m.label}
+            </button>
+          `).join('')}
+          <button onclick="document.getElementById('mode-modal').remove()" style="width:100%;padding:12px;background:none;border:1px solid #ddd;border-radius:12px;font-size:14px;color:#888;cursor:pointer;margin-top:4px;">キャンセル</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function setMode(mode) {
+      localStorage.setItem(MODE_KEY, mode);
+      document.getElementById('mode-modal').remove();
+      applyMode();
+    }
+
+    function openMysetModal() {
+      const sets = JSON.parse(localStorage.getItem('putters_mysets') || '[]');
+      const list = document.getElementById('myset-modal-list');
+      if (sets.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:14px;padding:20px 0;">セットがまだありません<br><a href="/myset.html" style="color:#c8a97e;">マイセット管理へ →</a></div>';
+      } else {
+        list.innerHTML = sets.map((s, i) => `
+          <div style="border:1px solid #eee; border-radius:12px; padding:14px; margin-bottom:10px;">
+            <div style="font-size:14px; font-weight:bold; color:#1a1a2e; margin-bottom:6px;">${s.name}</div>
+            <div style="font-size:12px; color:#888; margin-bottom:10px;">${s.foods.map(f => f.name + ' ' + f.gram + 'g').join('・')}</div>
+            <button onclick="applyMyset(${i})" style="background:#1a1a2e; color:white; border:none; border-radius:8px; padding:10px 0; width:100%; font-size:14px; cursor:pointer;">追加する</button>
+          </div>
+        `).join('');
+      }
+      document.getElementById('myset-modal').style.display = 'flex';
+    }
+
+    function closeMysetModal() {
+      document.getElementById('myset-modal').style.display = 'none';
+    }
+
+    async function applyMyset(i) {
+      const sets = JSON.parse(localStorage.getItem('putters_mysets') || '[]');
+      const s = sets[i];
+      if (!s) return;
+      const promises = [];
+      for (const f of s.foods) {
+        const idx = addFoodRow(f.name, f.gram);
+        if (f.name) promises.push(searchPFCSilent(idx, f.name));
+      }
+      await Promise.all(promises);
+      calcTotal();
+      saveCache();
+      closeMysetModal();
+    }
+
+    function saveTempAndClose() {
+      saveCache();
+      const toast = document.getElementById('save-toast');
+      toast.style.display = 'block';
+      setTimeout(() => {
+        try { liff.closeWindow(); } catch(e) {}
+      }, 800);
+    }
+
+    const HISTORY_KEY = 'putters_history';
+    const NAME_KEY = 'putters_user_name';
+
+    async function saveName() {
+      const name = document.getElementById('name-input').value.trim();
+      if (!name) return;
+      localStorage.setItem(NAME_KEY, name);
+      document.getElementById('name-overlay').style.display = 'none';
+      await verifyMember(name);
+    }
+
+    async function verifyMember(name) {
+      try {
+        const res = await fetch(GAS_URL + '?action=admin_homework');
+        const data = await res.json();
+        const found = data.some(d => d.name === name);
+        if (!found) {
+          document.getElementById('auth-block').style.display = 'flex';
+        }
+      } catch (e) {
+        // 通信エラーの場合はとりあえず通す
+      }
+    }
+
+    async function checkName() {
+      const name = localStorage.getItem(NAME_KEY);
+      if (!name) {
+        document.getElementById('name-overlay').style.display = 'flex';
+        return;
+      }
+      await verifyMember(name);
+    }
+
+    function resetName() {
+      localStorage.removeItem(NAME_KEY);
+      document.getElementById('auth-block').style.display = 'none';
+      document.getElementById('name-overlay').style.display = 'flex';
+    }
+
+    function getUserName() {
+      return localStorage.getItem(NAME_KEY) || '不明';
+    }
+    const HW_HISTORY_KEY = 'putters_hw_history';
+
+    function saveHWHistory(checked, total) {
+      const today = new Date().toISOString().slice(0, 10);
+      let history = JSON.parse(localStorage.getItem(HW_HISTORY_KEY) || '{}');
+      history[today] = { checked, total };
+      localStorage.setItem(HW_HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function renderHWCalendar() {
+      const history = JSON.parse(localStorage.getItem(HW_HISTORY_KEY) || '{}');
+      const cal = document.getElementById('hw-calendar');
+      if (!cal) return;
+
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const firstDay = new Date(year, month, 1).getDay(); // 0=日
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const todayStr = today.toISOString().slice(0, 10);
+
+      const headers = ['日','月','火','水','木','金','土'];
+      let html = '<div class="hw-cal">';
+      headers.forEach(h => { html += `<div class="hw-cal-header">${h}</div>`; });
+
+      // 空白マス
+      for (let i = 0; i < firstDay; i++) {
+        html += '<div class="hw-day empty-cell"></div>';
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const rec = history[dateStr];
+        let cls = 'hw-day';
+        if (rec) {
+          cls += rec.checked === rec.total ? ' full' : ' partial';
+        }
+        if (dateStr === todayStr) cls += ' today';
+        html += `<div class="${cls}" title="${rec ? rec.checked+'/'+rec.total+'達成' : ''}">${d}</div>`;
+      }
+
+      html += '</div>';
+      cal.innerHTML = html;
+    }
+    const PFC_GOAL_KEY = 'putters_pfc_goal';
+    const donutCharts = {};
+
+    function savePFCGoals() {
+      localStorage.setItem(PFC_GOAL_KEY, JSON.stringify({
+        p: document.getElementById('goal-p').value,
+        f: document.getElementById('goal-f').value,
+        c: document.getElementById('goal-c').value
+      }));
+    }
+
+    function loadPFCGoals() {
+      const raw = localStorage.getItem(PFC_GOAL_KEY);
+      if (!raw) return;
+      try {
+        const g = JSON.parse(raw);
+        if (g.p) { document.getElementById('goal-p').value = g.p; document.getElementById('disp-goal-p').textContent = g.p; }
+        if (g.f) { document.getElementById('goal-f').value = g.f; document.getElementById('disp-goal-f').textContent = g.f; }
+        if (g.c) { document.getElementById('goal-c').value = g.c; document.getElementById('disp-goal-c').textContent = g.c; }
+      } catch (e) {}
+    }
+
+    function renderDonut(id, pctId, actual, goal, color) {
+      const pct = goal > 0 ? Math.min(actual / goal * 100, 100) : 0;
+      const over = goal > 0 && actual > goal;
+      const fill = over ? '#ef5350' : color;
+      const data = goal > 0 ? [pct, 100 - pct] : [0, 100];
+      document.getElementById(pctId).textContent = goal > 0 ? Math.round(actual / goal * 100) + '%' : '-';
+      document.getElementById(pctId).style.color = over ? '#ef5350' : '#333';
+      const canvas = document.getElementById(id);
+      if (donutCharts[id]) donutCharts[id].destroy();
+      donutCharts[id] = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          datasets: [{ data, backgroundColor: [fill, '#eee'], borderWidth: 0 }]
+        },
+        options: {
+          cutout: '70%',
+          responsive: true,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          animation: { duration: 400 }
+        }
+      });
+    }
+
+    function renderPFCGoalCharts() {
+      const p = parseFloat(document.getElementById('total-p').textContent) || 0;
+      const f = parseFloat(document.getElementById('total-f').textContent) || 0;
+      const c = parseFloat(document.getElementById('total-c').textContent) || 0;
+      const gp = parseFloat(document.getElementById('goal-p').value) || 0;
+      const gf = parseFloat(document.getElementById('goal-f').value) || 0;
+      const gc = parseFloat(document.getElementById('goal-c').value) || 0;
+      renderDonut('donut-p', 'donut-pct-p', p, gp, '#e57373');
+      renderDonut('donut-f', 'donut-pct-f', f, gf, '#ffb74d');
+      renderDonut('donut-c', 'donut-pct-c', c, gc, '#81c784');
+    }
+    let weightChart = null, pfcChart = null;
+
+    function switchChartTab(tab, btn) {
+      document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.chart-wrap').forEach(w => w.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('chart-wrap-' + tab).classList.add('active');
+    }
+
+    function saveHistory(weight, p, f, c, kcal, temperature, cardio) {
+      const today = new Date().toISOString().slice(0, 10);
+      let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      history = history.filter(d => d.date !== today);
+      history.push({ date: today, weight: parseFloat(weight) || null, p: parseFloat(p) || 0, f: parseFloat(f) || 0, c: parseFloat(c) || 0, kcal: parseFloat(kcal) || 0, temperature: parseFloat(temperature) || null, cardio: parseFloat(cardio) || 0 });
+      history.sort((a, b) => a.date.localeCompare(b.date));
+      if (history.length > 90) history = history.slice(-90);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function calcTempAvg() {
+      const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+      const cutoffStr = cutoff.toISOString().slice(0, 10);
+      const temps = history.filter(d => d.date >= cutoffStr && d.temperature).map(d => d.temperature);
+      const el = document.getElementById('temp-avg');
+      if (el && temps.length > 0) {
+        el.textContent = (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1);
+      }
+    }
+
+    function renderCharts() {
+      const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      if (history.length === 0) return;
+
+      const labels = history.map(d => d.date.slice(5));
+
+      // 体重グラフ
+      const weightData = history.map(d => d.weight);
+      const hasWeight = weightData.some(v => v !== null);
+      if (hasWeight) {
+        document.getElementById('chart-empty-weight').style.display = 'none';
+        const canvas = document.getElementById('chart-weight');
+        canvas.style.display = 'block';
+        if (weightChart) weightChart.destroy();
+        weightChart = new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: '体重 (kg)',
+              data: weightData,
+              borderColor: '#1a1a2e',
+              backgroundColor: 'rgba(26,26,46,0.08)',
+              tension: 0.3,
+              pointBackgroundColor: '#c8a97e',
+              pointRadius: 4,
+              spanGaps: true
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { ticks: { callback: v => v + 'kg' } }
+            }
+          }
+        });
+      }
+
+      // PFCグラフ
+      document.getElementById('chart-empty-pfc').style.display = 'none';
+      const canvas2 = document.getElementById('chart-pfc');
+      canvas2.style.display = 'block';
+      if (pfcChart) pfcChart.destroy();
+      pfcChart = new Chart(canvas2, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'P(g)', data: history.map(d => d.p), borderColor: '#e57373', tension: 0.3, pointRadius: 3 },
+            { label: 'F(g)', data: history.map(d => d.f), borderColor: '#ffb74d', tension: 0.3, pointRadius: 3 },
+            { label: 'C(g)', data: history.map(d => d.c), borderColor: '#81c784', tension: 0.3, pointRadius: 3 },
+            { label: 'kcal', data: history.map(d => d.kcal), borderColor: '#9575cd', tension: 0.3, pointRadius: 3, yAxisID: 'y2', borderDash: [4,4] }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+          scales: {
+            y: { position: 'left', ticks: { callback: v => v + 'g' } },
+            y2: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + 'kcal' } }
+          }
+        }
+      });
+    }
+
+    const LIFF_ID = '2009746243-PAAQuZkb';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+    const CACHE_KEY = 'putters_cache';
+
+    const pfcCache = {};
+    const restaurantPfcCache = {};
+    let currentTasks = [];
+    let liteAnalysis = null; // ライトコース解析結果
+
+    const defaultTasks = [
+      '朝食を食べた', '水を1.5L以上飲んだ', '有酸素運動をした', '腹筋トレーニングをした', '早寝した（23時前）'
+    ];
+
+    // タブ切り替え
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // 目標体重バー更新
+    function updateGoalBar() {
+      const w = parseFloat(document.getElementById('weight').value);
+      const g = parseFloat(document.getElementById('goal-weight').value);
+      const bar = document.getElementById('goal-bar');
+      if (!isNaN(w) && !isNaN(g)) {
+        const diff = (w - g).toFixed(1);
+        document.getElementById('goal-diff').textContent = diff > 0 ? diff : '達成！';
+        bar.style.display = 'block';
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    // 目標体重は別途永続保存
+    function saveGoalWeight() {
+      const g = document.getElementById('goal-weight').value;
+      if (g) localStorage.setItem('putters_goal_weight', g);
+    }
+
+    function loadGoalWeight() {
+      const g = localStorage.getItem('putters_goal_weight');
+      if (g) {
+        document.getElementById('goal-weight').value = g;
+        document.getElementById('goal-weight-display').textContent = g;
+        updateGoalBar();
+      }
+    }
+
+    // localStorageキャッシュ保存
+    function saveCache() {
+      const data = {
+        date: new Date().toDateString(),
+        weight: document.getElementById('weight').value,
+        goalWeight: document.getElementById('goal-weight').value,
+        temperature: document.getElementById('temperature').value,
+        cardio: document.getElementById('cardio').value,
+        manualPFCs: Array.from(document.querySelectorAll('.manual-pfc-row')).map(row => ({
+          p: row.querySelector('.mpfc-p').value,
+          f: row.querySelector('.mpfc-f').value,
+          c: row.querySelector('.mpfc-c').value
+        })),
+        liteAnalysis: liteAnalysis,
+        foods: [],
+        restaurants: []
+      };
+      document.querySelectorAll('.food-entry').forEach(entry => {
+        data.foods.push({
+          name: entry.querySelector('.food-name').value,
+          gram: entry.querySelector('.food-gram').value
+        });
+      });
+      document.querySelectorAll('.restaurant-entry').forEach(entry => {
+        data.restaurants.push({
+          text: entry.querySelector('.restaurant-name').value
+        });
+      });
+      // チェックボックスの状態を保存
+      data.checkedIndexes = Array.from(document.querySelectorAll('#checklist input[type="checkbox"]'))
+        .map((cb, i) => cb.checked ? i : null).filter(i => i !== null);
+      // カスタムタスクを保存
+      data.customTasks = Array.from(document.querySelectorAll('.custom-task-item')).map(el => ({
+        text: el.querySelector('label').textContent,
+        checked: el.querySelector('input[type="checkbox"]').checked
+      }));
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    }
+
+    // localStorageキャッシュ復元
+    async function loadCache() {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        const today = new Date().toDateString();
+        if (data.date && data.date !== today) {
+          localStorage.removeItem(CACHE_KEY);
+          return;
+        }
+        if (data.weight) document.getElementById('weight').value = data.weight;
+        if (data.goalWeight) document.getElementById('goal-weight').value = data.goalWeight;
+        if (data.temperature) document.getElementById('temperature').value = data.temperature;
+        if (data.cardio) document.getElementById('cardio').value = data.cardio;
+        if (data.liteAnalysis) {
+          liteAnalysis = data.liteAnalysis;
+          document.getElementById('total-p').textContent = (liteAnalysis.p || 0).toFixed(1);
+          document.getElementById('total-f').textContent = (liteAnalysis.f || 0).toFixed(1);
+          document.getElementById('total-c').textContent = (liteAnalysis.c || 0).toFixed(1);
+          document.getElementById('total-kcal').textContent = Math.round(liteAnalysis.kcal || 0);
+          const resultEl = document.getElementById('analyze-result');
+          if (resultEl) { resultEl.textContent = '📋 ' + liteAnalysis.description; resultEl.style.display = 'block'; }
+          renderPFCGoalCharts();
+        }
+        if (data.customTasks && data.customTasks.length > 0) {
+          data.customTasks.forEach(t => addCustomTask(t.text, t.checked));
+        }
+        if (data.manualPFCs && data.manualPFCs.length > 0) {
+          data.manualPFCs.forEach(m => addManualPFCRow(m.p, m.f, m.c));
+        }
+        // 食材行を復元してPFCも再取得
+        const pfcPromises = [];
+        if (data.foods && data.foods.length > 0) {
+          for (const f of data.foods) {
+            const idx = addFoodRow(f.name, f.gram);
+            if (f.name) pfcPromises.push(searchPFCSilent(idx, f.name));
+          }
+        }
+        if (data.restaurants && data.restaurants.length > 0) {
+          for (const r of data.restaurants) {
+            const idx = addRestaurantRow(r.text);
+            if (r.text) pfcPromises.push(searchRestaurantPFCSilent(idx, r.text));
+          }
+        }
+        await Promise.all(pfcPromises);
+        updateGoalBar();
+        calcTotal();
+      } catch (e) { console.log('cache load error:', e); }
+    }
+
+    // PFC取得（サイレント版・キャッシュ復元用）
+    async function searchPFCSilent(idx, name) {
+      try {
+        const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) });
+        const pfc = await res.json();
+        pfcCache[idx] = pfc;
+        const rowEl = document.getElementById(`pfc-row-${idx}`);
+        if (rowEl) {
+          const gram = parseFloat(document.querySelector(`.food-gram[data-idx="${idx}"]`).value) || 100;
+          const r = gram / 100;
+          rowEl.textContent = `${gram}gで P:${(pfc.p*r).toFixed(1)}g F:${(pfc.f*r).toFixed(1)}g C:${(pfc.c*r).toFixed(1)}g ${Math.round(pfc.kcal*r)}kcal`;
+        }
+      } catch (e) {}
+    }
+
+    async function searchRestaurantPFCSilent(idx, name) {
+      try {
+        const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) });
+        const pfc = await res.json();
+        restaurantPfcCache[idx] = pfc;
+        const rowEl = document.getElementById(`rpfc-row-${idx}`);
+        if (rowEl) rowEl.textContent = `推定 P:${pfc.p}g F:${pfc.f}g C:${pfc.c}g ${pfc.kcal}kcal`;
+      } catch (e) {}
+    }
+
+    // 食材行追加
+    function addFoodRow(name = '', gram = '') {
+      const list = document.getElementById('food-list');
+      const idx = 'f' + Date.now() + list.children.length;
+      const div = document.createElement('div');
+      div.className = 'food-entry';
+      div.innerHTML = `
+        <div class="row">
+          <input type="text" placeholder="食材名（例：白米、鶏むね肉）" class="food-name" data-idx="${idx}" value="${name}" oninput="saveCache()">
+          <input type="number" placeholder="量(g)" class="food-gram" data-idx="${idx}" value="${gram}" oninput="calcTotal(); saveCache()">
+          <button class="search-btn" onclick="searchPFC('${idx}')">調べる</button>
+          <button onclick="removeFoodRow(this, '${idx}')" style="background:none;border:none;color:#ccc;font-size:18px;cursor:pointer;padding:0 4px;">×</button>
+        </div>
+        <div class="food-row-pfc" id="pfc-row-${idx}"></div>
+      `;
+      list.appendChild(div);
+      return idx;
+    }
+
+    function removeFoodRow(btn, idx) {
+      btn.closest('.food-entry').remove();
+      delete pfcCache[idx];
+      calcTotal();
+      saveCache();
+    }
+
+    // 外食行追加
+    function addRestaurantRow(text = '') {
+      const list = document.getElementById('restaurant-list');
+      const idx = 'r' + Date.now() + list.children.length;
+      const div = document.createElement('div');
+      div.className = 'restaurant-entry';
+      div.innerHTML = `
+        <div class="row">
+          <input type="text" placeholder="例：はま寿司 マグロ 1皿" class="restaurant-name" data-idx="${idx}" value="${text}" oninput="saveCache()">
+          <button class="search-btn" onclick="searchRestaurantPFC('${idx}')">調べる</button>
+          <button onclick="removeRestaurantRow(this, '${idx}')" style="background:none;border:none;color:#ccc;font-size:18px;cursor:pointer;padding:0 4px;">×</button>
+        </div>
+        <div class="food-row-pfc" id="rpfc-row-${idx}"></div>
+      `;
+      list.appendChild(div);
+      return idx;
+    }
+
+    function removeRestaurantRow(btn, idx) {
+      btn.closest('.restaurant-entry').remove();
+      delete restaurantPfcCache[idx];
+      calcTotal();
+      saveCache();
+    }
+
+    async function searchPFC(idx) {
+      const nameEl = document.querySelector(`.food-name[data-idx="${idx}"]`);
+      const gramEl = document.querySelector(`.food-gram[data-idx="${idx}"]`);
+      const btn = nameEl.parentElement.querySelector('.search-btn');
+      const name = nameEl.value.trim();
+      if (!name) return;
+      btn.disabled = true; btn.textContent = '...';
+      try {
+        const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) });
+        const pfc = await res.json();
+        pfcCache[idx] = pfc;
+        const gram = parseFloat(document.querySelector(`.food-gram[data-idx="${idx}"]`).value) || 100;
+        const r = gram / 100;
+        document.getElementById(`pfc-row-${idx}`).textContent = `${gram}gで P:${(pfc.p*r).toFixed(1)}g F:${(pfc.f*r).toFixed(1)}g C:${(pfc.c*r).toFixed(1)}g ${Math.round(pfc.kcal*r)}kcal`;
+        calcTotal();
+      } catch (e) { document.getElementById(`pfc-row-${idx}`).textContent = '取得できませんでした'; }
+      btn.disabled = false; btn.textContent = '調べる';
+    }
+
+    async function searchRestaurantPFC(idx) {
+      const nameEl = document.querySelector(`.restaurant-name[data-idx="${idx}"]`);
+      const btn = nameEl.parentElement.querySelector('.search-btn');
+      const name = nameEl.value.trim();
+      if (!name) return;
+      btn.disabled = true; btn.textContent = '...';
+      try {
+        const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) });
+        const pfc = await res.json();
+        restaurantPfcCache[idx] = pfc;
+        document.getElementById(`rpfc-row-${idx}`).textContent = `推定 P:${pfc.p}g F:${pfc.f}g C:${pfc.c}g ${pfc.kcal}kcal`;
+        calcTotal();
+      } catch (e) { document.getElementById(`rpfc-row-${idx}`).textContent = '取得できませんでした'; }
+      btn.disabled = false; btn.textContent = '調べる';
+    }
+
+    // 手動PFC行追加
+    function addManualPFCRow(p = '', f = '', c = '') {
+      const list = document.getElementById('manual-pfc-list');
+      const idx = 'm' + Date.now() + list.children.length;
+      const div = document.createElement('div');
+      div.className = 'manual-pfc-row';
+      div.style.cssText = 'display:flex; gap:6px; margin-bottom:8px; align-items:flex-end;';
+      div.innerHTML = `
+        <div style="flex:1"><div class="label">P(g)</div><input type="number" class="mpfc-p" placeholder="0" step="0.1" value="${p}" oninput="updateManualKcal(this); calcTotal(); saveCache()"></div>
+        <div style="flex:1"><div class="label">F(g)</div><input type="number" class="mpfc-f" placeholder="0" step="0.1" value="${f}" oninput="updateManualKcal(this); calcTotal(); saveCache()"></div>
+        <div style="flex:1"><div class="label">C(g)</div><input type="number" class="mpfc-c" placeholder="0" step="0.1" value="${c}" oninput="updateManualKcal(this); calcTotal(); saveCache()"></div>
+        <div style="flex:1"><div class="label">kcal</div><input type="number" class="mpfc-kcal" placeholder="自動" step="1" readonly style="background:#f5f0eb; color:#888;"></div>
+        <button onclick="removeManualPFCRow(this)" style="background:none;border:none;color:#ccc;font-size:18px;cursor:pointer;padding:0 4px;margin-bottom:2px;">×</button>
+      `;
+      list.appendChild(div);
+      if (p || f || c) updateManualKcal(div.querySelector('.mpfc-p'));
+      return idx;
+    }
+
+    function updateManualKcal(el) {
+      const row = el.closest('.manual-pfc-row');
+      const p = parseFloat(row.querySelector('.mpfc-p').value) || 0;
+      const f = parseFloat(row.querySelector('.mpfc-f').value) || 0;
+      const c = parseFloat(row.querySelector('.mpfc-c').value) || 0;
+      row.querySelector('.mpfc-kcal').value = Math.round(p * 4 + f * 9 + c * 4) || '';
+    }
+
+    function removeManualPFCRow(btn) {
+      btn.closest('.manual-pfc-row').remove();
+      calcTotal();
+      saveCache();
+    }
+
+    function calcTotal() {
+      // liteモードは liteAnalysis の値をそのまま使う
+      const mode = localStorage.getItem(MODE_KEY) || 'food';
+      if (mode === 'lite') {
+        if (liteAnalysis) {
+          document.getElementById('total-p').textContent = (liteAnalysis.p || 0).toFixed(1);
+          document.getElementById('total-f').textContent = (liteAnalysis.f || 0).toFixed(1);
+          document.getElementById('total-c').textContent = (liteAnalysis.c || 0).toFixed(1);
+          document.getElementById('total-kcal').textContent = Math.round(liteAnalysis.kcal || 0);
+          renderPFCGoalCharts();
+        }
+        return;
+      }
+
+      let p = 0, f = 0, c = 0, kcal = 0;
+
+      document.querySelectorAll('.food-gram').forEach(gramEl => {
+        const idx = gramEl.dataset.idx;
+        const gram = parseFloat(gramEl.value) || 0;
+        if (pfcCache[idx] && gram > 0) {
+          const r = gram / 100;
+          p += pfcCache[idx].p * r; f += pfcCache[idx].f * r;
+          c += pfcCache[idx].c * r; kcal += pfcCache[idx].kcal * r;
+        }
+      });
+
+      Object.values(restaurantPfcCache).forEach(pfc => {
+        p += pfc.p; f += pfc.f; c += pfc.c; kcal += pfc.kcal;
+      });
+
+      document.querySelectorAll('.manual-pfc-row').forEach(row => {
+        const mp = parseFloat(row.querySelector('.mpfc-p').value) || 0;
+        const mf = parseFloat(row.querySelector('.mpfc-f').value) || 0;
+        const mc = parseFloat(row.querySelector('.mpfc-c').value) || 0;
+        p += mp; f += mf; c += mc;
+        kcal += mp * 4 + mf * 9 + mc * 4;
+      });
+
+      document.getElementById('total-p').textContent = p.toFixed(1);
+      document.getElementById('total-f').textContent = f.toFixed(1);
+      document.getElementById('total-c').textContent = c.toFixed(1);
+      document.getElementById('total-kcal').textContent = Math.round(kcal);
+      renderPFCGoalCharts();
+    }
+
+    async function initChecklist(userName) {
+      const container = document.getElementById('checklist');
+      let tasks = defaultTasks;
+      if (userName && userName !== '不明') {
+        try {
+          const res = await fetch(GAS_URL + '?name=' + encodeURIComponent(userName));
+          const data = await res.json();
+          if (data.tasks && data.tasks.length > 0) tasks = data.tasks;
+        } catch (e) {}
+      }
+      currentTasks = tasks;
+      container.innerHTML = '';
+      // キャッシュからチェック済みインデックスを取得
+      let savedChecked = [];
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (raw) savedChecked = JSON.parse(raw).checkedIndexes || [];
+      } catch(e) {}
+
+      tasks.forEach((task, i) => {
+        const div = document.createElement('div');
+        div.className = 'checklist-item';
+        div.innerHTML = `<input type="checkbox" id="task-${i}" ${savedChecked.includes(i) ? 'checked' : ''}><label for="task-${i}">${task}</label>`;
+        div.querySelector('input').addEventListener('change', saveCache);
+        container.appendChild(div);
+      });
+    }
+
+    async function autoSubmitYesterday() {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        const today = new Date().toDateString();
+        if (!data.date || data.date === today) return; // 昨日以前のキャッシュのみ
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const dateStr = yesterday.toISOString().slice(0, 10);
+        const userName = getUserName();
+        if (userName === '不明') return;
+        // 食事内容を組み立て
+        const foods = [];
+        (data.foods || []).forEach(f => { if (f.name) foods.push(f.name + ' ' + (f.gram || 0) + 'g'); });
+        (data.restaurants || []).forEach(r => { if (r.text) foods.push('[外食] ' + r.text); });
+        await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ name: userName, date: dateStr, weight: data.weight || '', goalWeight: data.goalWeight || '', temperature: data.temperature || '', foods: foods.join(', '), p: 0, f: 0, c: 0, kcal: 0, cardio: data.cardio || 0, checkedTasks: '', uncheckedTasks: '' })
+        });
+        localStorage.removeItem(CACHE_KEY);
+        document.getElementById('message').textContent = '✅ 昨日の記録を自動送信しました';
+        setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
+      } catch (e) {}
+    }
+
+    async function submitData(dateStr) {
+      const weight = document.getElementById('weight').value;
+      const goalWeight = document.getElementById('goal-weight').value;
+      const temperature = document.getElementById('temperature').value;
+      const cardio = document.getElementById('cardio').value;
+
+      let foods = [];
+      const mode = localStorage.getItem(MODE_KEY) || 'food';
+      if (mode === 'lite') {
+        if (liteAnalysis && liteAnalysis.description) foods.push('[写真解析] ' + liteAnalysis.description);
+      } else {
+        document.querySelectorAll('.food-entry').forEach(entry => {
+          const name = entry.querySelector('.food-name').value.trim();
+          const gram = entry.querySelector('.food-gram').value;
+          if (name) foods.push(name + ' ' + (gram || 0) + 'g');
+        });
+        document.querySelectorAll('.restaurant-entry').forEach(entry => {
+          const name = entry.querySelector('.restaurant-name').value.trim();
+          if (name) foods.push('[外食] ' + name);
+        });
+      }
+
+      const p = document.getElementById('total-p').textContent;
+      const f = document.getElementById('total-f').textContent;
+      const c = document.getElementById('total-c').textContent;
+      const kcal = document.getElementById('total-kcal').textContent;
+
+      let checkedTasks = [], uncheckedTasks = [];
+      currentTasks.forEach((task, i) => {
+        if (document.getElementById('task-' + i) && document.getElementById('task-' + i).checked) {
+          checkedTasks.push(task);
+        } else {
+          uncheckedTasks.push(task);
+        }
+      });
+      // カスタムタスクも含める
+      document.querySelectorAll('.custom-task-item').forEach(el => {
+        const text = el.querySelector('label').textContent;
+        if (el.querySelector('input[type="checkbox"]').checked) {
+          checkedTasks.push(text);
+        } else {
+          uncheckedTasks.push(text);
+        }
+      });
+
+      document.getElementById('message').textContent = '送信中...';
+
+      const userName = getUserName();
+      if (userName === '不明') { checkName(); return; }
+
+      try {
+        const recordDate = dateStr || new Date().toISOString().slice(0, 10);
+        await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ name: userName, date: recordDate, weight, goalWeight, temperature, foods: foods.join(', '), p, f, c, kcal, cardio, checkedTasks: checkedTasks.join('、'), uncheckedTasks: uncheckedTasks.join('、') })
+        });
+        saveHistory(weight, p, f, c, kcal, temperature, cardio);
+        saveHWHistory(checkedTasks.length, currentTasks.length);
+        renderCharts();
+        renderHWCalendar();
+        localStorage.removeItem(CACHE_KEY);
+        showCompleteScreen(checkedTasks.length, currentTasks.length);
+      } catch (e) {
+        document.getElementById('message').textContent = '❌ 送信に失敗しました';
+      }
+    }
+
+    // 画像解析（ライトコース）
+    let mealImageBase64 = null;
+
+    function onMealImageSelected(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        mealImageBase64 = e.target.result;
+        document.getElementById('meal-preview-img').src = mealImageBase64;
+        document.getElementById('meal-image-preview').style.display = 'block';
+        document.getElementById('analyze-result').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function analyzeMealImage() {
+      if (!mealImageBase64) return;
+      const btn = document.getElementById('analyze-btn');
+      const resultEl = document.getElementById('analyze-result');
+      btn.disabled = true;
+      btn.textContent = '解析中...';
+      resultEl.style.display = 'none';
+      try {
+        const res = await fetch('/api/analyze-meal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: mealImageBase64 })
+        });
+        const data = await res.json();
+        liteAnalysis = data;
+        // PFC結果を表示欄に反映
+        document.getElementById('total-p').textContent = (data.p || 0).toFixed(1);
+        document.getElementById('total-f').textContent = (data.f || 0).toFixed(1);
+        document.getElementById('total-c').textContent = (data.c || 0).toFixed(1);
+        document.getElementById('total-kcal').textContent = Math.round(data.kcal || 0);
+        resultEl.textContent = '📋 ' + (data.description || '解析完了');
+        resultEl.style.display = 'block';
+        renderPFCGoalCharts();
+        saveCache();
+      } catch (e) {
+        resultEl.textContent = '解析に失敗しました';
+        resultEl.style.display = 'block';
+      }
+      btn.disabled = false;
+      btn.textContent = '✨ 解析する';
+    }
+
+    // 送信完了画面
+    const praiseMessages = [
+      '毎日の積み重ねが\n必ず結果につながります！',
+      '記録する習慣が\nあなたを変えていきます！',
+      '今日も一歩\n理想の自分に近づきました！',
+      'コツコツ続けることが\n最大の武器です！',
+      '継続は力なり。\nその努力、必ず報われます！',
+      '自分を大切にする時間を\n作れている、それが凄い！',
+      '諦めない気持ちが\n一番大事。今日も最高です！',
+      '記録できた今日は\n間違いなく良い一日です！',
+    ];
+
+    function showCompleteScreen(checked, total) {
+      const msg = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+      const hwText = total > 0 ? `\n宿題 ${checked}/${total} 達成！` : '';
+      document.getElementById('complete-message').textContent = msg.replace(/\\n/g, '\n') + hwText;
+      const screen = document.getElementById('complete-screen');
+      screen.style.display = 'flex';
+    }
+
+    function closeCompleteScreen() {
+      document.getElementById('complete-screen').style.display = 'none';
+      try { liff.closeWindow(); } catch(e) {}
+    }
+
+    // 初期PFC行追加
+    function initManualPFC() {
+      if (document.getElementById('manual-pfc-list').children.length === 0) {
+        addManualPFCRow();
+      }
+    }
+
+    // 初期化
+    autoSubmitYesterday();
+    checkName();
+    const _n = getUserName();
+    if (_n !== '不明') document.getElementById('user-greeting').textContent = _n + '専用アプリ';
+    initChecklist(_n);
+
+    loadGoalWeight();
+    loadPFCGoals();
+    renderCharts();
+    renderHWCalendar();
+    calcTempAvg();
+    applyMode();
+    loadCache().then(() => {
+      if (document.getElementById('food-list').children.length === 0) addFoodRow();
+      if (document.getElementById('manual-pfc-list').children.length === 0) addManualPFCRow();
+    });
+  </script>
+</body>
+</html>
