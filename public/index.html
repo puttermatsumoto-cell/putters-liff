@@ -812,7 +812,11 @@
           document.getElementById('total-c').textContent = (liteAnalysis.c || 0).toFixed(1);
           document.getElementById('total-kcal').textContent = Math.round(liteAnalysis.kcal || 0);
           const resultEl = document.getElementById('analyze-result');
-          if (resultEl) { resultEl.textContent = '📋 ' + liteAnalysis.description; resultEl.style.display = 'block'; }
+          if (resultEl) {
+            resultEl.textContent = '📋 ' + liteAnalysis.description;
+            resultEl.style.display = 'block';
+            document.getElementById('meal-image-preview').style.display = 'block';
+          }
           renderPFCGoalCharts();
         }
         if (data.customTasks && data.customTasks.length > 0) {
