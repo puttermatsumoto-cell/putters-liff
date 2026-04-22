@@ -79,10 +79,14 @@
     .auth-block-inner button { margin-top: 24px; padding: 12px 24px; background: none; border: 1px solid #555; border-radius: 8px; color: #888; font-size: 13px; cursor: pointer; }
     .menu-overlay { position: fixed; inset: 0; z-index: 998; display: none; }
     .menu-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
-    .menu-drawer { position: absolute; left: 0; top: 0; bottom: 0; width: 72%; max-width: 280px; background: #1a1a2e; padding: 60px 0 24px; display: flex; flex-direction: column; }
-    .menu-drawer a { display: block; padding: 18px 28px; color: white; text-decoration: none; font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .menu-drawer a:hover { background: rgba(200,169,126,0.15); }
-    .menu-drawer .menu-label { padding: 12px 28px 6px; font-size: 11px; color: #c8a97e; letter-spacing: 1px; }
+    .menu-drawer { position: absolute; left: 0; top: 0; bottom: 0; width: 80%; max-width: 320px; background: #1a1a2e; padding: 60px 16px 24px; overflow-y: auto; }
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .menu-drawer a { display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 14px 8px; color: white; text-decoration: none; font-size: 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); text-align: center; line-height: 1.4; gap: 4px; }
+    .menu-drawer a:hover { background: rgba(200,169,126,0.2); }
+    .menu-drawer a .menu-icon { font-size: 20px; }
+    .menu-drawer .menu-label { padding: 12px 4px 6px; font-size: 11px; color: #c8a97e; letter-spacing: 1px; }
+    .menu-pickup { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .menu-pickup a { font-size: 12px; padding: 12px 14px; flex-direction: row; justify-content: flex-start; gap: 8px; }
     .hamburger { position: absolute; top: 12px; left: 0; background: none; border: none; cursor: pointer; padding: 4px; display: flex; flex-direction: column; gap: 5px; }
     .hamburger span { display: block; width: 22px; height: 2px; background: #555; border-radius: 2px; }
     .name-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; }
@@ -91,6 +95,16 @@
     .name-modal p { font-size: 13px; color: #888; margin-bottom: 20px; line-height: 1.6; }
     .name-modal input { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; margin-bottom: 12px; text-align: center; }
     .name-modal button { width: 100%; padding: 14px; background: #1a1a2e; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    .soreness-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; }
+    .soreness-modal { background: white; border-radius: 20px; padding: 28px 24px; width: 88%; max-width: 340px; }
+    .soreness-modal h2 { font-size: 17px; color: #1a1a2e; margin-bottom: 6px; font-weight: bold; }
+    .soreness-modal p { font-size: 13px; color: #888; margin-bottom: 16px; line-height: 1.6; }
+    .soreness-parts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .soreness-part { padding: 12px 8px; border: 2px solid #eee; border-radius: 10px; text-align: center; font-size: 14px; cursor: pointer; background: white; }
+    .soreness-part.selected { border-color: #e57373; background: #fde8e8; color: #c62828; }
+    .soreness-none { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; text-align: center; font-size: 14px; cursor: pointer; background: white; margin-bottom: 12px; }
+    .soreness-none.selected { border-color: #81c784; background: #e8f5e9; color: #388e3c; }
+    .soreness-submit { width: 100%; padding: 14px; background: #1a1a2e; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -138,15 +152,22 @@
     <div class="menu-bg" onclick="closeMenu()"></div>
     <div class="menu-drawer">
       <div class="menu-label">MENU</div>
-      <a href="#" onclick="openModeModal(); return false;" id="mode-menu-btn">⚙️ コース切替</a>
-      <a href="/goals.html">🎯 目標設定</a>
-      <a href="/chart-full.html">📈 グラフ（全期間）</a>
-      <a href="/schedule.html">📅 今月の予約</a>
-      <a href="/myset.html">📦 マイセット管理</a>
-      <a href="/feedback.html">📮 意見箱</a>
+      <div class="menu-grid">
+        <a href="#" onclick="openModeModal(); return false;" id="mode-menu-btn"><span class="menu-icon">⚙️</span>コース切替</a>
+        <a href="/goals.html"><span class="menu-icon">🎯</span>目標設定</a>
+        <a href="/chart-full.html"><span class="menu-icon">📈</span>グラフ</a>
+        <a href="/schedule.html"><span class="menu-icon">📅</span>今月の予約</a>
+        <a href="/myset.html"><span class="menu-icon">📦</span>マイセット</a>
+        <!-- <a href="/steps.html"><span class="menu-icon">🚶</span>歩数ランキング</a> -->
+        <a href="/feedback.html"><span class="menu-icon">📮</span>意見箱</a>
+      </div>
       <div class="menu-label">PICKUP</div>
-      <a href="/protein.html" style="color:#c8a97e;">💪 おすすめのプロテイン</a>
-      <a href="https://beauty.hotpepper.jp/kr/slnH000674679/" target="_blank" style="color:#c8a97e;">✨ Crescent まつげパーマ・マツエク専門店（松本トレーナー経営）</a>
+      <div class="menu-pickup">
+        <a href="/protein.html" style="color:#c8a97e;"><span class="menu-icon">💪</span>おすすめのプロテイン</a>
+        <a href="/goods.html" style="color:#c8a97e;"><span class="menu-icon">🏋️</span>おすすめグッズ</a>
+        <a href="/supple.html" style="color:#c8a97e;"><span class="menu-icon">💊</span>必須サプリメント</a>
+        <a href="https://beauty.hotpepper.jp/kr/slnH000674679/" target="_blank" style="color:#c8a97e;"><span class="menu-icon">✨</span>Crescent｜松本トレーナー経営のまつげ専門店</a>
+      </div>
     </div>
   </div>
 
@@ -163,6 +184,25 @@
   <!-- 目標体重バー -->
   <div class="goal-bar" id="goal-bar" style="display:none">
     目標まであと <span id="goal-diff">-</span> kg
+  </div>
+
+  <!-- 筋肉痛チェックモーダル -->
+  <div id="soreness-card" class="soreness-overlay" style="display:none">
+    <div class="soreness-modal">
+      <h2>💪 筋肉痛チェック</h2>
+      <p>昨日トレーニングしましたね！<br>今日はどこが筋肉痛ですか？</p>
+      <div class="soreness-parts">
+        <button class="soreness-part" data-part="胸">胸</button>
+        <button class="soreness-part" data-part="背中">背中</button>
+        <button class="soreness-part" data-part="足">足</button>
+        <button class="soreness-part" data-part="肩">肩</button>
+        <button class="soreness-part" data-part="腕">腕</button>
+        <button class="soreness-part" data-part="お腹">お腹</button>
+      </div>
+      <button class="soreness-none" id="btn-soreness-none">筋肉痛なし</button>
+      <button onclick="submitSoreness()" style="width:100%; padding:14px; background:#1a1a2e; color:white; border:none; border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:8px;">記録する</button>
+      <button onclick="document.getElementById('soreness-card').style.display='none'" style="width:100%;padding:10px;background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;margin-top:4px;">後で答える</button>
+    </div>
   </div>
 
   <!-- 体重・体温 横並び -->
@@ -248,7 +288,7 @@
     <!-- PFC目標達成率 -->
     <div style="margin-top:16px; padding-top:16px; border-top:1px solid #eee;">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-        <div style="font-size:12px; color:#555; font-weight:bold;">🎯 目標 P:<span id="disp-goal-p">-</span>g F:<span id="disp-goal-f">-</span>g C:<span id="disp-goal-c">-</span>g</div>
+        <div style="font-size:12px; color:#555; font-weight:bold;">🎯 目標 P:<span id="disp-goal-p">-</span>g F:<span id="disp-goal-f">-</span>g C:<span id="disp-goal-c">-</span>g　<span id="disp-goal-kcal" style="color:#c8a97e;">-</span></div>
       </div>
       <input type="hidden" id="goal-p">
       <input type="hidden" id="goal-f">
@@ -568,6 +608,8 @@
         if (g.p) { document.getElementById('goal-p').value = g.p; document.getElementById('disp-goal-p').textContent = g.p; }
         if (g.f) { document.getElementById('goal-f').value = g.f; document.getElementById('disp-goal-f').textContent = g.f; }
         if (g.c) { document.getElementById('goal-c').value = g.c; document.getElementById('disp-goal-c').textContent = g.c; }
+        const gkcal = (parseFloat(g.p)||0)*4 + (parseFloat(g.f)||0)*9 + (parseFloat(g.c)||0)*4;
+        if (gkcal > 0) document.getElementById('disp-goal-kcal').textContent = Math.round(gkcal) + 'kcal';
       } catch (e) {}
     }
 
@@ -703,6 +745,32 @@
 
     const LIFF_ID = '2009746243-PAAQuZkb';
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+
+    let _sorenessSubmitting = false;
+    async function submitSoreness() {
+      if (_sorenessSubmitting) return;
+      _sorenessSubmitting = true;
+      const name = localStorage.getItem('putters_user_name') || '不明';
+      const today = new Date().toISOString().slice(0, 10);
+      const noneSelected = document.getElementById('btn-soreness-none').classList.contains('selected');
+      const selectedParts = noneSelected ? 'none' : Array.from(document.querySelectorAll('.soreness-part.selected')).map(b => b.dataset.part).join(',');
+      if (!noneSelected && selectedParts === '') { _sorenessSubmitting = false; alert('筋肉痛がある場所を選ぶか、「筋肉痛なし」を選んでください'); return; }
+      try {
+        await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'saveSoreness', name, date: today, parts: selectedParts })
+        });
+      } catch(e) {}
+      _sorenessSubmitting = false;
+      localStorage.setItem('putters_soreness_checked', new Date().toISOString().slice(0, 10));
+      document.getElementById('soreness-card').style.display = 'none';
+      if (!noneSelected && selectedParts !== '') {
+        const toast = document.getElementById('save-toast');
+        toast.textContent = '💪 タンパク質を摂って回復しましょう！';
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; toast.textContent = '一時保存しました'; }, 3000);
+      }
+    }
     const CACHE_KEY = 'putters_cache';
 
     const pfcCache = {};
@@ -782,6 +850,17 @@
       // チェックボックスの状態を保存
       data.checkedIndexes = Array.from(document.querySelectorAll('#checklist input[type="checkbox"]'))
         .map((cb, i) => cb.checked ? i : null).filter(i => i !== null);
+      // 宿題テキストも保存（自動送信用）
+      data.checkedTaskTexts = [];
+      data.uncheckedTaskTexts = [];
+      document.querySelectorAll('#checklist .checklist-item').forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        const label = item.querySelector('label');
+        if (cb && label) {
+          if (cb.checked) data.checkedTaskTexts.push(label.textContent);
+          else data.uncheckedTaskTexts.push(label.textContent);
+        }
+      });
       // カスタムタスクを保存
       data.customTasks = Array.from(document.querySelectorAll('.custom-task-item')).map(el => ({
         text: el.querySelector('label').textContent,
@@ -981,25 +1060,13 @@
     }
 
     function calcTotal() {
-      // liteモードはliteAnalysesの合計を使う
-      const mode = localStorage.getItem(MODE_KEY) || 'food';
-      if (mode === 'lite') {
-        if (liteAnalyses.length > 0) {
-          const tp = liteAnalyses.reduce((s, a) => s + (a.p || 0), 0);
-          const tf = liteAnalyses.reduce((s, a) => s + (a.f || 0), 0);
-          const tc = liteAnalyses.reduce((s, a) => s + (a.c || 0), 0);
-          const tk = liteAnalyses.reduce((s, a) => s + (a.kcal || 0), 0);
-          document.getElementById('total-p').textContent = tp.toFixed(1);
-          document.getElementById('total-f').textContent = tf.toFixed(1);
-          document.getElementById('total-c').textContent = tc.toFixed(1);
-          document.getElementById('total-kcal').textContent = Math.round(tk);
-          renderPFCGoalCharts();
-        }
-        return;
-      }
+      // 写真解析分（モード問わず常に合算）
+      let p = liteAnalyses.reduce((s, a) => s + (a.p || 0), 0);
+      let f = liteAnalyses.reduce((s, a) => s + (a.f || 0), 0);
+      let c = liteAnalyses.reduce((s, a) => s + (a.c || 0), 0);
+      let kcal = liteAnalyses.reduce((s, a) => s + (a.kcal || 0), 0);
 
-      let p = 0, f = 0, c = 0, kcal = 0;
-
+      // 手打ち分も合算
       document.querySelectorAll('.food-gram').forEach(gramEl => {
         const idx = gramEl.dataset.idx;
         const gram = parseFloat(gramEl.value) || 0;
@@ -1079,15 +1146,37 @@
         const dateStr = yesterday.toISOString().slice(0, 10);
         const userName = getUserName();
         if (userName === '不明') return;
-        // 食事内容を組み立て
+        // 食事内容を組み立て（写真解析＋手打ち両方）
         const foods = [];
+        (data.liteAnalyses || []).forEach(a => { if (a.description) foods.push('[写真解析] ' + (a.time ? a.time + ' ' : '') + a.description); });
         (data.foods || []).forEach(f => { if (f.name) foods.push(f.name + ' ' + (f.gram || 0) + 'g'); });
         (data.restaurants || []).forEach(r => { if (r.text) foods.push('[外食] ' + r.text); });
+        // PFCを合算（写真解析＋手打ち）
+        const autoP = (data.liteAnalyses || []).reduce((s, a) => s + (a.p || 0), 0)
+          + (data.manualPFCs || []).reduce((s, m) => s + (parseFloat(m.p) || 0), 0);
+        const autoF = (data.liteAnalyses || []).reduce((s, a) => s + (a.f || 0), 0)
+          + (data.manualPFCs || []).reduce((s, m) => s + (parseFloat(m.f) || 0), 0);
+        const autoC = (data.liteAnalyses || []).reduce((s, a) => s + (a.c || 0), 0)
+          + (data.manualPFCs || []).reduce((s, m) => s + (parseFloat(m.c) || 0), 0);
+        const autoKcal = autoP * 4 + autoF * 9 + autoC * 4;
+        // カスタムタスクを宿題テキストに追加
+        const checkedTasks = [...(data.checkedTaskTexts || [])];
+        const uncheckedTasks = [...(data.uncheckedTaskTexts || [])];
+        (data.customTasks || []).forEach(t => {
+          if (t.checked) checkedTasks.push(t.text);
+          else uncheckedTasks.push(t.text);
+        });
         await fetch(GAS_URL, {
           method: 'POST',
-          body: JSON.stringify({ name: userName, date: dateStr, weight: data.weight || '', goalWeight: data.goalWeight || '', temperature: data.temperature || '', foods: foods.join(', '), p: 0, f: 0, c: 0, kcal: 0, cardio: data.cardio || 0, checkedTasks: '', uncheckedTasks: '' })
+          body: JSON.stringify({ name: userName, date: dateStr, weight: data.weight || '', goalWeight: data.goalWeight || '', temperature: data.temperature || '', foods: foods.join(', '), p: autoP.toFixed(1), f: autoF.toFixed(1), c: autoC.toFixed(1), kcal: Math.round(autoKcal), cardio: data.cardio || 0, checkedTasks: checkedTasks.join('、'), uncheckedTasks: uncheckedTasks.join('、') })
         });
         localStorage.removeItem(CACHE_KEY);
+        const hwChecked = [...(data.checkedTaskTexts || []), ...(data.customTasks || []).filter(t => t.checked).map(t => t.text)];
+        const hwTotal = [...(data.checkedTaskTexts || []), ...(data.uncheckedTaskTexts || []), ...(data.customTasks || [])].length;
+        const hwHistory = JSON.parse(localStorage.getItem(HW_HISTORY_KEY) || '{}');
+        hwHistory[dateStr] = { checked: hwChecked.length, total: hwTotal };
+        localStorage.setItem(HW_HISTORY_KEY, JSON.stringify(hwHistory));
+        renderHWCalendar();
         document.getElementById('message').textContent = '✅ 昨日の記録を自動送信しました';
         setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
       } catch (e) {}
@@ -1100,20 +1189,17 @@
       const cardio = document.getElementById('cardio').value;
 
       let foods = [];
-      const mode = localStorage.getItem(MODE_KEY) || 'food';
-      if (mode === 'lite') {
-        liteAnalyses.forEach(a => { if (a.description) foods.push('[写真解析] ' + (a.time ? a.time + ' ' : '') + a.description); });
-      } else {
-        document.querySelectorAll('.food-entry').forEach(entry => {
-          const name = entry.querySelector('.food-name').value.trim();
-          const gram = entry.querySelector('.food-gram').value;
-          if (name) foods.push(name + ' ' + (gram || 0) + 'g');
-        });
-        document.querySelectorAll('.restaurant-entry').forEach(entry => {
-          const name = entry.querySelector('.restaurant-name').value.trim();
-          if (name) foods.push('[外食] ' + name);
-        });
-      }
+      // 写真解析・手打ちを常に両方含める
+      liteAnalyses.forEach(a => { if (a.description) foods.push('[写真解析] ' + (a.time ? a.time + ' ' : '') + a.description); });
+      document.querySelectorAll('.food-entry').forEach(entry => {
+        const name = entry.querySelector('.food-name').value.trim();
+        const gram = entry.querySelector('.food-gram').value;
+        if (name) foods.push(name + ' ' + (gram || 0) + 'g');
+      });
+      document.querySelectorAll('.restaurant-entry').forEach(entry => {
+        const name = entry.querySelector('.restaurant-name').value.trim();
+        if (name) foods.push('[外食] ' + name);
+      });
 
       const p = document.getElementById('total-p').textContent;
       const f = document.getElementById('total-f').textContent;
@@ -1121,11 +1207,13 @@
       const kcal = document.getElementById('total-kcal').textContent;
 
       let checkedTasks = [], uncheckedTasks = [];
-      currentTasks.forEach((task, i) => {
-        if (document.getElementById('task-' + i) && document.getElementById('task-' + i).checked) {
-          checkedTasks.push(task);
-        } else {
-          uncheckedTasks.push(task);
+      // DOMから直接読む（currentTasksの読み込みタイミングに依存しない）
+      document.querySelectorAll('#checklist .checklist-item').forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        const label = item.querySelector('label');
+        if (cb && label) {
+          if (cb.checked) checkedTasks.push(label.textContent);
+          else uncheckedTasks.push(label.textContent);
         }
       });
       // カスタムタスクも含める
@@ -1168,9 +1256,22 @@
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
-        mealImageBase64 = e.target.result;
-        document.getElementById('meal-preview-img').src = mealImageBase64;
-        document.getElementById('meal-image-preview').style.display = 'block';
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 1024;
+          let w = img.width, h = img.height;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else { w = Math.round(w * MAX / h); h = MAX; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          mealImageBase64 = canvas.toDataURL('image/jpeg', 0.85);
+          document.getElementById('meal-preview-img').src = mealImageBase64;
+          document.getElementById('meal-image-preview').style.display = 'block';
+        };
+        img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -1205,9 +1306,17 @@
       const list = document.getElementById('analyze-result-list');
       if (!list) return;
       list.innerHTML = liteAnalyses.map((a, i) =>
-        `<div style="display:flex; align-items:flex-start; gap:8px; font-size:13px; color:#555; background:#f5f0eb; border-radius:8px; padding:10px; margin-bottom:6px;">
-          <span style="flex:1;">📋 ${a.time ? a.time + ' | ' : ''}${a.description || ''}</span>
-          <button onclick="removeLiteAnalysis(${i})" style="background:none; border:none; color:#aaa; font-size:16px; cursor:pointer; padding:0; line-height:1; flex-shrink:0;">×</button>
+        `<div style="background:#f5f0eb; border-radius:8px; padding:10px; margin-bottom:6px;">
+          <div style="display:flex; align-items:flex-start; gap:8px;">
+            <span style="flex:1; font-size:13px; color:#555;">📋 ${a.time ? a.time + ' | ' : ''}${a.description || ''}</span>
+            <button onclick="removeLiteAnalysis(${i})" style="background:none; border:none; color:#aaa; font-size:16px; cursor:pointer; padding:0; line-height:1; flex-shrink:0;">×</button>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:6px; font-size:12px; color:#c8a97e; font-weight:bold;">
+            <span>P: ${(a.p||0).toFixed(1)}g</span>
+            <span>F: ${(a.f||0).toFixed(1)}g</span>
+            <span>C: ${(a.c||0).toFixed(1)}g</span>
+            <span>${Math.round(a.kcal||0)}kcal</span>
+          </div>
         </div>`
       ).join('');
     }
@@ -1252,7 +1361,12 @@
     }
 
     // 初期化
-    autoSubmitYesterday();
+    autoSubmitYesterday().then(() => {
+      loadCache().then(() => {
+        if (document.getElementById('food-list').children.length === 0) addFoodRow();
+        if (document.getElementById('manual-pfc-list').children.length === 0) addManualPFCRow();
+      });
+    });
     checkName();
     const _n = getUserName();
     if (_n !== '不明') document.getElementById('user-greeting').textContent = _n + '専用アプリ';
@@ -1264,10 +1378,30 @@
     renderHWCalendar();
     calcTempAvg();
     applyMode();
-    loadCache().then(() => {
-      if (document.getElementById('food-list').children.length === 0) addFoodRow();
-      if (document.getElementById('manual-pfc-list').children.length === 0) addManualPFCRow();
-    });
+    // ========== 筋肉痛チェック ==========
+    async function checkSoreness(name) {
+      const today = new Date().toISOString().slice(0, 10);
+      if (localStorage.getItem('putters_soreness_checked') === today) return;
+
+      const res = await fetch(GAS_URL + '?action=checkYesterdayTraining&name=' + encodeURIComponent(name));
+      const data = await res.json();
+      if (!data.hadTraining) return;
+
+      document.getElementById('soreness-card').style.display = 'flex';
+
+      document.querySelectorAll('.soreness-part').forEach(btn => {
+        btn.addEventListener('click', () => {
+          btn.classList.toggle('selected');
+          document.getElementById('btn-soreness-none').classList.remove('selected');
+        });
+      });
+      document.getElementById('btn-soreness-none').addEventListener('click', () => {
+        document.querySelectorAll('.soreness-part').forEach(b => b.classList.remove('selected'));
+        document.getElementById('btn-soreness-none').classList.toggle('selected');
+      });
+    }
+
+    if (_n !== '不明') checkSoreness(_n);
   </script>
 </body>
 </html>
