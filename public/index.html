@@ -114,6 +114,9 @@
     <div style="font-size:64px; margin-bottom:24px;">💪</div>
     <div style="font-size:22px; font-weight:bold; color:#c8a97e; margin-bottom:16px;" id="complete-title">お疲れ様でした！</div>
     <div style="font-size:16px; color:#ddd; line-height:1.8; margin-bottom:40px;" id="complete-message"></div>
+    <div id="tomorrow-training-banner" style="display:none; background:#c8a97e; border-radius:12px; padding:14px 20px; margin-bottom:24px; color:#1a1a2e; font-weight:bold; font-size:15px;">
+      🏋️ 明日はトレーニングです！<br><span style="font-size:13px; font-weight:normal;">睡眠・食事・水分をしっかりとっておきましょう</span>
+    </div>
     <button onclick="closeCompleteScreen()" style="background:#c8a97e; color:#1a1a2e; border:none; border-radius:50px; padding:16px 48px; font-size:16px; font-weight:bold; cursor:pointer;">閉じる</button>
   </div>
 
@@ -1340,12 +1343,19 @@
       '記録できた今日は\n間違いなく良い一日です！',
     ];
 
-    function showCompleteScreen(checked, total) {
+    async function showCompleteScreen(checked, total) {
       const msg = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
       const hwText = total > 0 ? `\n宿題 ${checked}/${total} 達成！` : '';
       document.getElementById('complete-message').textContent = msg.replace(/\\n/g, '\n') + hwText;
+      document.getElementById('tomorrow-training-banner').style.display = 'none';
       const screen = document.getElementById('complete-screen');
       screen.style.display = 'flex';
+      try {
+        const name = getUserName();
+        const res = await fetch(GAS_URL + '?action=checkTomorrowTraining&name=' + encodeURIComponent(name));
+        const data = await res.json();
+        if (data.hasTraining) document.getElementById('tomorrow-training-banner').style.display = 'block';
+      } catch(e) {}
     }
 
     function closeCompleteScreen() {
