@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUTTERS 管理画面</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; min-height: 100vh; }
+    header { background: #1a1a2e; color: white; padding: 16px 32px; display: flex; align-items: center; gap: 16px; }
+    header h1 { font-size: 18px; }
+    header span { font-size: 12px; color: #c8a97e; }
+    .tabs { display: flex; gap: 0; background: white; border-bottom: 2px solid #eee; padding: 0 32px; }
+    .tab { padding: 14px 24px; font-size: 14px; cursor: pointer; color: #888; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+    .tab.active { color: #1a1a2e; border-bottom-color: #1a1a2e; font-weight: bold; }
+    .content { padding: 24px 32px; max-width: 1100px; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 15px; color: #555; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 10px 12px; background: #f5f0eb; color: #888; font-weight: normal; font-size: 12px; }
+    td { padding: 12px; border-bottom: 1px solid #f0f0f0; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; }
+    .badge.active { background: #e8f5e9; color: #388e3c; }
+    .badge.warn { background: #fff3e0; color: #f57c00; }
+    .badge.old { background: #fce4ec; color: #c62828; }
+    .hw-name { font-weight: bold; color: #1a1a2e; margin-bottom: 8px; font-size: 15px; }
+    .hw-tasks { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    .hw-tag { display: inline-flex; align-items: center; gap: 6px; background: #f5f0eb; border-radius: 20px; padding: 5px 12px; font-size: 13px; }
+    .hw-tag button { background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; line-height: 1; }
+    .hw-tag button:hover { color: #e57373; }
+    .hw-row { padding: 16px 0; border-bottom: 1px solid #f0f0f0; }
+    .hw-row:last-child { border-bottom: none; }
+    .add-form { display: flex; gap: 8px; margin-top: 8px; }
+    .add-form input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; }
+    .add-form button { padding: 8px 16px; background: #c8a97e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+    .add-form button:hover { background: #b8956a; }
+    .loading { text-align: center; color: #aaa; padding: 40px; }
+    .stat { text-align: center; }
+    .stat-val { font-size: 28px; font-weight: bold; color: #1a1a2e; }
+    .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+    .stat-card { background: white; border-radius: 12px; padding: 20px; text-align: center; }
+    .holiday-tag { display: inline-flex; align-items: center; gap: 6px; background: #fce4ec; color: #c62828; border-radius: 20px; padding: 5px 12px; font-size: 13px; margin: 4px; }
+    .holiday-tag button { background: none; border: none; color: #e57373; cursor: pointer; font-size: 14px; line-height: 1; }
+    .holiday-tag button:hover { color: #c62828; }
+    .holiday-input { display: flex; gap: 8px; margin-bottom: 16px; }
+    .holiday-input input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    .holiday-input button { padding: 8px 20px; background: #1a1a2e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    @media (max-width: 700px) {
+      .content { padding: 16px; }
+      .tabs { padding: 0 16px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>PUTTERS 管理画面</h1>
+  <span>松本さん専用</span>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('summary')">👥 お客さん一覧</div>
+  <div class="tab" onclick="switchTab('homework')">📋 宿題管理</div>
+  <div class="tab" onclick="switchTab('monthly')">📊 マンスリーレポート</div>
+  <div class="tab" onclick="switchTab('holiday')">🗓️ 休み管理</div>
+  <div class="tab" onclick="switchTab('soreness')">💪 筋肉痛</div>
+  <div class="tab" onclick="switchTab('graph')">📈 個人グラフ</div>
+</div>
+
+<div class="content">
+
+  <!-- お客さん一覧 -->
+  <div id="page-summary" class="page active">
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card"><div class="stat-val" id="stat-total">-</div><div class="stat-label">登録人数</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-active">-</div><div class="stat-label">今週記録あり</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-avg-p">-</div><div class="stat-label">平均タンパク質(g)</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-avg-kcal">-</div><div class="stat-label">平均カロリー</div></div>
+    </div>
+    <div class="card">
+      <h2>お客さん直近記録</h2>
+      <div id="summary-loading" class="loading">読み込み中...</div>
+      <table id="summary-table" style="display:none">
+        <thead>
+          <tr>
+            <th>名前</th>
+            <th>最終記録日</th>
+            <th>状態</th>
+            <th>体重(kg)</th>
+            <th>P(g)</th>
+            <th>F(g)</th>
+            <th>C(g)</th>
+            <th>kcal</th>
+            <th>有酸素(分)</th>
+          </tr>
+        </thead>
+        <tbody id="summary-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 宿題管理 -->
+  <div id="page-homework" class="page">
+    <div class="card">
+      <h2>宿題管理</h2>
+      <div id="hw-loading" class="loading">読み込み中...</div>
+      <div id="hw-list"></div>
+    </div>
+  </div>
+
+  <!-- マンスリーレポート -->
+  <div id="page-monthly" class="page">
+    <div class="card">
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px; flex-wrap:wrap;">
+        <h2 style="margin-bottom:0;">マンスリーレポート</h2>
+        <select id="month-select" onchange="loadMonthly()" style="padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:14px;"></select>
+      </div>
+      <div id="monthly-loading" class="loading">月を選択してください</div>
+      <table id="monthly-table" style="display:none">
+        <thead>
+          <tr>
+            <th>名前</th>
+            <th>記録日数</th>
+            <th>平均体重(kg)</th>
+            <th>体重変化(kg)</th>
+            <th>平均P(g)</th>
+            <th>平均F(g)</th>
+            <th>平均C(g)</th>
+            <th>平均kcal</th>
+            <th>有酸素 計(分)</th>
+          </tr>
+        </thead>
+        <tbody id="monthly-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 休み管理 -->
+  <div id="page-holiday" class="page">
+    <div class="card">
+      <h2>🗓️ 休み管理</h2>
+      <div class="holiday-input">
+        <input type="date" id="holiday-date">
+        <button onclick="addHoliday()">追加</button>
+      </div>
+      <div id="holiday-loading" class="loading">読み込み中...</div>
+      <div id="holiday-list"></div>
+    </div>
+  </div>
+
+  <!-- 個人グラフ -->
+  <div id="page-graph" class="page">
+    <div class="card">
+      <h2>📈 個人グラフ</h2>
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+        <input type="text" id="graph-name-input" list="graph-name-list" placeholder="お客さんの名前を入力" style="flex:1;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px;min-width:180px;">
+        <datalist id="graph-name-list"></datalist>
+        <button onclick="loadClientGraph()" style="padding:10px 20px;background:#1a1a2e;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;">表示</button>
+      </div>
+      <div id="graph-loading" style="display:none;text-align:center;color:#aaa;padding:40px;">読み込み中...</div>
+      <div id="graph-content" style="display:none;">
+        <div style="margin-bottom:24px;">
+          <div style="font-size:13px;font-weight:bold;color:#1a1a2e;margin-bottom:8px;">⚖️ 体重 (kg)</div>
+          <canvas id="chart-weight" height="120"></canvas>
+        </div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:13px;font-weight:bold;color:#1a1a2e;margin-bottom:8px;">🌡️ 体温 (℃)</div>
+          <canvas id="chart-temp" height="120"></canvas>
+        </div>
+        <div style="margin-bottom:24px;">
+          <div style="font-size:13px;font-weight:bold;color:#1a1a2e;margin-bottom:8px;">🍽️ タンパク質 / 脂質 / 炭水化物 (g)</div>
+          <canvas id="chart-pfc" height="160"></canvas>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:bold;color:#1a1a2e;margin-bottom:8px;">🔥 カロリー (kcal)</div>
+          <canvas id="chart-kcal" height="120"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 筋肉痛 -->
+  <div id="page-soreness" class="page">
+    <div class="card">
+      <h2>💪 筋肉痛回復履歴</h2>
+      <div id="soreness-loading" class="loading">読み込み中...</div>
+      <div id="soreness-content" style="display:none"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+  const chartInstances = {};
+
+  function destroyChart(id) {
+    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+  }
+
+  function makeChart(id, labels, datasets, yLabel) {
+    destroyChart(id);
+    const ctx = document.getElementById(id).getContext('2d');
+    chartInstances[id] = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: datasets.length > 1 } },
+        scales: {
+          x: { ticks: { font: { size: 11 }, maxRotation: 45 } },
+          y: { title: { display: !!yLabel, text: yLabel }, ticks: { font: { size: 11 } } }
+        },
+        elements: { point: { radius: 3 }, line: { tension: 0.3 } }
+      }
+    });
+  }
+
+  async function loadClientGraph() {
+    const name = document.getElementById('graph-name-input').value.trim();
+    if (!name) return;
+    document.getElementById('graph-loading').style.display = 'block';
+    document.getElementById('graph-content').style.display = 'none';
+    try {
+      const res = await fetch(`${GAS_URL}?action=admin_client_history&name=${encodeURIComponent(name)}`);
+      const records = await res.json();
+      if (!records.length) {
+        document.getElementById('graph-loading').textContent = 'データが見つかりません';
+        return;
+      }
+      const labels = records.map(r => r.date.slice(5).replace('-', '/'));
+      const nullToNaN = v => v == null ? NaN : v;
+
+      makeChart('chart-weight', labels, [{
+        label: '体重', data: records.map(r => nullToNaN(r.weight)),
+        borderColor: '#1a1a2e', backgroundColor: 'rgba(26,26,46,0.1)', fill: true, spanGaps: true
+      }]);
+      makeChart('chart-temp', labels, [{
+        label: '体温', data: records.map(r => nullToNaN(r.temperature)),
+        borderColor: '#e57373', backgroundColor: 'rgba(229,115,115,0.1)', fill: true, spanGaps: true
+      }]);
+      makeChart('chart-pfc', labels, [
+        { label: 'P', data: records.map(r => r.p || NaN), borderColor: '#e57373', spanGaps: true },
+        { label: 'F', data: records.map(r => r.f || NaN), borderColor: '#ffb74d', spanGaps: true },
+        { label: 'C', data: records.map(r => r.c || NaN), borderColor: '#81c784', spanGaps: true }
+      ]);
+      makeChart('chart-kcal', labels, [{
+        label: 'kcal', data: records.map(r => r.kcal || NaN),
+        borderColor: '#9575cd', backgroundColor: 'rgba(149,117,205,0.1)', fill: true, spanGaps: true
+      }]);
+
+      document.getElementById('graph-loading').style.display = 'none';
+      document.getElementById('graph-content').style.display = 'block';
+    } catch (e) {
+      document.getElementById('graph-loading').textContent = '読み込みに失敗しました';
+    }
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('page-' + tab).classList.add('active');
+    if (tab === 'soreness') loadSoreness();
+    if (tab === 'graph') document.getElementById('graph-name-input').focus();
+  }
+
+  async function loadSoreness() {
+    try {
+      const res = await fetch(GAS_URL + '?action=getSorenessHistory');
+      const data = await res.json();
+      const content = document.getElementById('soreness-content');
+      const history = data.history || [];
+      if (history.length === 0) {
+        content.innerHTML = '<p style="color:#aaa;text-align:center;padding:20px;">データがありません</p>';
+      } else {
+        content.innerHTML = history.map(h => `
+          <div style="padding:16px 0;border-bottom:1px solid #f0f0f0;">
+            <div style="font-weight:bold;font-size:15px;color:#1a1a2e;margin-bottom:8px;">${h.name}</div>
+            ${h.sessions.map(s => `
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;font-size:13px;">
+                <span style="color:#888;">${s.trainDate}</span>
+                <span style="background:#fde8e8;color:#c62828;border-radius:20px;padding:2px 10px;">${s.sorenessdays}日間</span>
+                <span style="color:#555;">${s.parts || '-'}</span>
+              </div>
+            `).join('')}
+          </div>
+        `).join('');
+      }
+      document.getElementById('soreness-loading').style.display = 'none';
+      content.style.display = 'block';
+    } catch (e) {
+      document.getElementById('soreness-loading').textContent = '読み込みに失敗しました';
+    }
+  }
+
+  function daysSince(dateStr) {
+    const d = new Date(dateStr);
+    const now = new Date();
+    return Math.floor((now - d) / (1000 * 60 * 60 * 24));
+  }
+
+  function statusBadge(dateStr) {
+    const days = daysSince(dateStr);
+    if (days <= 3) return '<span class="badge active">● 記録中</span>';
+    if (days <= 7) return '<span class="badge warn">△ 3日以上</span>';
+    return '<span class="badge old">✕ 1週間以上</span>';
+  }
+
+  async function loadSummary() {
+    try {
+      const res = await fetch(GAS_URL + '?action=admin_summary');
+      const data = await res.json();
+
+      const today = new Date();
+      const oneWeekAgo = new Date(today - 7 * 24 * 60 * 60 * 1000);
+      const activeUsers = data.filter(d => new Date(d.date) >= oneWeekAgo);
+
+      const dl = document.getElementById('graph-name-list');
+      dl.innerHTML = data.map(d => `<option value="${d.name}">`).join('');
+      document.getElementById('stat-total').textContent = data.length;
+      document.getElementById('stat-active').textContent = activeUsers.length;
+      const avgP = activeUsers.length > 0 ? Math.round(activeUsers.reduce((s, d) => s + Number(d.p), 0) / activeUsers.length) : '-';
+      const avgKcal = activeUsers.length > 0 ? Math.round(activeUsers.reduce((s, d) => s + Number(d.kcal), 0) / activeUsers.length) : '-';
+      document.getElementById('stat-avg-p').textContent = avgP;
+      document.getElementById('stat-avg-kcal').textContent = avgKcal;
+
+      const tbody = document.getElementById('summary-tbody');
+      tbody.innerHTML = '';
+      data.forEach(d => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${d.name}</strong></td>
+          <td>${d.date}</td>
+          <td>${statusBadge(d.date)}</td>
+          <td>${d.weight}</td>
+          <td>${Number(d.p).toFixed(1)}</td>
+          <td>${Number(d.f).toFixed(1)}</td>
+          <td>${Number(d.c).toFixed(1)}</td>
+          <td>${Math.round(d.kcal)}</td>
+          <td>${d.cardio}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('summary-loading').style.display = 'none';
+      document.getElementById('summary-table').style.display = 'table';
+    } catch (e) {
+      document.getElementById('summary-loading').textContent = '読み込みに失敗しました';
+    }
+  }
+
+  async function loadHomework() {
+    try {
+      const res = await fetch(GAS_URL + '?action=admin_homework');
+      const data = await res.json();
+      renderHomework(data);
+      document.getElementById('hw-loading').style.display = 'none';
+    } catch (e) {
+      document.getElementById('hw-loading').textContent = '読み込みに失敗しました';
+    }
+  }
+
+  function renderHomework(data) {
+    const list = document.getElementById('hw-list');
+    list.innerHTML = '';
+    data.forEach(person => {
+      const div = document.createElement('div');
+      div.className = 'hw-row';
+      const tags = person.tasks.map(t =>
+        `<span class="hw-tag">${t}<button onclick="deleteHomework('${person.name}', '${t}', this)">×</button></span>`
+      ).join('');
+      div.innerHTML = `
+        <div class="hw-name">${person.name}</div>
+        <div class="hw-tasks" id="tasks-${encodeURIComponent(person.name)}">${tags || '<span style="color:#aaa;font-size:13px;">宿題なし</span>'}</div>
+        <div class="add-form">
+          <input type="text" placeholder="新しい宿題を入力" id="input-${encodeURIComponent(person.name)}">
+          <button onclick="addHomework('${person.name}')">追加</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  async function addHomework(name) {
+    const key = encodeURIComponent(name);
+    const input = document.getElementById('input-' + key);
+    const task = input.value.trim();
+    if (!task) return;
+    input.disabled = true;
+    try {
+      const res = await fetch(`${GAS_URL}?action=admin_add_homework&name=${encodeURIComponent(name)}&task=${encodeURIComponent(task)}`);
+      const result = await res.json();
+      if (result.ok) {
+        input.value = '';
+        await loadHomework();
+      } else {
+        alert('追加に失敗しました: ' + (result.error || ''));
+      }
+    } catch (e) {
+      alert('通信エラー');
+    }
+    input.disabled = false;
+  }
+
+  async function deleteHomework(name, task, btn) {
+    if (!confirm(`「${task}」を削除しますか？`)) return;
+    btn.disabled = true;
+    try {
+      const res = await fetch(`${GAS_URL}?action=admin_delete_homework&name=${encodeURIComponent(name)}&task=${encodeURIComponent(task)}`);
+      const result = await res.json();
+      if (result.ok) {
+        await loadHomework();
+      } else {
+        alert('削除に失敗しました');
+        btn.disabled = false;
+      }
+    } catch (e) {
+      alert('通信エラー');
+      btn.disabled = false;
+    }
+  }
+
+  function initMonthSelect() {
+    const sel = document.getElementById('month-select');
+    const now = new Date();
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const label = `${d.getFullYear()}年${d.getMonth()+1}月`;
+      const opt = document.createElement('option');
+      opt.value = val; opt.textContent = label;
+      sel.appendChild(opt);
+    }
+  }
+
+  async function loadMonthly() {
+    const month = document.getElementById('month-select').value;
+    if (!month) return;
+    const loading = document.getElementById('monthly-loading');
+    const table = document.getElementById('monthly-table');
+    loading.style.display = 'block';
+    loading.textContent = '読み込み中...';
+    table.style.display = 'none';
+    try {
+      const res = await fetch(`${GAS_URL}?action=admin_monthly&month=${month}`);
+      const data = await res.json();
+      const tbody = document.getElementById('monthly-tbody');
+      tbody.innerHTML = '';
+      if (data.length === 0) {
+        loading.textContent = 'この月のデータはありません';
+        return;
+      }
+      data.forEach(d => {
+        const changeColor = d.weightChange !== '-' ? (parseFloat(d.weightChange) < 0 ? 'color:#388e3c' : parseFloat(d.weightChange) > 0 ? 'color:#c62828' : '') : '';
+        const changeText = d.weightChange !== '-' ? (parseFloat(d.weightChange) > 0 ? '+' + d.weightChange : d.weightChange) + 'kg' : '-';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${d.name}</strong></td>
+          <td>${d.days}日</td>
+          <td>${d.avgWeight}</td>
+          <td style="${changeColor}"><strong>${changeText}</strong></td>
+          <td>${d.avgP}</td>
+          <td>${d.avgF}</td>
+          <td>${d.avgC}</td>
+          <td>${d.avgKcal}</td>
+          <td>${d.totalCardio}分</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      loading.style.display = 'none';
+      table.style.display = 'table';
+    } catch (e) {
+      loading.textContent = '読み込みに失敗しました';
+    }
+  }
+
+  async function loadHolidays() {
+    try {
+      const res = await fetch(GAS_URL + '?action=admin_holidays');
+      const data = await res.json();
+      renderHolidays(data);
+      document.getElementById('holiday-loading').style.display = 'none';
+    } catch (e) {
+      document.getElementById('holiday-loading').textContent = '読み込みに失敗しました';
+    }
+  }
+
+  function renderHolidays(dates) {
+    const list = document.getElementById('holiday-list');
+    if (dates.length === 0) {
+      list.innerHTML = '<div style="color:#aaa;font-size:13px;">休みの日はありません</div>';
+      return;
+    }
+    dates.sort();
+    list.innerHTML = dates.map(d =>
+      `<span class="holiday-tag">${d}<button onclick="deleteHoliday('${d}')">×</button></span>`
+    ).join('');
+  }
+
+  async function addHoliday() {
+    const date = document.getElementById('holiday-date').value;
+    if (!date) return;
+    try {
+      const res = await fetch(`${GAS_URL}?action=admin_add_holiday&date=${date}`);
+      const result = await res.json();
+      if (result.ok) { document.getElementById('holiday-date').value = ''; loadHolidays(); }
+    } catch (e) { alert('追加に失敗しました'); }
+  }
+
+  async function deleteHoliday(date) {
+    if (!confirm(`${date} を削除しますか？`)) return;
+    try {
+      const res = await fetch(`${GAS_URL}?action=admin_delete_holiday&date=${date}`);
+      const result = await res.json();
+      if (result.ok) loadHolidays();
+    } catch (e) { alert('削除に失敗しました'); }
+  }
+
+  initMonthSelect();
+  loadSummary();
+  loadHomework();
+  loadHolidays();
+</script>
+</body>
+</html>
