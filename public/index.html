@@ -1387,6 +1387,13 @@
       const data = await res.json();
       if (!data.hadTraining) return;
 
+      const modalP = document.querySelector('#soreness-card .soreness-modal p');
+      if (data.hasPreviousSoreness) {
+        modalP.innerHTML = '昨日は筋肉痛がありましたが、<br>今日はどうですか？';
+      } else {
+        modalP.innerHTML = '昨日トレーニングしましたね！<br>今日はどこが筋肉痛ですか？';
+      }
+
       document.getElementById('soreness-card').style.display = 'flex';
 
       document.querySelectorAll('.soreness-part').forEach(btn => {
