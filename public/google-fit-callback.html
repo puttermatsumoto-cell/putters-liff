@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Fit 連携中...</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .card { background: white; border-radius: 20px; padding: 32px 24px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 320px; width: 100%; }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    .title { font-size: 18px; font-weight: bold; color: #1a1a2e; margin-bottom: 8px; }
+    .desc { font-size: 13px; color: #888; line-height: 1.7; }
+    .steps { font-size: 36px; font-weight: bold; color: #c8a97e; margin: 16px 0 4px; }
+    .btn { display: block; background: #1a1a2e; color: white; text-align: center; border-radius: 80px; padding: 12px; font-size: 13px; font-weight: bold; text-decoration: none; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon" id="icon">⏳</div>
+    <div class="title" id="title">連携中...</div>
+    <div class="desc" id="desc">しばらくお待ちください</div>
+    <div class="steps" id="steps" style="display:none"></div>
+    <a href="/steps.html" class="btn" id="back-btn" style="display:none">← 歩数ランキングに戻る</a>
+  </div>
+
+  <script>
+    async function main() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const state = params.get('state');
+      const error = params.get('error');
+      const userName = decodeURIComponent(state || '') || localStorage.getItem('putters_user_name') || '';
+
+      if (error || !code) {
+        document.getElementById('icon').textContent = '❌';
+        document.getElementById('title').textContent = '連携がキャンセルされました';
+        document.getElementById('desc').textContent = 'もう一度試してください';
+        document.getElementById('back-btn').style.display = 'block';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/google-fit?action=exchange', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, userName })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          // リフレッシュトークンを保存
+          if (data.refresh_token) {
+            localStorage.setItem('putters_fit_token', data.refresh_token);
+          }
+          document.getElementById('icon').textContent = '✅';
+          document.getElementById('title').textContent = '連携完了！';
+          document.getElementById('desc').textContent = '今日の歩数を取得しました';
+          document.getElementById('steps').textContent = data.steps.toLocaleString() + '歩';
+          document.getElementById('steps').style.display = 'block';
+        } else {
+          throw new Error('failed');
+        }
+      } catch (e) {
+        document.getElementById('icon').textContent = '❌';
+        document.getElementById('title').textContent = 'エラーが発生しました';
+        document.getElementById('desc').textContent = 'もう一度試してください';
+      }
+
+      document.getElementById('back-btn').style.display = 'block';
+    }
+
+    main();
+  </script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>PUTTERS アプリの使い方</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: white;
+      width: 210mm;
+      height: 297mm;
+      overflow: hidden;
+      color: #1a1a2e;
+    }
+
+    /* ヘッダー */
+    .header {
+      background: #04384c;
+      padding: 16px 36px 14px;
+    }
+    .header-label {
+      font-size: 8pt;
+      color: #7ec8e3;
+      letter-spacing: 4px;
+      margin-bottom: 4px;
+    }
+    .header-title {
+      font-size: 20pt;
+      font-weight: bold;
+      color: white;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .header-title span { color: #7ec8e3; }
+    .header-sub {
+      font-size: 8.5pt;
+      color: rgba(255,255,255,0.6);
+      margin-top: 4px;
+    }
+
+    /* コンテンツ */
+    .content { padding: 20px 36px; }
+
+    /* セクションラベル */
+    .section-label {
+      font-size: 7pt;
+      color: #04384c;
+      letter-spacing: 3px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1.5px solid #7ec8e3;
+    }
+
+    /* 6機能グリッド */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .feature-card {
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 14px 14px;
+    }
+    .feature-icon { font-size: 18pt; margin-bottom: 6px; }
+    .feature-title {
+      font-size: 9pt;
+      font-weight: bold;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .feature-body {
+      font-size: 7.5pt;
+      color: #555;
+      line-height: 1.8;
+    }
+    .feature-point {
+      margin-top: 8px;
+      font-size: 7pt;
+      color: #04384c;
+      font-weight: bold;
+      background: #f0f8fb;
+      border-radius: 4px;
+      padding: 4px 8px;
+    }
+
+    /* 区切り */
+    .divider { height: 1px; background: #eee; margin: 16px 0; }
+
+    /* 使い方ステップ（食事記録の詳細） */
+    .step-flow { display: flex; align-items: center; gap: 0; margin: 10px 0 14px; }
+    .step-box {
+      flex: 1;
+      text-align: center;
+      background: #f5f9fb;
+      border-radius: 8px;
+      padding: 8px 6px;
+    }
+    .step-icon { font-size: 14pt; margin-bottom: 2px; }
+    .step-label { font-size: 6.5pt; color: #7ec8e3; font-weight: bold; margin-bottom: 1px; }
+    .step-text { font-size: 7.5pt; font-weight: bold; color: #1a1a2e; }
+    .step-arrow { font-size: 13pt; color: #7ec8e3; padding: 0 4px; flex-shrink: 0; }
+
+    /* ポイントボックス */
+    .point-box {
+      background: #04384c;
+      border-radius: 10px;
+      padding: 12px 18px;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+    .point-col { flex: 1; }
+    .point-title {
+      font-size: 8pt;
+      color: #7ec8e3;
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+    .point-list { list-style: none; padding: 0; }
+    .point-list li {
+      font-size: 7.5pt;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.8;
+      padding-left: 12px;
+      position: relative;
+    }
+    .point-list li::before {
+      content: '✓';
+      color: #7ec8e3;
+      position: absolute;
+      left: 0;
+    }
+
+    /* フッター */
+    .footer {
+      background: #04384c;
+      padding: 10px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+    }
+    .footer-logo { font-size: 11pt; font-weight: bold; color: #7ec8e3; letter-spacing: 3px; }
+    .footer-note { font-size: 7.5pt; color: rgba(255,255,255,0.5); }
+
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <div class="header-label">MEMBERS ONLY APP</div>
+    <div class="header-title">会員専用アプリの<span>使い方</span></div>
+    <div class="header-sub">LINEから開けるアプリです。インストール不要で、すぐに使えます。</div>
+  </div>
+
+  <div class="content">
+
+    <!-- 6機能 -->
+    <div class="section-label" style="margin-top:14px;">FEATURES — できること6つ</div>
+    <div class="features">
+
+      <div class="feature-card">
+        <div class="feature-icon">📷</div>
+        <div class="feature-title">写真1枚で食事を記録</div>
+        <div class="feature-body">食事の写真を撮るだけでAIが自動解析。タンパク質・脂質・炭水化物がすぐわかります。計算は一切不要。</div>
+        <div class="feature-point">→ 食事指導ライトコース対応</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">体重・体温を毎日記録</div>
+        <div class="feature-body">毎日入力するだけでグラフで変化が確認できます。30日間の平均体温も自動で計算されます。</div>
+        <div class="feature-point">→ 30日平均体温も自動計算</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <div class="feature-title">宿題チェックリスト</div>
+        <div class="feature-body">トレーナーと一緒に設定した宿題を毎日確認。達成カレンダーで続けるモチベーションに。</div>
+        <div class="feature-point">→ 達成率はトレーナーに届く</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <div class="feature-title">予約状況の確認</div>
+        <div class="feature-body">今月のトレーニング予約をアプリ内でいつでも確認できます。次回の来店日を把握して計画的に。</div>
+        <div class="feature-point">→ 来店スケジュールを管理</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📮</div>
+        <div class="feature-title">意見箱</div>
+        <div class="feature-body">やってみたいトレーニング・わからなかったこと・今後の目標をいつでも送れます。次回に活かします。</div>
+        <div class="feature-point">→ トレーナーが次回に反映</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⚙️</div>
+        <div class="feature-title">モード切替</div>
+        <div class="feature-body">食事指導・ライト・生活指導の3コース。その月の気分や目標に合わせて切り替えられます。</div>
+        <div class="feature-point">→ 3コースから選べる</div>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 食事記録の流れ -->
+    <div class="section-label">HOW TO — 食事を記録するながれ</div>
+    <div class="step-flow">
+      <div class="step-box">
+        <div class="step-icon">📱</div>
+        <div class="step-label">STEP 1</div>
+        <div class="step-text">LINEを開く</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-box">
+        <div class="step-icon">🍽️</div>
+        <div class="step-label">STEP 2</div>
+        <div class="step-text">食事タブを開く</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-box">
+        <div class="step-icon">📷</div>
+        <div class="step-label">STEP 3</div>
+        <div class="step-text">写真を撮る</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-box">
+        <div class="step-icon">✨</div>
+        <div class="step-label">STEP 4</div>
+        <div class="step-text">AIが自動解析</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-box">
+        <div class="step-icon">📊</div>
+        <div class="step-label">完了</div>
+        <div class="step-text">PFCが記録される</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 続けると変化が見えてくる -->
+    <div class="section-label">YOUR GROWTH — 続けると、体の変化が数字で見えてくる</div>
+    <div style="display:flex; gap:10px; margin-bottom:12px;">
+      <div style="flex:1; border:1.5px solid #1a1a2e; border-radius:10px; padding:10px 12px;">
+        <div style="font-size:14pt; margin-bottom:4px;">⚖️</div>
+        <div style="font-size:8.5pt; font-weight:bold; color:#1a1a2e; margin-bottom:4px;">体重が増える = 筋肉が増えている</div>
+        <div style="font-size:7.5pt; color:#555; line-height:1.7;">筋トレを続けると、脂肪が減りながら筋肉が増えます。体重が少し増えても「筋肉がついてきた」サインである場合があります。</div>
+        <div style="margin-top:6px; font-size:7pt; color:#04384c; font-weight:bold; background:#f0f8fb; border-radius:4px; padding:3px 7px;">数字の変化を長期で見ることが大切</div>
+      </div>
+      <div style="flex:1; border:1.5px solid #1a1a2e; border-radius:10px; padding:10px 12px;">
+        <div style="font-size:14pt; margin-bottom:4px;">🌡️</div>
+        <div style="font-size:8.5pt; font-weight:bold; color:#1a1a2e; margin-bottom:4px;">体温が上がる = 代謝が上がっている</div>
+        <div style="font-size:7.5pt; color:#555; line-height:1.7;">筋肉量が増えると体温が自然と上がり、代謝が良くなります。30日間の平均体温の変化をアプリで追えます。</div>
+        <div style="margin-top:6px; font-size:7pt; color:#04384c; font-weight:bold; background:#f0f8fb; border-radius:4px; padding:3px 7px;">30日間の平均体温がアプリで確認できます</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- まとめ -->
+    <div class="point-box">
+      <div class="point-col">
+        <div class="point-title">DAILY ROUTINE</div>
+        <ul class="point-list">
+          <li>朝・昼・晩の食事を写真で記録する</li>
+          <li>体重と体温を毎日入力する</li>
+          <li>宿題チェックリストを確認する</li>
+        </ul>
+      </div>
+      <div class="point-col">
+        <div class="point-title">TIPS</div>
+        <ul class="point-list">
+          <li>完璧にやらなくていい。続けることが大事</li>
+          <li>写真はざっくりでOK。AIが読み取ってくれる</li>
+          <li>わからないことは意見箱でトレーナーへ</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- フッター -->
+  <div class="footer">
+    <div class="footer-logo">PUTTERS</div>
+    <div class="footer-note">まず写真1枚。それだけで十分です。</div>
+  </div>
+
+</body>
+</html>

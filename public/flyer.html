@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>PUTTERS 配布資料</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: white;
+      width: 210mm;
+      height: 297mm;
+      overflow: hidden;
+      color: #1a1a2e;
+    }
+
+    /* ヘッダー */
+    .header {
+      background: #1a1a2e;
+      padding: 14px 36px 12px;
+    }
+    .header-logo {
+      font-size: 8pt;
+      color: #c8a97e;
+      letter-spacing: 4px;
+      margin-bottom: 4px;
+    }
+    .header-title {
+      font-size: 18pt;
+      font-weight: bold;
+      color: white;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .header-title span { color: #c8a97e; }
+    .header-sub {
+      font-size: 8.5pt;
+      color: #aaa;
+      margin-top: 3px;
+    }
+
+    /* メインコンテンツ */
+    .content { padding: 14px 36px; }
+
+    /* セクション */
+    .section { margin-bottom: 12px; }
+    .section-label {
+      font-size: 7pt;
+      color: #c8a97e;
+      letter-spacing: 3px;
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+    .section-title {
+      font-size: 11pt;
+      font-weight: bold;
+      color: #1a1a2e;
+      margin-bottom: 5px;
+      line-height: 1.4;
+    }
+    .section-body {
+      font-size: 8.5pt;
+      color: #444;
+      line-height: 1.7;
+    }
+
+    /* 区切り線 */
+    .divider { height: 1px; background: #eee; margin: 11px 0; }
+
+    /* 写真→PFCの流れ */
+    .flow { display: flex; align-items: center; gap: 0; margin: 10px 0; }
+    .flow-step {
+      flex: 1;
+      text-align: center;
+      background: #f5f0eb;
+      border-radius: 10px;
+      padding: 9px 6px;
+    }
+    .flow-icon { font-size: 18pt; margin-bottom: 2px; }
+    .flow-label { font-size: 7pt; color: #888; margin-bottom: 2px; }
+    .flow-text { font-size: 8.5pt; font-weight: bold; color: #1a1a2e; }
+    .flow-arrow { font-size: 15pt; color: #c8a97e; padding: 0 5px; flex-shrink: 0; }
+
+    /* PFC具体例テーブル */
+    .pfc-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .pfc-table th {
+      background: #1a1a2e;
+      color: white;
+      padding: 6px 10px;
+      font-size: 8.5pt;
+      font-weight: normal;
+      text-align: left;
+    }
+    .pfc-table th:not(:first-child) { text-align: center; }
+    .pfc-table td {
+      padding: 6px 10px;
+      font-size: 8.5pt;
+      border-bottom: 1px solid #eee;
+    }
+    .pfc-table td:not(:first-child) { text-align: center; }
+    .pfc-table tr:nth-child(even) td { background: #fafafa; }
+    .pfc-table .highlight { color: #c8a97e; font-weight: bold; }
+
+    /* 成長カード */
+    .growth-cards { display: flex; gap: 12px; margin-top: 8px; }
+    .growth-card {
+      flex: 1;
+      border: 1.5px solid #1a1a2e;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .growth-card-icon { font-size: 16pt; margin-bottom: 4px; }
+    .growth-card-title { font-size: 9pt; font-weight: bold; color: #1a1a2e; margin-bottom: 4px; }
+    .growth-card-body { font-size: 8pt; color: #555; line-height: 1.6; }
+    .growth-card-point {
+      margin-top: 6px;
+      font-size: 7.5pt;
+      color: #c8a97e;
+      font-weight: bold;
+      background: #fff8f0;
+      border-radius: 6px;
+      padding: 4px 8px;
+    }
+
+    /* まとめカード */
+    .summary-box {
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 14px 20px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .summary-text-block { flex: 1; }
+    .summary-title {
+      font-size: 11pt;
+      font-weight: bold;
+      color: #c8a97e;
+      margin-bottom: 6px;
+    }
+    .summary-list {
+      list-style: none;
+      padding: 0;
+    }
+    .summary-list li {
+      font-size: 8.5pt;
+      color: #ddd;
+      line-height: 1.8;
+      padding-left: 14px;
+      position: relative;
+    }
+    .summary-list li::before {
+      content: '✓';
+      color: #c8a97e;
+      position: absolute;
+      left: 0;
+    }
+    .summary-cta {
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .summary-cta-label {
+      font-size: 7pt;
+      color: #aaa;
+      margin-bottom: 5px;
+      letter-spacing: 2px;
+    }
+    .summary-cta-btn {
+      background: #c8a97e;
+      color: #1a1a2e;
+      font-size: 9pt;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 8px 16px;
+      letter-spacing: 1px;
+    }
+
+    /* フッター */
+    .footer {
+      background: #1a1a2e;
+      padding: 10px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-logo { font-size: 12pt; font-weight: bold; color: #c8a97e; letter-spacing: 3px; }
+    .footer-note { font-size: 8pt; color: #888; }
+
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ① キャッチ -->
+  <div class="header">
+    <div class="header-logo">PUTTERS PERSONAL GYM</div>
+    <div class="header-title"><span>写真1枚</span>で、食事がわかる。</div>
+    <div class="header-sub">あなたの体の変化を、数字で知るためのアプリのご紹介</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ② 使い方：3ステップ -->
+    <div class="section">
+      <div class="section-label">HOW IT WORKS</div>
+      <div class="section-title">食事の写真を撮るだけで栄養がわかります</div>
+      <div class="section-body">
+        「食事管理」と聞くと難しそうに感じるかもしれません。でも、このアプリではたった3ステップで今日食べたものの栄養が確認できます。計算する必要は一切ありません。
+      </div>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-icon">📱</div>
+          <div class="flow-label">STEP 1</div>
+          <div class="flow-text">アプリを開く</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-icon">📷</div>
+          <div class="flow-label">STEP 2</div>
+          <div class="flow-text">食事を撮影</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-icon">✨</div>
+          <div class="flow-label">STEP 3</div>
+          <div class="flow-text">AIが自動解析</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="flow-icon">📊</div>
+          <div class="flow-label">結果</div>
+          <div class="flow-text">PFCがわかる</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ③ PFC具体例：食材の栄養一覧 -->
+    <div class="section">
+      <div class="section-label">NUTRITION FACTS</div>
+      <div class="section-title">知ると意外な、食材の栄養</div>
+      <div class="section-body">
+        数字を見ると「あの食材にそんなに入ってるんだ」という気づきが生まれます。まずはそこからで十分です。
+      </div>
+
+      <table class="pfc-table">
+        <tr>
+          <th>食材（目安量）</th>
+          <th>タンパク質</th>
+          <th>脂質</th>
+          <th>炭水化物</th>
+          <th>カロリー</th>
+        </tr>
+        <tr>
+          <td>🍗 鶏むね肉・皮なし（100g）</td>
+          <td class="highlight">24g</td>
+          <td>1.9g</td>
+          <td>0g</td>
+          <td>116kcal</td>
+        </tr>
+        <tr>
+          <td>🥚 卵（1個 約60g）</td>
+          <td class="highlight">7.4g</td>
+          <td>5.7g</td>
+          <td>0.2g</td>
+          <td>83kcal</td>
+        </tr>
+        <tr>
+          <td>🍚 白米（茶碗1杯 約150g）</td>
+          <td>3.8g</td>
+          <td>0.5g</td>
+          <td class="highlight">55g</td>
+          <td>234kcal</td>
+        </tr>
+        <tr>
+          <td>🐟 サーモン・刺身（100g）</td>
+          <td class="highlight">20g</td>
+          <td>12g</td>
+          <td>0.1g</td>
+          <td>187kcal</td>
+        </tr>
+        <tr>
+          <td>🥦 ブロッコリー（100g）</td>
+          <td>4.3g</td>
+          <td>0.5g</td>
+          <td>2.3g</td>
+          <td>33kcal</td>
+        </tr>
+        <tr>
+          <td>🥛 牛乳（200ml）</td>
+          <td>6.8g</td>
+          <td>7.6g</td>
+          <td>9.6g</td>
+          <td>134kcal</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ④ 体重・体温：続けると変化が見えてくる -->
+    <div class="section">
+      <div class="section-label">YOUR GROWTH</div>
+      <div class="section-title">続けると、体の変化が数字で見えてくる</div>
+      <div class="section-body">
+        毎日記録することで、自分の体の変化がグラフで確認できます。その変化が"成長の証"です。
+      </div>
+
+      <div class="growth-cards">
+        <div class="growth-card">
+          <div class="growth-card-icon">⚖️</div>
+          <div class="growth-card-title">体重が増える = 筋肉が増えている</div>
+          <div class="growth-card-body">
+            筋トレを続けると、脂肪が減りながら筋肉が増えます。体重が少し増えても「筋肉がついてきた」サインである場合があります。
+          </div>
+          <div class="growth-card-point">数字の変化を長期で見ることが大切</div>
+        </div>
+        <div class="growth-card">
+          <div class="growth-card-icon">🌡️</div>
+          <div class="growth-card-title">体温が上がる = 代謝が上がっている</div>
+          <div class="growth-card-body">
+            筋肉量が増えると体温が自然と上がり、代謝が良くなります。30日間の平均体温の変化をアプリで追えます。
+          </div>
+          <div class="growth-card-point">30日間の平均体温がアプリで確認できます</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ⑤ まとめ：PUTTERSのアプリ紹介 -->
+    <div class="section">
+      <div class="section-label">ABOUT THE APP</div>
+      <div class="section-title">PUTTERSのアプリでできること</div>
+
+      <div class="summary-box">
+        <div class="summary-text-block">
+          <div class="summary-title">このアプリ、全部まとまってます</div>
+          <ul class="summary-list">
+            <li>食事写真をAIが解析 → PFCを自動で記録</li>
+            <li>体重・体温を毎日グラフで見える化</li>
+            <li>30日間の平均体温で代謝の変化を追跡</li>
+            <li>トレーナーからの宿題・メモも確認できる</li>
+            <li>LINEから使えるので、アプリのインストール不要</li>
+          </ul>
+        </div>
+        <div class="summary-cta">
+          <div class="summary-cta-label">START HERE</div>
+          <div class="summary-cta-btn">まず写真1枚<br>撮ってみよう</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- フッター -->
+  <div class="footer">
+    <div class="footer-logo">PUTTERS</div>
+    <div class="footer-note">まずは写真1枚。それだけで十分です。</div>
+  </div>
+
+</body>
+</html>

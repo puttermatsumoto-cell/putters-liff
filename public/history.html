@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUTTERS 記録履歴</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 16px; }
+    h1 { font-size: 18px; color: #222; margin-bottom: 16px; }
+    .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .section h2 { font-size: 14px; color: #555; margin-bottom: 16px; }
+    .empty { text-align: center; color: #aaa; font-size: 13px; padding: 20px 0; }
+    .stat-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .stat { flex: 1; background: #f5f0eb; border-radius: 10px; padding: 12px; text-align: center; }
+    .stat-val { font-size: 20px; font-weight: bold; color: #1a1a2e; }
+    .stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 8px 10px; background: #f5f0eb; color: #888; font-weight: normal; font-size: 11px; }
+    td { padding: 10px; border-bottom: 1px solid #f0f0f0; }
+    tr:last-child td { border-bottom: none; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← 記録に戻る</a>
+  <h1>記録履歴（全期間）</h1>
+
+  <!-- 体重グラフ -->
+  <div class="section">
+    <h2>⚖️ 体重推移</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val" id="weight-start">-</div><div class="stat-label">開始時</div></div>
+      <div class="stat"><div class="stat-val" id="weight-latest">-</div><div class="stat-label">最新</div></div>
+      <div class="stat"><div class="stat-val" id="weight-change">-</div><div class="stat-label">変化</div></div>
+    </div>
+    <div id="weight-empty" class="empty">記録がありません</div>
+    <canvas id="chart-weight" style="display:none"></canvas>
+  </div>
+
+  <!-- PFCグラフ -->
+  <div class="section">
+    <h2>🍽️ PFC推移</h2>
+    <div id="pfc-empty" class="empty">記録がありません</div>
+    <canvas id="chart-pfc" style="display:none"></canvas>
+  </div>
+
+  <!-- 一覧テーブル -->
+  <div class="section">
+    <h2>📋 記録一覧</h2>
+    <div id="table-empty" class="empty">記録がありません</div>
+    <table id="record-table" style="display:none">
+      <thead>
+        <tr>
+          <th>日付</th>
+          <th>体重(kg)</th>
+          <th>P(g)</th>
+          <th>F(g)</th>
+          <th>C(g)</th>
+          <th>kcal</th>
+        </tr>
+      </thead>
+      <tbody id="record-tbody"></tbody>
+    </table>
+  </div>
+
+<script>
+  const HISTORY_KEY = 'putters_history';
+
+  function load() {
+    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    if (history.length === 0) return;
+
+    const labels = history.map(d => d.date.slice(5));
+    const weights = history.map(d => d.weight);
+    const hasWeight = weights.some(v => v !== null);
+
+    // サマリー
+    if (hasWeight) {
+      const ws = weights.filter(v => v !== null);
+      const first = ws[0]; const last = ws[ws.length - 1];
+      const change = (last - first).toFixed(1);
+      document.getElementById('weight-start').textContent = first + 'kg';
+      document.getElementById('weight-latest').textContent = last + 'kg';
+      const el = document.getElementById('weight-change');
+      el.textContent = (change > 0 ? '+' : '') + change + 'kg';
+      el.style.color = change < 0 ? '#388e3c' : change > 0 ? '#c62828' : '#333';
+
+      // 体重グラフ
+      document.getElementById('weight-empty').style.display = 'none';
+      const wCanvas = document.getElementById('chart-weight');
+      wCanvas.style.display = 'block';
+      new Chart(wCanvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: '体重 (kg)',
+            data: weights,
+            borderColor: '#1a1a2e',
+            backgroundColor: 'rgba(26,26,46,0.08)',
+            tension: 0.3,
+            pointBackgroundColor: '#c8a97e',
+            pointRadius: 3,
+            spanGaps: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { ticks: { callback: v => v + 'kg' } } }
+        }
+      });
+    }
+
+    // PFCグラフ
+    document.getElementById('pfc-empty').style.display = 'none';
+    const pCanvas = document.getElementById('chart-pfc');
+    pCanvas.style.display = 'block';
+    new Chart(pCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'P(g)', data: history.map(d => d.p), borderColor: '#e57373', tension: 0.3, pointRadius: 2 },
+          { label: 'F(g)', data: history.map(d => d.f), borderColor: '#ffb74d', tension: 0.3, pointRadius: 2 },
+          { label: 'C(g)', data: history.map(d => d.c), borderColor: '#81c784', tension: 0.3, pointRadius: 2 },
+          { label: 'kcal', data: history.map(d => d.kcal), borderColor: '#9575cd', tension: 0.3, pointRadius: 2, yAxisID: 'y2', borderDash: [4,4] }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: {
+          y: { position: 'left', ticks: { callback: v => v + 'g' } },
+          y2: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + 'kcal' } }
+        }
+      }
+    });
+
+    // 一覧テーブル（新しい順）
+    document.getElementById('table-empty').style.display = 'none';
+    document.getElementById('record-table').style.display = 'table';
+    const tbody = document.getElementById('record-tbody');
+    [...history].reverse().forEach(d => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${d.date}</td>
+        <td>${d.weight !== null ? d.weight + 'kg' : '-'}</td>
+        <td>${d.p}</td>
+        <td>${d.f}</td>
+        <td>${d.c}</td>
+        <td>${d.kcal}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  load();
+</script>
+</body>
+</html>

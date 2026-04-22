@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUTTERS 目標設定</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 16px; }
+    h1 { font-size: 20px; color: #222; text-align: center; margin-bottom: 20px; padding-top: 12px; }
+    .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .section h2 { font-size: 15px; color: #555; margin-bottom: 16px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 13px; color: #888; margin-bottom: 6px; }
+    .field input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
+    .field .unit { font-size: 13px; color: #888; margin-left: 8px; }
+    .field-row { display: flex; align-items: center; gap: 8px; }
+    .field-row input { flex: 1; }
+    .save-btn { background: #1a1a2e; color: white; border: none; border-radius: 12px; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .save-btn:active { opacity: 0.8; }
+    #toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #c8a97e; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 999; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← 戻る</a>
+  <h1>🎯 目標設定</h1>
+  <div id="toast">保存しました</div>
+
+  <div class="section">
+    <h2>⚖️ 体重目標</h2>
+    <div class="field">
+      <label>目標体重</label>
+      <div class="field-row">
+        <input type="number" id="goal-weight" placeholder="60.0" step="0.1">
+        <span class="unit">kg</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🍽️ PFC目標（1日あたり）</h2>
+    <div class="field">
+      <label>タンパク質（P）</label>
+      <div class="field-row">
+        <input type="number" id="goal-p" placeholder="120" min="0">
+        <span class="unit">g</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>脂質（F）</label>
+      <div class="field-row">
+        <input type="number" id="goal-f" placeholder="50" min="0">
+        <span class="unit">g</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>炭水化物（C）</label>
+      <div class="field-row">
+        <input type="number" id="goal-c" placeholder="200" min="0">
+        <span class="unit">g</span>
+      </div>
+    </div>
+    <div style="margin-top:12px; background:#f5f0eb; border-radius:10px; padding:12px 16px; text-align:center;">
+      <span style="font-size:13px; color:#888;">目標カロリー　</span>
+      <span id="goal-kcal-display" style="font-size:20px; font-weight:bold; color:#c8a97e;">-</span>
+      <span style="font-size:13px; color:#888;"> kcal</span>
+    </div>
+  </div>
+
+  <button class="save-btn" onclick="saveAll()">保存する</button>
+
+<script>
+  const PFC_GOAL_KEY = 'putters_pfc_goal';
+
+  function updateKcal() {
+    const p = parseFloat(document.getElementById('goal-p').value) || 0;
+    const f = parseFloat(document.getElementById('goal-f').value) || 0;
+    const c = parseFloat(document.getElementById('goal-c').value) || 0;
+    const kcal = p * 4 + f * 9 + c * 4;
+    document.getElementById('goal-kcal-display').textContent = kcal > 0 ? Math.round(kcal) : '-';
+  }
+
+  document.getElementById('goal-p').addEventListener('input', updateKcal);
+  document.getElementById('goal-f').addEventListener('input', updateKcal);
+  document.getElementById('goal-c').addEventListener('input', updateKcal);
+
+  function load() {
+    const gw = localStorage.getItem('putters_goal_weight');
+    if (gw) document.getElementById('goal-weight').value = gw;
+    const raw = localStorage.getItem(PFC_GOAL_KEY);
+    if (raw) {
+      const g = JSON.parse(raw);
+      if (g.p) document.getElementById('goal-p').value = g.p;
+      if (g.f) document.getElementById('goal-f').value = g.f;
+      if (g.c) document.getElementById('goal-c').value = g.c;
+      updateKcal();
+    }
+  }
+
+  function saveAll() {
+    const gw = document.getElementById('goal-weight').value;
+    if (gw) localStorage.setItem('putters_goal_weight', gw);
+    localStorage.setItem(PFC_GOAL_KEY, JSON.stringify({
+      p: document.getElementById('goal-p').value,
+      f: document.getElementById('goal-f').value,
+      c: document.getElementById('goal-c').value
+    }));
+    const toast = document.getElementById('toast');
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; window.location.href = '/'; }, 1000);
+  }
+
+  load();
+</script>
+</body>
+</html>

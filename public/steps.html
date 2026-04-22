@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>週間歩数ランキング</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
+    h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 4px; font-weight: 700; }
+    .subtitle { font-size: 12px; color: #888; text-align: center; margin-bottom: 20px; }
+    .period { font-size: 12px; color: #c8a97e; text-align: center; margin-bottom: 20px; font-weight: bold; }
+
+    /* 自分の順位カード */
+    .rank-hero { background: #1a1a2e; border-radius: 20px; padding: 28px 20px; margin-bottom: 16px; text-align: center; }
+    .rank-hero-label { font-size: 11px; color: #c8a97e; font-weight: bold; letter-spacing: 2px; margin-bottom: 8px; }
+    .rank-hero-num { font-size: 72px; font-weight: bold; color: white; line-height: 1; margin-bottom: 4px; }
+    .rank-hero-suffix { font-size: 20px; color: #aaa; }
+    .rank-hero-sub { font-size: 13px; color: #aaa; margin-top: 8px; }
+    .rank-hero-steps { font-size: 16px; color: #c8a97e; font-weight: bold; margin-top: 12px; }
+
+    /* 自分の歩数 */
+    .my-card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .my-card-title { font-size: 11px; color: #c8a97e; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; }
+    .my-steps-row { display: flex; align-items: baseline; gap: 4px; margin-bottom: 4px; }
+    .my-steps-num { font-size: 36px; font-weight: bold; color: #1a1a2e; }
+    .my-steps-unit { font-size: 14px; color: #888; }
+    .my-steps-sub { font-size: 12px; color: #888; }
+
+    /* セットアップ */
+    .setup-card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .setup-title { font-size: 13px; font-weight: bold; color: #1a1a2e; margin-bottom: 8px; }
+    .setup-desc { font-size: 12px; color: #888; line-height: 1.7; margin-bottom: 12px; }
+    .token-box { background: #f5f0eb; border-radius: 8px; padding: 10px 12px; font-size: 11px; color: #555; word-break: break-all; margin-bottom: 10px; font-family: monospace; }
+    .btn-copy { display: block; background: #1a1a2e; color: white; text-align: center; border-radius: 80px; padding: 10px; font-size: 13px; font-weight: bold; text-decoration: none; border: none; width: 100%; cursor: pointer; margin-bottom: 8px; }
+    .btn-copy:active { opacity: 0.8; }
+    .loading { text-align: center; color: #aaa; font-size: 14px; padding: 40px 0; }
+    .no-data { background: white; border-radius: 14px; padding: 24px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 16px; }
+    .no-data-text { font-size: 14px; color: #888; line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <a href="javascript:history.back()" class="back">← 戻る</a>
+  <h1>🚶 週間歩数ランキング</h1>
+  <p class="subtitle">今週どれくらい歩いていますか？</p>
+  <p class="period" id="period">読み込み中...</p>
+
+  <div id="main-section">
+    <div class="loading">読み込み中...</div>
+  </div>
+
+  <div id="android-section"></div>
+  <div id="setup-section"></div>
+
+  <script>
+    let myUserId = null;
+    let myName = null;
+
+    async function init() {
+      myName = localStorage.getItem('putters_user_name') || null;
+      myUserId = myName; // 名前をIDとして使う
+      // Google Fit連携済みなら自動同期
+      const fitToken = localStorage.getItem('putters_fit_token');
+      if (fitToken && myName) syncFitAuto();
+
+      loadRanking();
+      renderAndroid();
+      renderSetup();
+    }
+
+    async function loadRanking() {
+      try {
+        const res = await fetch('/api/steps');
+        const data = await res.json();
+        renderRanking(data);
+      } catch (e) {
+        document.getElementById('main-section').innerHTML = '<div class="loading">データを取得できませんでした</div>';
+      }
+    }
+
+    function renderRanking(data) {
+      const list = data.ranking || [];
+      const periodEl = document.getElementById('period');
+      if (data.period) periodEl.textContent = data.period;
+
+      const main = document.getElementById('main-section');
+
+      if (list.length === 0) {
+        main.innerHTML = `
+          <div class="no-data">
+            <div style="font-size:32px;margin-bottom:12px;">👟</div>
+            <div class="no-data-text">今週のデータがまだありません。<br>ショートカットを設定して<br>歩数を記録しましょう！</div>
+          </div>`;
+        return;
+      }
+
+      const myEntry = list.find(r => r.userId === myUserId);
+      const myRank = myEntry ? list.indexOf(myEntry) + 1 : null;
+      const total = list.length;
+
+      let html = '';
+
+      // 自分の順位
+      if (myEntry) {
+        const medals = ['🥇', '🥈', '🥉'];
+        const medal = myRank <= 3 ? medals[myRank - 1] : '';
+        html += `
+          <div class="rank-hero">
+            <div class="rank-hero-label">YOUR RANKING</div>
+            <div class="rank-hero-num">${medal || myRank}<span class="rank-hero-suffix">${medal ? '' : '位'}</span></div>
+            <div class="rank-hero-sub">今週の順位</div>
+            <div class="rank-hero-steps">今週 ${myEntry.totalSteps.toLocaleString()} 歩</div>
+          </div>`;
+
+        html += `
+          <div class="my-card">
+            <div class="my-card-title">MY WEEKLY STEPS</div>
+            <div class="my-steps-row">
+              <span class="my-steps-num">${myEntry.totalSteps.toLocaleString()}</span>
+              <span class="my-steps-unit">歩</span>
+            </div>
+            <div class="my-steps-sub">${myEntry.days}日分のデータ</div>
+          </div>`;
+      } else {
+        html += `
+          <div class="no-data">
+            <div style="font-size:32px;margin-bottom:12px;">👟</div>
+            <div class="no-data-text">あなたの今週のデータがありません。<br>ショートカットを設定して<br>歩数を記録しましょう！</div>
+          </div>`;
+      }
+
+
+      main.innerHTML = html;
+    }
+
+    function renderAndroid() {
+      const androidSection = document.getElementById('android-section');
+      const fitToken = localStorage.getItem('putters_fit_token');
+      if (!myName) return;
+
+      if (fitToken) {
+        // 連携済み → 今日の歩数を同期
+        androidSection.innerHTML = `
+          <div class="setup-card">
+            <div class="setup-title">🤖 Google Fit 連携済み</div>
+            <button class="btn-copy" id="btn-sync" onclick="syncFit()" style="background:#388e3c;">今日の歩数を同期する</button>
+            <button class="btn-copy" onclick="resetFit()" style="background:#888;margin-top:8px;">再連携する</button>
+          </div>`;
+      }
+    }
+
+    function resetFit() {
+      localStorage.removeItem('putters_fit_token');
+      location.reload();
+    }
+
+    async function connectFit() {
+      if (!myName) { alert('名前が設定されていません。トップページから名前を入力してください。'); return; }
+      const btn = document.getElementById('btn-fit');
+      btn.textContent = '接続中...';
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/api/google-fit?action=auth_url&userName=${encodeURIComponent(myName)}`);
+        const data = await res.json();
+        if (!data.url) throw new Error('URL取得失敗');
+        window.location.href = data.url;
+      } catch (e) {
+        alert('接続に失敗しました: ' + e.message);
+        btn.textContent = '🤖 Androidの方はこちら（Google Fit連携）';
+        btn.disabled = false;
+      }
+    }
+
+    async function syncFitAuto() {
+      const refreshToken = localStorage.getItem('putters_fit_token');
+      if (!refreshToken || !myName) return;
+      try {
+        await fetch('/api/google-fit?action=sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken, userName: myName })
+        });
+      } catch (e) {}
+    }
+
+    async function syncFit() {
+      const refreshToken = localStorage.getItem('putters_fit_token');
+      if (!refreshToken || !myName) return;
+      const btn = document.getElementById('btn-sync');
+      btn.textContent = '同期中...';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/google-fit?action=sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken, userName: myName })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          btn.textContent = `✓ ${data.steps.toLocaleString()}歩 同期完了`;
+          btn.style.background = '#1a1a2e';
+        } else {
+          btn.textContent = '今日の歩数を同期する';
+          btn.disabled = false;
+        }
+      } catch (e) {
+        btn.textContent = '今日の歩数を同期する';
+        btn.disabled = false;
+      }
+    }
+
+    function renderSetup() {
+      const setupSection = document.getElementById('setup-section');
+      if (!myName) return;
+      const fitToken = localStorage.getItem('putters_fit_token');
+      if (fitToken) return; // Google Fit連携済みならiOS設定は不要
+
+      setupSection.innerHTML = `
+        <div class="setup-card">
+          <div class="setup-title">📱 ショートカット設定（初回のみ）</div>
+          <div class="setup-desc">以下の手順でiOSショートカットを設定すると、毎晩23:30に自動で歩数が送信されます。</div>
+
+          <div style="margin-bottom:16px;">
+            <button class="btn-copy" id="btn-fit" onclick="connectFit()" style="background:#4CAF50;">🤖 Androidの方はこちら（Google Fit連携）</button>
+            <div style="font-size:11px;color:#e53935;margin-top:6px;">※ LINEのリンクからではなく、ブラウザのアドレスバーから直接開いてください</div>
+          </div>
+          <div style="font-size:11px;color:#c8a97e;font-weight:bold;letter-spacing:1px;margin-bottom:4px;">iPhoneの方</div>
+          <div style="font-size:11px;color:#c8a97e;font-weight:bold;letter-spacing:1px;margin-bottom:8px;">STEP 1</div>
+          <div style="font-size:12px;color:#555;margin-bottom:6px;">あなたの名前をコピーしてください</div>
+          <div class="token-box">${myName}</div>
+          <button class="btn-copy" id="btn-copy-name" onclick="copyToken()">① 名前をコピー</button>
+
+          <div style="font-size:11px;color:#c8a97e;font-weight:bold;letter-spacing:1px;margin-bottom:8px;margin-top:16px;">STEP 2</div>
+          <div style="font-size:12px;color:#555;margin-bottom:10px;">ショートカットをインストールして、<br>userId の欄に名前を貼り付けてください</div>
+          <a href="https://www.icloud.com/shortcuts/e5f3bb4138ad40d79456b7d80386b0fa" class="btn-copy" style="background:#007AFF;text-decoration:none;">② ショートカットをインストール</a>
+
+          <div style="font-size:11px;color:#c8a97e;font-weight:bold;letter-spacing:1px;margin-bottom:8px;margin-top:16px;">STEP 3</div>
+          <div style="font-size:12px;color:#555;line-height:1.8;">
+            オートメーションを設定してください。<br>
+            ① ショートカットアプリを開く<br>
+            ② 下の「オートメーション」タブをタップ<br>
+            ③ 右上の「＋」をタップ<br>
+            ④「時刻」を選択<br>
+            ⑤ 時刻を「23:30」・「毎日」に設定→「次へ」<br>
+            ⑥「すぐに実行」を選択<br>
+            ⑦ インストールした「歩数を記録」を選択→「完了」
+          </div>
+        </div>`;
+    }
+
+    function copyToken() {
+      if (!myName) return;
+      navigator.clipboard.writeText(myName).then(() => {
+        const btn = document.getElementById('btn-copy-name');
+        btn.textContent = 'コピーしました！';
+        setTimeout(() => { btn.textContent = '① 名前をコピー'; }, 2000);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

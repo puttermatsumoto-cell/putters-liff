@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>意見箱</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
+    h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 700; }
+    .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 24px; }
+    .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .label { font-size: 13px; color: #555; font-weight: bold; margin-bottom: 8px; }
+    textarea { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 12px; font-size: 14px; resize: none; font-family: inherit; line-height: 1.6; }
+    textarea:focus { outline: none; border-color: #c8a97e; }
+    .submit-btn { background: #1a1a2e; color: white; border: none; border-radius: 12px; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .submit-btn:active { opacity: 0.8; }
+    #message { text-align: center; color: #c8a97e; margin-top: 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← 戻る</a>
+  <h1>📮 意見箱</h1>
+  <p class="subtitle">松本トレーナーへ気軽に送ってね</p>
+
+  <div class="section">
+    <div class="label">💪 やってみたいトレーニング</div>
+    <textarea id="fb-training" rows="3" placeholder="例：懸垂、バーベルスクワット..."></textarea>
+  </div>
+
+  <div class="section">
+    <div class="label">❓ 宿題でわからなかったこと</div>
+    <textarea id="fb-question" rows="3" placeholder="例：腹筋の正しいフォームがわからない..."></textarea>
+  </div>
+
+  <div class="section">
+    <div class="label">🎯 今後の目標</div>
+    <textarea id="fb-goal" rows="3" placeholder="例：来月までに3kg減らしたい..."></textarea>
+  </div>
+
+  <button class="submit-btn" onclick="submit()">送る</button>
+  <p id="message"></p>
+
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+  const NAME_KEY = 'putters_user_name';
+
+  async function submit() {
+    const training = document.getElementById('fb-training').value.trim();
+    const question = document.getElementById('fb-question').value.trim();
+    const goal = document.getElementById('fb-goal').value.trim();
+    if (!training && !question && !goal) return;
+
+    const name = localStorage.getItem(NAME_KEY) || '不明';
+    const date = new Date().toISOString().slice(0, 10);
+    const msg = document.getElementById('message');
+    msg.textContent = '送信中...';
+
+    try {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'feedback', name, date, training, question, goal })
+      });
+      document.getElementById('fb-training').value = '';
+      document.getElementById('fb-question').value = '';
+      document.getElementById('fb-goal').value = '';
+      msg.textContent = '✅ 送りました！';
+      setTimeout(() => msg.textContent = '', 3000);
+    } catch(e) {
+      msg.textContent = '❌ 送信に失敗しました';
+    }
+  }
+</script>
+</body>
+</html>

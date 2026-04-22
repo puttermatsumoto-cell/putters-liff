@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ショートカット設定ガイド</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
+    h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 4px; font-weight: 700; }
+    .subtitle { font-size: 12px; color: #888; text-align: center; margin-bottom: 24px; }
+
+    .step { background: white; border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .step-num { font-size: 11px; color: #c8a97e; font-weight: bold; letter-spacing: 2px; margin-bottom: 8px; }
+    .step-title { font-size: 16px; font-weight: bold; color: #1a1a2e; margin-bottom: 10px; }
+    .step-body { font-size: 14px; color: #444; line-height: 2; }
+    .step-body b { color: #1a1a2e; }
+    .note { background: #fff8e1; border-left: 3px solid #c8a97e; padding: 10px 12px; border-radius: 4px; font-size: 13px; color: #555; margin-top: 12px; line-height: 1.7; }
+    .url-box { background: #f5f0eb; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #555; word-break: break-all; margin: 8px 0; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <a href="javascript:history.back()" class="back">← 戻る</a>
+  <h1>📱 ショートカット設定ガイド</h1>
+  <p class="subtitle">会員さんへの設定サポート用マニュアル</p>
+
+  <div class="step">
+    <div class="step-num">STEP 1</div>
+    <div class="step-title">歩数ランキングページを開く</div>
+    <div class="step-body">
+      LINEのリンクからではなく、<b>SafariかChromeのアドレスバー</b>に直接URLを入力して開く。<br><br>
+      <div class="url-box">https://liff-app-weld.vercel.app/steps.html</div>
+      ページが開いたら「① 名前をコピー」ボタンを押して名前をコピーする。
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">STEP 2</div>
+    <div class="step-title">ショートカットをインストール</div>
+    <div class="step-body">
+      steps.htmlの「② ショートカットをインストール」ボタンを押す。<br><br>
+      Safari が開いてショートカットのページが表示される。<br>
+      →「ショートカットを追加」をタップ<br>
+      →「追加」をタップ<br><br>
+      ショートカットアプリが開いてインストールされる。
+    </div>
+    <div class="note">⚠️ LINEのブラウザからは動きません。SafariかChromeで開いてください。</div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">STEP 3</div>
+    <div class="step-title">userId に名前を貼り付ける</div>
+    <div class="step-body">
+      ショートカットアプリで「歩数を記録」を<b>長押し</b>→「編集」を選ぶ。<br><br>
+      画面の中に <b>userId</b> という欄がある。<br>
+      →その欄をタップ<br>
+      →STEP1でコピーした名前を<b>ペースト</b>する<br><br>
+      右上の「完了」を押して保存。
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">STEP 4</div>
+    <div class="step-title">ヘルスケアのアクセスを許可</div>
+    <div class="step-body">
+      ショートカットアプリで「歩数を記録」を<b>タップして実行</b>する。<br><br>
+      「ヘルスケアへのアクセスを許可しますか？」と聞かれるので<b>「許可」</b>をタップ。<br><br>
+      これは初回だけ必要。
+    </div>
+    <div class="note">⚠️ 「サンプルが見つかりません」と出た場合は、今日まだ歩数が記録されていないだけなのでOK。</div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">STEP 5</div>
+    <div class="step-title">オートメーションを設定</div>
+    <div class="step-body">
+      ショートカットアプリを開く。<br>
+      → 下のタブ「<b>オートメーション</b>」をタップ<br>
+      → 右上の「<b>＋</b>」をタップ<br>
+      →「<b>時刻</b>」を選ぶ<br>
+      → 時刻を「<b>23:30</b>」・「<b>毎日</b>」に設定→「<b>次へ</b>」<br>
+      →「<b>すぐに実行</b>」を選ぶ<br>
+      → 「<b>歩数を記録</b>」を選ぶ→「<b>完了</b>」
+    </div>
+    <div class="note">これで毎晩23:30に自動で歩数が送られます。</div>
+  </div>
+
+</body>
+</html>

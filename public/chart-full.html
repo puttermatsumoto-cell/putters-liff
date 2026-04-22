@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUTTERS グラフ</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 16px; }
+    h1 { font-size: 20px; color: #222; text-align: center; margin-bottom: 20px; padding-top: 12px; }
+    .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .section h2 { font-size: 14px; color: #555; margin-bottom: 12px; }
+    .period-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .period-btn { flex: 1; min-width: 52px; padding: 8px 4px; border: 1px solid #ddd; border-radius: 8px; background: white; font-size: 12px; cursor: pointer; color: #888; text-align: center; }
+    .period-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+    .empty { text-align: center; color: #aaa; font-size: 13px; padding: 20px 0; }
+    .stat-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .stat { flex: 1; background: #f5f0eb; border-radius: 10px; padding: 12px; text-align: center; }
+    .stat-val { font-size: 18px; font-weight: bold; color: #1a1a2e; }
+    .stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← 戻る</a>
+  <h1>📈 グラフ</h1>
+
+  <!-- 体重グラフ -->
+  <div class="section">
+    <h2>⚖️ 体重推移</h2>
+    <div class="period-btns" id="weight-periods">
+      <button class="period-btn" onclick="setWeightPeriod(14, this)">2週間</button>
+      <button class="period-btn" onclick="setWeightPeriod(30, this)">1ヶ月</button>
+      <button class="period-btn" onclick="setWeightPeriod(90, this)">3ヶ月</button>
+      <button class="period-btn" onclick="setWeightPeriod(365, this)">1年</button>
+      <button class="period-btn active" onclick="setWeightPeriod(0, this)">全期間</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val" id="w-start">-</div><div class="stat-label">開始時</div></div>
+      <div class="stat"><div class="stat-val" id="w-latest">-</div><div class="stat-label">最新</div></div>
+      <div class="stat"><div class="stat-val" id="w-change">-</div><div class="stat-label">変化</div></div>
+    </div>
+    <div id="weight-empty" class="empty">記録がありません</div>
+    <canvas id="chart-weight" style="display:none"></canvas>
+  </div>
+
+  <!-- PFCグラフ -->
+  <div class="section">
+    <h2>🍽️ PFC推移</h2>
+    <div class="period-btns" id="pfc-periods">
+      <button class="period-btn" onclick="setPFCPeriod(14, this)">2週間</button>
+      <button class="period-btn" onclick="setPFCPeriod(30, this)">1ヶ月</button>
+      <button class="period-btn" onclick="setPFCPeriod(90, this)">3ヶ月</button>
+      <button class="period-btn" onclick="setPFCPeriod(365, this)">1年</button>
+      <button class="period-btn active" onclick="setPFCPeriod(0, this)">全期間</button>
+    </div>
+    <div id="pfc-empty" class="empty">記録がありません</div>
+    <canvas id="chart-pfc" style="display:none"></canvas>
+  </div>
+
+  <!-- 体温グラフ -->
+  <div class="section">
+    <h2>🌡️ 体温推移</h2>
+    <div class="period-btns" id="temp-periods">
+      <button class="period-btn" onclick="setTempPeriod(14, this)">2週間</button>
+      <button class="period-btn" onclick="setTempPeriod(30, this)">1ヶ月</button>
+      <button class="period-btn" onclick="setTempPeriod(90, this)">3ヶ月</button>
+      <button class="period-btn active" onclick="setTempPeriod(0, this)">全期間</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val" id="t-avg">-</div><div class="stat-label">平均</div></div>
+      <div class="stat"><div class="stat-val" id="t-latest">-</div><div class="stat-label">最新</div></div>
+    </div>
+    <div id="temp-empty" class="empty">記録がありません</div>
+    <canvas id="chart-temp" style="display:none"></canvas>
+  </div>
+
+  <!-- 有酸素運動 -->
+  <div class="section">
+    <h2>🏃 有酸素運動</h2>
+    <div class="period-btns" id="cardio-periods">
+      <button class="period-btn" onclick="setCardioPeriod(14, this)">2週間</button>
+      <button class="period-btn" onclick="setCardioPeriod(30, this)">1ヶ月</button>
+      <button class="period-btn" onclick="setCardioPeriod(90, this)">3ヶ月</button>
+      <button class="period-btn active" onclick="setCardioPeriod(0, this)">全期間</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val" id="c-total">-</div><div class="stat-label">合計（分）</div></div>
+      <div class="stat"><div class="stat-val" id="c-avg">-</div><div class="stat-label">1日平均（分）</div></div>
+      <div class="stat"><div class="stat-val" id="c-days">-</div><div class="stat-label">実施日数</div></div>
+    </div>
+    <div id="cardio-empty" class="empty">記録がありません</div>
+    <canvas id="chart-cardio" style="display:none"></canvas>
+  </div>
+
+<script>
+  const HISTORY_KEY = 'putters_history';
+  let allHistory = [];
+  let weightChart = null, pfcChart = null;
+
+  function filterHistory(days) {
+    if (days === 0) return allHistory;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    return allHistory.filter(d => d.date >= cutoffStr);
+  }
+
+  function renderWeightChart(days) {
+    const data = filterHistory(days);
+    const canvas = document.getElementById('chart-weight');
+    const empty = document.getElementById('weight-empty');
+    const weights = data.map(d => d.weight);
+    const hasWeight = weights.some(v => v !== null);
+    if (!hasWeight || data.length === 0) {
+      canvas.style.display = 'none'; empty.style.display = 'block';
+      document.getElementById('w-start').textContent = '-';
+      document.getElementById('w-latest').textContent = '-';
+      document.getElementById('w-change').textContent = '-';
+      return;
+    }
+    empty.style.display = 'none'; canvas.style.display = 'block';
+    const ws = weights.filter(v => v !== null);
+    const first = ws[0]; const last = ws[ws.length - 1];
+    const change = (last - first).toFixed(1);
+    document.getElementById('w-start').textContent = first + 'kg';
+    document.getElementById('w-latest').textContent = last + 'kg';
+    const el = document.getElementById('w-change');
+    el.textContent = (change > 0 ? '+' : '') + change + 'kg';
+    el.style.color = change < 0 ? '#388e3c' : change > 0 ? '#c62828' : '#333';
+    if (weightChart) weightChart.destroy();
+    weightChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: data.map(d => d.date.slice(5)),
+        datasets: [{ label: '体重', data: weights, borderColor: '#1a1a2e', backgroundColor: 'rgba(26,26,46,0.08)', tension: 0.3, pointBackgroundColor: '#c8a97e', pointRadius: data.length > 30 ? 2 : 4, spanGaps: true }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v + 'kg' } } } }
+    });
+  }
+
+  function renderPFCChart(days) {
+    const data = filterHistory(days);
+    const canvas = document.getElementById('chart-pfc');
+    const empty = document.getElementById('pfc-empty');
+    if (data.length === 0) { canvas.style.display = 'none'; empty.style.display = 'block'; return; }
+    empty.style.display = 'none'; canvas.style.display = 'block';
+    const labels = data.map(d => d.date.slice(5));
+    const r = data.length > 30 ? 2 : 3;
+    if (pfcChart) pfcChart.destroy();
+    pfcChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'P(g)', data: data.map(d => d.p), borderColor: '#e57373', tension: 0.3, pointRadius: r },
+          { label: 'F(g)', data: data.map(d => d.f), borderColor: '#ffb74d', tension: 0.3, pointRadius: r },
+          { label: 'C(g)', data: data.map(d => d.c), borderColor: '#81c784', tension: 0.3, pointRadius: r },
+          { label: 'kcal', data: data.map(d => d.kcal), borderColor: '#9575cd', tension: 0.3, pointRadius: r, yAxisID: 'y2', borderDash: [4,4] }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: {
+          y: { position: 'left', ticks: { callback: v => v + 'g' } },
+          y2: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + 'kcal' } }
+        }
+      }
+    });
+  }
+
+  let tempChart = null, cardioChart = null;
+
+  function renderTempChart(days) {
+    const data = filterHistory(days).filter(d => d.temperature);
+    const canvas = document.getElementById('chart-temp');
+    const empty = document.getElementById('temp-empty');
+    if (data.length === 0) { canvas.style.display = 'none'; empty.style.display = 'block'; document.getElementById('t-avg').textContent = '-'; document.getElementById('t-latest').textContent = '-'; return; }
+    empty.style.display = 'none'; canvas.style.display = 'block';
+    const temps = data.map(d => d.temperature);
+    const avg = (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1);
+    document.getElementById('t-avg').textContent = avg + '℃';
+    document.getElementById('t-latest').textContent = temps[temps.length - 1] + '℃';
+    if (tempChart) tempChart.destroy();
+    tempChart = new Chart(canvas, {
+      type: 'line',
+      data: { labels: data.map(d => d.date.slice(5)), datasets: [{ label: '体温(℃)', data: temps, borderColor: '#e57373', backgroundColor: 'rgba(229,115,115,0.08)', tension: 0.3, pointBackgroundColor: '#c8a97e', pointRadius: data.length > 30 ? 2 : 4, spanGaps: true }] },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v + '℃' }, suggestedMin: 35, suggestedMax: 38 } } }
+    });
+  }
+
+  function renderCardioChart(days) {
+    const data = filterHistory(days);
+    const canvas = document.getElementById('chart-cardio');
+    const empty = document.getElementById('cardio-empty');
+    const cardioData = data.filter(d => d.cardio > 0);
+    if (cardioData.length === 0) { canvas.style.display = 'none'; empty.style.display = 'block'; document.getElementById('c-total').textContent = '-'; document.getElementById('c-avg').textContent = '-'; document.getElementById('c-days').textContent = '-'; return; }
+    empty.style.display = 'none'; canvas.style.display = 'block';
+    const total = data.reduce((s, d) => s + (d.cardio || 0), 0);
+    const avg = data.length > 0 ? Math.round(total / data.length) : 0;
+    document.getElementById('c-total').textContent = total + '分';
+    document.getElementById('c-avg').textContent = avg + '分';
+    document.getElementById('c-days').textContent = cardioData.length + '日';
+    if (cardioChart) cardioChart.destroy();
+    cardioChart = new Chart(canvas, {
+      type: 'bar',
+      data: { labels: data.map(d => d.date.slice(5)), datasets: [{ label: '有酸素(分)', data: data.map(d => d.cardio || 0), backgroundColor: '#81c784' }] },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => v + '分' } } } }
+    });
+  }
+
+  function setTempPeriod(days, btn) {
+    document.querySelectorAll('#temp-periods .period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTempChart(days);
+  }
+
+  function setCardioPeriod(days, btn) {
+    document.querySelectorAll('#cardio-periods .period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCardioChart(days);
+  }
+
+  function setWeightPeriod(days, btn) {
+    document.querySelectorAll('#weight-periods .period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderWeightChart(days);
+  }
+
+  function setPFCPeriod(days, btn) {
+    document.querySelectorAll('#pfc-periods .period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderPFCChart(days);
+  }
+
+  allHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+  renderWeightChart(0);
+  renderPFCChart(0);
+  renderTempChart(0);
+  renderCardioChart(0);
+</script>
+</body>
+</html>

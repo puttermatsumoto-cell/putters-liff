@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>マイセット管理</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
+    h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 24px; font-weight: 700; }
+    .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .card-title { font-size: 15px; font-weight: bold; color: #1a1a2e; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .food-item { font-size: 13px; color: #555; padding: 4px 0; border-bottom: 1px solid #f0f0f0; display: flex; gap: 8px; }
+    .food-item:last-child { border-bottom: none; }
+    .del-btn { background: none; border: 1px solid #eee; color: #aaa; border-radius: 8px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+    .del-btn:active { background: #fee; color: #e57373; }
+    .add-section { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .add-section h2 { font-size: 15px; color: #1a1a2e; margin-bottom: 16px; font-weight: bold; }
+    input[type="text"], input[type="number"] { border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 14px; width: 100%; margin-bottom: 8px; }
+    .food-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .food-row input[type="text"] { flex: 2; margin-bottom: 0; }
+    .food-row input[type="number"] { flex: 1; margin-bottom: 0; }
+    .food-row .unit { font-size: 12px; color: #888; white-space: nowrap; }
+    .food-row .rm { background: none; border: none; color: #ccc; font-size: 18px; cursor: pointer; padding: 0 4px; }
+    .add-food-btn { background: none; border: 1px dashed #ccc; border-radius: 8px; padding: 10px; width: 100%; color: #aaa; font-size: 14px; cursor: pointer; margin: 4px 0 16px; }
+    .save-btn { background: #1a1a2e; color: white; border: none; border-radius: 12px; padding: 14px; width: 100%; font-size: 15px; font-weight: bold; cursor: pointer; }
+    .save-btn:active { opacity: 0.8; }
+    .empty { text-align: center; color: #aaa; font-size: 14px; padding: 20px 0; }
+    #toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #c8a97e; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 999; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← 戻る</a>
+  <h1>📦 マイセット管理</h1>
+
+  <div id="set-list"></div>
+
+  <div class="add-section">
+    <h2>＋ 新しいセットを作る</h2>
+    <input type="text" id="set-name" placeholder="セット名（例：朝食、チートデイ）">
+    <div id="food-rows"></div>
+    <button class="add-food-btn" onclick="addFoodRow()">＋ 食材を追加</button>
+    <button class="save-btn" onclick="saveSet()">保存する</button>
+  </div>
+
+  <div id="toast">保存しました！</div>
+
+<script>
+  const KEY = 'putters_mysets';
+
+  function getSets() {
+    return JSON.parse(localStorage.getItem(KEY) || '[]');
+  }
+
+  function saveSets(sets) {
+    localStorage.setItem(KEY, JSON.stringify(sets));
+  }
+
+  function renderSets() {
+    const sets = getSets();
+    const el = document.getElementById('set-list');
+    if (sets.length === 0) { el.innerHTML = '<div class="empty" style="margin-bottom:16px;">まだセットがありません</div>'; return; }
+    el.innerHTML = sets.map((s, i) => `
+      <div class="card">
+        <div class="card-title">
+          <span>${s.name}</span>
+          <button class="del-btn" onclick="deleteSet(${i})">削除</button>
+        </div>
+        ${s.foods.map(f => `<div class="food-item"><span>${f.name}</span><span style="color:#aaa">${f.gram}g</span></div>`).join('')}
+      </div>
+    `).join('');
+  }
+
+  function deleteSet(i) {
+    if (!confirm('削除しますか？')) return;
+    const sets = getSets();
+    sets.splice(i, 1);
+    saveSets(sets);
+    renderSets();
+  }
+
+  function addFoodRow(name = '', gram = '') {
+    const div = document.createElement('div');
+    div.className = 'food-row';
+    div.innerHTML = `
+      <input type="text" placeholder="食材名" class="row-name" value="${name}">
+      <input type="number" placeholder="量" class="row-gram" value="${gram}" min="0">
+      <span class="unit">g</span>
+      <button class="rm" onclick="this.closest('.food-row').remove()">×</button>
+    `;
+    document.getElementById('food-rows').appendChild(div);
+  }
+
+  function saveSet() {
+    const name = document.getElementById('set-name').value.trim();
+    if (!name) { alert('セット名を入力してください'); return; }
+    const foods = [];
+    document.querySelectorAll('.food-row').forEach(row => {
+      const n = row.querySelector('.row-name').value.trim();
+      const g = parseFloat(row.querySelector('.row-gram').value) || 0;
+      if (n) foods.push({ name: n, gram: g });
+    });
+    if (foods.length === 0) { alert('食材を1つ以上追加してください'); return; }
+    const sets = getSets();
+    sets.push({ name, foods });
+    saveSets(sets);
+    document.getElementById('set-name').value = '';
+    document.getElementById('food-rows').innerHTML = '';
+    addFoodRow();
+    renderSets();
+    const toast = document.getElementById('toast');
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+  }
+
+  renderSets();
+  addFoodRow();
+</script>
+</body>
+</html>

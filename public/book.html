@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUTTERS 予約</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: '游ゴシック体', 'Yu Gothic', 'Hiragino Kaku Gothic ProN', sans-serif; background: #fdfdfd; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #04384c; font-size: 14px; text-decoration: none; margin-bottom: 16px; font-weight: 500; }
+    h1 { font-size: 22px; color: #04384c; text-align: center; margin-bottom: 20px; padding-top: 12px; font-weight: 700; letter-spacing: 0.05em; }
+    .section { background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(4,56,76,0.07); }
+    .section h2 { font-size: 14px; color: #04384c; margin-bottom: 14px; font-weight: 600; letter-spacing: 0.05em; }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-header { text-align: center; font-size: 11px; color: #aaa; padding: 6px 0; font-weight: 600; }
+    .cal-header:first-child { color: #e57373; }
+    .cal-header:last-child { color: #5b8fe8; }
+    .cal-day { aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; background: white; border: none; font-weight: 500; transition: all 0.15s; }
+    .cal-day.empty { background: transparent; cursor: default; }
+    .cal-day.closed { color: #ddd; cursor: not-allowed; }
+    .cal-day.holiday { color: #e57373; cursor: not-allowed; background: #fff0f0; }
+    .cal-day.available { color: #04384c; }
+    .cal-day.available:hover { background: #e8f4f8; }
+    .cal-day.selected { background: #04384c; color: white; box-shadow: 0 2px 8px rgba(4,56,76,0.3); }
+    .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .month-nav button { background: none; border: none; font-size: 22px; color: #04384c; cursor: pointer; padding: 4px 10px; opacity: 0.4; }
+    .month-nav button:disabled { opacity: 0.15; cursor: default; }
+    .month-nav span { font-size: 16px; font-weight: 700; color: #04384c; }
+    .slot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+    .slot-btn { padding: 14px 8px; border: 1.5px solid #e0edf1; border-radius: 80px; background: white; font-size: 14px; cursor: pointer; text-align: center; color: #04384c; font-weight: 600; transition: all 0.15s; }
+    .slot-btn.available:hover { background: #e8f4f8; border-color: #04384c; }
+    .slot-btn.taken { background: #f7f7f7; color: #ccc; cursor: not-allowed; border-color: #eee; font-weight: 400; }
+    .slot-btn.selected { background: #04384c; color: white; border-color: #04384c; box-shadow: 0 2px 8px rgba(4,56,76,0.25); }
+    .legend { display: flex; gap: 14px; font-size: 11px; color: #888; margin-top: 12px; flex-wrap: wrap; }
+    .legend span { display: flex; align-items: center; gap: 4px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .loading { text-align: center; color: #aaa; padding: 20px; font-size: 13px; }
+
+    /* カート */
+    .cart { background: #f0f8fb; border-radius: 16px; padding: 16px; margin-top: 16px; border: 1.5px solid #d0e8f0; }
+    .cart-title { font-size: 13px; color: #04384c; font-weight: 600; margin-bottom: 10px; }
+    .cart-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0edf1; font-size: 14px; color: #04384c; font-weight: 500; }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-remove { background: none; border: none; color: #e57373; font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1; }
+    .cart-empty { text-align: center; color: #aaa; font-size: 13px; padding: 8px 0; }
+    .cart-count { font-size: 12px; color: #1176d4; font-weight: 600; margin-left: 8px; }
+
+    .book-btn { background: #04384c; color: white; border: none; border-radius: 80px; padding: 16px; width: 100%; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 16px; letter-spacing: 0.05em; box-shadow: 0 4px 14px rgba(4,56,76,0.25); transition: opacity 0.15s; }
+    .book-btn:hover { opacity: 0.88; }
+    .book-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+    .msg { text-align: center; font-size: 14px; margin-top: 12px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <a href="/schedule.html" class="back">← 予約確認に戻る</a>
+  <h1>📅 予約する</h1>
+
+  <!-- カレンダー -->
+  <div class="section">
+    <div class="month-nav">
+      <button id="btn-prev" onclick="changeMonth(-1)">‹</button>
+      <span id="cal-month-label"></span>
+      <button id="btn-next" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="calendar">
+      <div class="cal-header">日</div>
+      <div class="cal-header">月</div>
+      <div class="cal-header">火</div>
+      <div class="cal-header">水</div>
+      <div class="cal-header">木</div>
+      <div class="cal-header">金</div>
+      <div class="cal-header">土</div>
+    </div>
+    <div id="calendar-grid" class="calendar" style="margin-top:4px;"></div>
+    <div class="legend">
+      <span><span class="legend-dot" style="background:#04384c;"></span>選択中</span>
+      <span><span class="legend-dot" style="background:#eee;"></span>定休日</span>
+      <span><span class="legend-dot" style="background:#fff0f0; border:1px solid #e57373;"></span>休み</span>
+    </div>
+  </div>
+
+  <!-- 時間選択 -->
+  <div class="section" id="slot-section" style="display:none">
+    <h2 id="slot-title">時間を選んでください</h2>
+    <div id="slot-loading" class="loading">読み込み中...</div>
+    <div id="slot-grid" class="slot-grid"></div>
+  </div>
+
+  <!-- カート＋予約ボタン -->
+  <div class="section" id="cart-section" style="display:none">
+    <h2>選択中の予約 <span class="cart-count" id="cart-count"></span></h2>
+    <div class="cart">
+      <div id="cart-list"></div>
+    </div>
+    <button class="book-btn" id="book-btn" onclick="book()">まとめて予約する</button>
+    <div class="msg" id="book-msg"></div>
+  </div>
+
+  <!-- 予約完了画面 -->
+  <div class="section" id="done-section" style="display:none">
+    <div style="text-align:center; padding: 12px 0;">
+      <div style="font-size:48px; margin-bottom:16px;">✅</div>
+      <div style="font-size:20px; font-weight:700; color:#04384c; margin-bottom:8px;">予約完了！</div>
+      <div style="font-size:13px; color:#888; margin-bottom:20px;">松本さんにメールで通知されました</div>
+      <div id="done-list" style="background:#f0f8fb; border-radius:14px; padding:16px; text-align:left; border:1.5px solid #d0e8f0; margin-bottom:20px;"></div>
+      <a href="/schedule.html" style="display:block; background:#04384c; color:white; border-radius:80px; padding:14px; font-size:15px; font-weight:700; text-decoration:none; letter-spacing:0.05em;">予約確認を見る</a>
+    </div>
+  </div>
+
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+  const NAME_KEY = 'putters_user_name';
+  const WEEKDAYS = ['日','月','火','水','木','金','土'];
+  const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const MAX_SELECT = 4;
+
+  const now = new Date();
+  const today = now.getDate();
+  const canBook = today >= 15;
+
+  let currentYear = now.getFullYear();
+  let currentMonth = now.getMonth() + 1;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+
+  let selectedDate = null;
+  let selectedDateLabel = null;
+  let cart = []; // { date, dateLabel, time }
+  let monthCache = {}; // 月一括取得キャッシュ
+
+  const targetMonth = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
+
+  async function init() {
+    const name = localStorage.getItem(NAME_KEY);
+    if (!name) { alert('名前が設定されていません'); return; }
+
+    if (!canBook) {
+      document.querySelector('h1').insertAdjacentHTML('afterend', '<div style="text-align:center;color:#e57373;font-size:14px;padding:12px;background:white;border-radius:12px;margin-bottom:16px;">予約は毎月15日以降から受け付けています</div>');
+      return;
+    }
+
+    // localStorageに先読みキャッシュがあれば即使う
+    const cacheKey = 'putters_month_cache_' + targetMonth;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      monthCache = JSON.parse(cached);
+      renderCalendar();
+      // バックグラウンドで最新データに更新
+      fetch(`${GAS_URL}?action=month_slots&month=${targetMonth}`)
+        .then(r => r.json())
+        .then(data => {
+          monthCache = data;
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+          renderCalendar();
+        }).catch(() => {});
+    } else {
+      // キャッシュなし：通常取得
+      try {
+        const res = await fetch(`${GAS_URL}?action=month_slots&month=${targetMonth}`);
+        monthCache = await res.json();
+        localStorage.setItem(cacheKey, JSON.stringify(monthCache));
+      } catch (e) {}
+      renderCalendar();
+    }
+  }
+
+  function changeMonth(delta) {}
+
+  function renderCalendar() {
+    document.getElementById('cal-month-label').textContent = `${currentYear}年${MONTHS[currentMonth]}`;
+    const grid = document.getElementById('calendar-grid');
+    grid.innerHTML = '';
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day empty';
+      grid.appendChild(el);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const date = new Date(dateStr + 'T00:00:00');
+      const dow = date.getDay();
+      const el = document.createElement('div');
+      let cls = 'cal-day';
+
+      const dayData = monthCache[dateStr];
+      if (dow === 4 || (dayData && dayData.closed)) cls += ' closed';
+      else if (dayData && dayData.holiday) cls += ' holiday';
+      else {
+        cls += ' available';
+        el.onclick = () => selectDate(dateStr, d);
+      }
+      if (dateStr === selectedDate) cls += ' selected';
+      el.className = cls;
+      el.textContent = d;
+      grid.appendChild(el);
+    }
+  }
+
+  function selectDate(dateStr, day) {
+    selectedDate = dateStr;
+    const date = new Date(dateStr + 'T00:00:00');
+    selectedDateLabel = `${currentYear}年${currentMonth+1}月${day}日（${WEEKDAYS[date.getDay()]}）`;
+    renderCalendar();
+
+    document.getElementById('slot-title').textContent = selectedDateLabel + ' の空き時間';
+    document.getElementById('slot-section').style.display = 'block';
+    document.getElementById('slot-loading').style.display = 'none';
+    document.getElementById('slot-grid').innerHTML = '';
+
+    const data = monthCache[dateStr];
+    if (!data) {
+      document.getElementById('slot-grid').innerHTML = '<div style="color:#aaa;font-size:13px;grid-column:1/-1;">データがありません</div>';
+      return;
+    }
+    if (data.closed) {
+      document.getElementById('slot-grid').innerHTML = '<div style="color:#aaa;font-size:13px;grid-column:1/-1;">定休日です</div>';
+      return;
+    }
+    if (data.holiday) {
+      document.getElementById('slot-grid').innerHTML = '<div style="color:#e57373;font-size:13px;grid-column:1/-1;">この日は休みです</div>';
+      return;
+    }
+
+    const grid = document.getElementById('slot-grid');
+    data.slots.forEach(slot => {
+      const btn = document.createElement('button');
+      const alreadyInCart = cart.some(c => c.date === dateStr && c.time === slot.time);
+      if (!slot.available) {
+        btn.className = 'slot-btn taken';
+        btn.textContent = slot.time + ' ×';
+      } else if (alreadyInCart) {
+        btn.className = 'slot-btn selected';
+        btn.textContent = slot.time;
+        btn.onclick = () => removeFromCart(dateStr, slot.time);
+      } else {
+        btn.className = 'slot-btn available';
+        btn.textContent = slot.time;
+        btn.onclick = () => addToCart(dateStr, selectedDateLabel, slot.time, btn);
+      }
+      grid.appendChild(btn);
+    });
+  }
+
+  function addToCart(date, dateLabel, time, btn) {
+    if (cart.length >= MAX_SELECT) {
+      alert(`予約は最大${MAX_SELECT}つまでです`);
+      return;
+    }
+    if (cart.some(c => c.date === date && c.time === time)) return;
+    cart.push({ date, dateLabel, time });
+    btn.className = 'slot-btn selected';
+    btn.onclick = () => removeFromCart(date, time);
+    renderCart();
+  }
+
+  function removeFromCart(date, time) {
+    cart = cart.filter(c => !(c.date === date && c.time === time));
+    renderCart();
+    if (selectedDate === date) selectDate(date, parseInt(date.split('-')[2]));
+  }
+
+  function renderCart() {
+    const section = document.getElementById('cart-section');
+    const list = document.getElementById('cart-list');
+    const count = document.getElementById('cart-count');
+
+    if (cart.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = 'block';
+    count.textContent = `${cart.length}/${MAX_SELECT}`;
+    list.innerHTML = '';
+
+    const sorted = [...cart].sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+    sorted.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'cart-item';
+      div.innerHTML = `
+        <span>${c.dateLabel} ${c.time}〜${addHour(c.time)}</span>
+        <button class="cart-remove" onclick="removeFromCart('${c.date}','${c.time}')">×</button>
+      `;
+      list.appendChild(div);
+    });
+
+    document.getElementById('book-msg').textContent = '';
+    document.getElementById('book-btn').disabled = false;
+    document.getElementById('book-btn').textContent = 'まとめて予約する';
+  }
+
+  function addHour(time) {
+    const parts = time.split(':');
+    const h = parseInt(parts[0]) + 1;
+    return h + ':' + parts[1];
+  }
+
+  async function book() {
+    const name = localStorage.getItem(NAME_KEY);
+    const btn = document.getElementById('book-btn');
+    const msg = document.getElementById('book-msg');
+    if (cart.length === 0) return;
+
+    btn.disabled = true;
+    btn.textContent = '予約中...';
+
+    try {
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'book_all', name, items: cart.map(c => ({ date: c.date, time: c.time })) })
+      });
+      const result = await res.json();
+
+      if (result.ok) {
+        // キャッシュをローカルで更新
+        cart.forEach(c => {
+          if (monthCache[c.date] && monthCache[c.date].slots) {
+            monthCache[c.date].slots = monthCache[c.date].slots.map(s =>
+              s.time === c.time ? { ...s, available: false } : s
+            );
+          }
+        });
+
+        // 完了画面を表示
+        const sorted = [...cart].sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+        const doneList = document.getElementById('done-list');
+        doneList.innerHTML = sorted.map(c =>
+          `<div style="padding:8px 0; border-bottom:1px solid #d0e8f0; font-size:14px; color:#04384c; font-weight:500;">
+            ${c.dateLabel} <span style="color:#1176d4; font-weight:700;">${c.time}〜${addHour(c.time)}</span>
+          </div>`
+        ).join('').replace(/border-bottom[^;]+;(?=[^<]*<\/div>\s*$)/, '');
+
+        cart = [];
+        selectedDate = null;
+        document.getElementById('slot-section').style.display = 'none';
+        document.getElementById('cart-section').style.display = 'none';
+        document.querySelector('.section').style.display = 'none'; // カレンダー非表示
+        document.getElementById('done-section').style.display = 'block';
+        window.scrollTo(0, 0);
+
+        if (result.failed && result.failed.length > 0) {
+          doneList.insertAdjacentHTML('afterend', `<div style="color:#e57373;font-size:13px;margin-top:8px;">※一部はすでに予約済みでした</div>`);
+        }
+      } else {
+        throw new Error();
+      }
+    } catch (e) {
+      msg.textContent = '予約に失敗しました。もう一度試してください。';
+      msg.style.color = '#e57373';
+      btn.textContent = 'まとめて予約する';
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('btn-prev').disabled = true;
+  document.getElementById('btn-next').disabled = true;
+  init();
+</script>
+</body>
+</html>

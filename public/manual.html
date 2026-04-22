@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>PUTTERS アプリ 使い方ガイド</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 16mm 18mm 16mm;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      font-size: 11pt;
+      color: #222;
+      line-height: 1.7;
+      background: white;
+    }
+
+    /* ===== 表紙 ===== */
+    .cover {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      page-break-after: always;
+    }
+    .cover-logo {
+      font-size: 42pt;
+      font-weight: bold;
+      color: #1a1a2e;
+      letter-spacing: 6px;
+      margin-bottom: 12px;
+    }
+    .cover-tagline {
+      font-size: 11pt;
+      color: #888;
+      letter-spacing: 2px;
+      margin-bottom: 48px;
+    }
+    .cover-title {
+      font-size: 18pt;
+      font-weight: bold;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+    .cover-sub {
+      font-size: 11pt;
+      color: #888;
+    }
+    .cover-line {
+      width: 60px;
+      height: 2px;
+      background: #c8a97e;
+      margin: 32px auto;
+    }
+    .cover-note {
+      font-size: 9pt;
+      color: #aaa;
+      margin-top: 60px;
+    }
+
+    /* ===== ページ共通 ===== */
+    .page {
+      page-break-before: always;
+      padding-top: 8px;
+    }
+
+    h1.page-title {
+      font-size: 16pt;
+      color: #1a1a2e;
+      border-bottom: 2px solid #1a1a2e;
+      padding-bottom: 6px;
+      margin-bottom: 20px;
+    }
+
+    h2.section-title {
+      font-size: 12pt;
+      color: #1a1a2e;
+      background: #f5f0eb;
+      border-left: 4px solid #c8a97e;
+      padding: 6px 12px;
+      margin: 20px 0 10px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    h3.sub-title {
+      font-size: 10.5pt;
+      color: #333;
+      margin: 14px 0 6px;
+      font-weight: bold;
+    }
+
+    p { margin-bottom: 8px; }
+
+    ul, ol {
+      padding-left: 20px;
+      margin-bottom: 10px;
+    }
+    li { margin-bottom: 4px; }
+
+    .tip {
+      background: #fff8f0;
+      border: 1px solid #f0dfc0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 10px 0;
+      font-size: 10pt;
+      color: #7a5a2a;
+    }
+    .tip::before { content: "💡 "; }
+
+    .note {
+      background: #f0f4ff;
+      border: 1px solid #c0ccf0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 10px 0;
+      font-size: 10pt;
+      color: #2a3a7a;
+    }
+    .note::before { content: "ℹ️ "; }
+
+    /* ステップボックス */
+    .steps {
+      counter-reset: step;
+      margin: 10px 0;
+    }
+    .step {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+    .step-num {
+      background: #1a1a2e;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11pt;
+      font-weight: bold;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-body { flex: 1; }
+
+    /* テーブル */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 10pt;
+    }
+    th {
+      background: #1a1a2e;
+      color: white;
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: normal;
+    }
+    td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #eee;
+    }
+    tr:nth-child(even) td { background: #fafafa; }
+
+    /* バッジ */
+    .badge {
+      display: inline-block;
+      background: #1a1a2e;
+      color: white;
+      font-size: 9pt;
+      padding: 2px 8px;
+      border-radius: 10px;
+      vertical-align: middle;
+    }
+    .badge-gold {
+      background: #c8a97e;
+      color: white;
+    }
+
+    /* フッター */
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 8pt;
+      color: #bbb;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+
+    /* 目次 */
+    .toc-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dotted #ddd;
+      font-size: 11pt;
+    }
+    .toc-num { color: #c8a97e; font-weight: bold; }
+
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== 表紙 ===== -->
+<div class="cover">
+  <div class="cover-logo">PUTTERS</div>
+  <div class="cover-tagline">PERSONAL GYM</div>
+  <div class="cover-line"></div>
+  <div class="cover-title">アプリ 使い方ガイド</div>
+  <div class="cover-sub">LINEから開くパーソナルジムアプリ</div>
+  <div class="cover-note">わからないことは松本トレーナーにいつでも聞いてください</div>
+</div>
+
+<!-- ===== 目次 ===== -->
+<div class="page">
+  <h1 class="page-title">目次</h1>
+
+  <div class="toc-item"><span>1. アプリの開き方</span><span class="toc-num">2</span></div>
+  <div class="toc-item"><span>2. はじめての設定</span><span class="toc-num">2</span></div>
+  <div class="toc-item"><span>3. 毎日の記録のしかた</span><span class="toc-num">3</span></div>
+  <div class="toc-item"><span>&nbsp;&nbsp;&nbsp;&nbsp;3-1. 体重・体温を入力する</span><span class="toc-num">3</span></div>
+  <div class="toc-item"><span>&nbsp;&nbsp;&nbsp;&nbsp;3-2. 食事を記録する（食材）</span><span class="toc-num">3</span></div>
+  <div class="toc-item"><span>&nbsp;&nbsp;&nbsp;&nbsp;3-3. 食事を記録する（外食）</span><span class="toc-num">4</span></div>
+  <div class="toc-item"><span>&nbsp;&nbsp;&nbsp;&nbsp;3-4. 有酸素運動を入力する</span><span class="toc-num">4</span></div>
+  <div class="toc-item"><span>&nbsp;&nbsp;&nbsp;&nbsp;3-5. 宿題にチェックをつける</span><span class="toc-num">4</span></div>
+  <div class="toc-item"><span>&nbsp;&nbsp;&nbsp;&nbsp;3-6. 記録を送信する</span><span class="toc-num">5</span></div>
+  <div class="toc-item"><span>4. マイセット機能</span><span class="toc-num">5</span></div>
+  <div class="toc-item"><span>5. グラフで振り返る</span><span class="toc-num">6</span></div>
+  <div class="toc-item"><span>6. 目標を設定する</span><span class="toc-num">6</span></div>
+  <div class="toc-item"><span>7. 意見箱</span><span class="toc-num">6</span></div>
+  <div class="toc-item"><span>8. モード切替（生活指導 / 食事管理）</span><span class="toc-num">7</span></div>
+  <div class="toc-item"><span>9. よくある質問</span><span class="toc-num">7</span></div>
+
+  <div class="footer">PUTTERS パーソナルジム — 会員様専用</div>
+</div>
+
+<!-- ===== P2: アプリの開き方・初期設定 ===== -->
+<div class="page">
+  <h1 class="page-title">1. アプリの開き方</h1>
+
+  <p>PUTTERSのアプリはLINEの中で動きます。スマホにインストールなどは不要です。</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">LINEを開いて、<strong>PUTTERS公式アカウント</strong>のトークルームに進む</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">トーク画面下の<strong>メニュー</strong>から「記録する」または「アプリを開く」をタップ</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">アプリが起動します。次回からも同じ手順で開けます</div>
+    </div>
+  </div>
+
+  <div class="tip">ホーム画面に追加すると、アイコンから直接開けます。iPhoneは「共有 → ホーム画面に追加」、Androidは「メニュー → ホーム画面に追加」</div>
+
+  <h1 class="page-title" style="margin-top:28px;">2. はじめての設定</h1>
+
+  <p>初回起動時に名前の入力を求められます。</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">「はじめまして！」の画面が表示されたら、<strong>Googleカレンダーの予約名と同じ名前</strong>（例：田中 太郎）を入力する</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">「決定」をタップして完了</div>
+    </div>
+  </div>
+
+  <div class="note">名前が一致しないとデータが正しく届きません。予約名がわからない場合は松本トレーナーに確認してください。</div>
+
+  <p>目標体重・PFC目標は別ページ「目標設定」から入力します（次のトレーニング前に設定しておくと便利です）。</p>
+
+  <div class="footer">PUTTERS パーソナルジム — 会員様専用</div>
+</div>
+
+<!-- ===== P3: 毎日の記録 ===== -->
+<div class="page">
+  <h1 class="page-title">3. 毎日の記録のしかた</h1>
+
+  <h2 class="section-title">3-1. 体重・体温を入力する</h2>
+
+  <p>画面上部に体重（kg）と体温（℃）の入力欄があります。</p>
+  <ul>
+    <li>毎朝、起床後トイレを済ませてから測った値を入力してください</li>
+    <li>体温は小数点第一位まで（例：36.5）</li>
+    <li>画面に「30日平均」が表示されます。体調管理の参考にしてください</li>
+    <li>目標体重まであと何kgか、画面上部のバーに表示されます</li>
+  </ul>
+
+  <div class="tip">入力した内容は自動でアプリ内に一時保存されます。途中でアプリを閉じても、当日中は入力内容が残っています。</div>
+
+  <h2 class="section-title">3-2. 食事を記録する（食材）</h2>
+
+  <p>「今日食べたもの」セクションの「🥩 食材」タブで入力します。</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">「＋ 食材を追加」をタップ</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">食材名（例：鶏むね肉）とグラム数を入力して「検索」をタップ</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">P（タンパク質）・F（脂質）・C（炭水化物）が自動で計算されて下に表示される</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">食材を追加したい場合は「＋ 食材を追加」を繰り返す</div>
+    </div>
+  </div>
+
+  <div class="tip">よく食べる食材の組み合わせは「マイセット」に登録すると、次回から一括入力できて便利です（4章参照）。</div>
+
+  <h3 class="sub-title">PFCを直接入力する場合</h3>
+  <p>「その他（PFCを直接入力）」欄に数値を手入力することもできます。栄養成分表示がある食品はこちらで入力してください。</p>
+
+  <h2 class="section-title">3-3. 食事を記録する（外食）</h2>
+
+  <p>「🏪 外食」タブに切り替えて入力します。</p>
+  <ul>
+    <li>お店の名前（例：松屋）とメニュー名（例：牛めし並）を入力して「検索」をタップ</li>
+    <li>カロリー・PFCが自動で計算されます</li>
+    <li>複数メニューを追加した場合は合計が表示されます</li>
+  </ul>
+
+  <div class="footer">PUTTERS パーソナルジム — 会員様専用</div>
+</div>
+
+<!-- ===== P4: 有酸素・宿題・送信 ===== -->
+<div class="page">
+
+  <h2 class="section-title">3-4. 有酸素運動を入力する</h2>
+
+  <p>「🏃 有酸素運動」セクションに、ウォーキング・ジョギングなど行った運動の合計時間（分）を入力します。</p>
+  <ul>
+    <li>例：30分のウォーキング → 「30」と入力</li>
+    <li>運動しなかった日は「0」または空欄のままでOKです</li>
+  </ul>
+
+  <h2 class="section-title">3-5. 宿題にチェックをつける</h2>
+
+  <p>「📋 今日の宿題」セクションには、松本トレーナーが設定した宿題が表示されます。</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">できた宿題の左側の□をタップしてチェックをつける</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">チェックをつけた宿題はグレーの取り消し線になる</div>
+    </div>
+  </div>
+
+  <h3 class="sub-title">自分で宿題を追加する</h3>
+  <p>「＋ 自分で追加」ボタンをタップすると、テキストで自由に宿題を追加できます。翌日には自動でリセットされます。</p>
+
+  <h3 class="sub-title">達成カレンダー</h3>
+  <p>宿題セクションの下に過去28日間の達成カレンダーが表示されます。</p>
+
+  <table>
+    <tr><th>色</th><th>意味</th></tr>
+    <tr><td>🟢 緑</td><td>全ての宿題を達成した日</td></tr>
+    <tr><td>🟠 オレンジ</td><td>一部の宿題を達成した日</td></tr>
+    <tr><td>⬜ グレー</td><td>記録がない日</td></tr>
+  </table>
+
+  <h2 class="section-title">3-6. 記録を送信する</h2>
+
+  <p>入力が終わったら画面下部の<strong>「記録を送信」ボタン</strong>をタップします。</p>
+  <ul>
+    <li>「送信しました！」と表示されたら完了です</li>
+    <li>送信後はキャッシュが消えてリセットされます</li>
+    <li>送信した記録は松本トレーナーが確認します</li>
+  </ul>
+
+  <div class="note">送信前に右上の「×」ボタンをタップするとアプリを閉じて、入力内容はそのまま保存されます。翌朝は新しいデータを入力してください（前日分は自動で消えます）。</div>
+
+  <div class="footer">PUTTERS パーソナルジム — 会員様専用</div>
+</div>
+
+<!-- ===== P5: マイセット・グラフ・目標・意見箱 ===== -->
+<div class="page">
+  <h1 class="page-title">4. マイセット機能</h1>
+
+  <p>よく食べる食材の組み合わせを「マイセット」として登録しておくと、次回から一括で食事欄に追加できます。</p>
+
+  <h3 class="sub-title">マイセットを登録する</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">画面左上のメニュー（☰）→「📦 マイセット管理」をタップ</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">セット名（例：朝ごはんセット）を入力</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">食材名とグラムを入力して「＋ 食材を追加」で複数登録</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">「登録する」をタップして保存</div>
+    </div>
+  </div>
+
+  <h3 class="sub-title">マイセットを使う</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">記録画面の「食材」タブ → 「📦 マイセット」ボタンをタップ</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">登録したセットの一覧が表示されるので、使いたいセットをタップ</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">食材が一括で追加されてPFCが自動計算されます</div>
+    </div>
+  </div>
+
+  <h1 class="page-title" style="margin-top:24px;">5. グラフで振り返る</h1>
+
+  <p>記録画面の「📈 グラフ（過去14日）」では体重とPFCの推移をグラフで確認できます。</p>
+  <p>さらに詳しいグラフは、メニュー（☰）→「📈 グラフ（全期間）」から確認できます。体温・有酸素運動のグラフも見られます。</p>
+
+  <h1 class="page-title" style="margin-top:24px;">6. 目標を設定する</h1>
+
+  <p>メニュー（☰）→「🎯 目標設定」から、目標体重とPFC目標を設定できます。</p>
+  <ul>
+    <li><strong>目標体重</strong>：設定すると記録画面の上部に「あと〇〇kg」が表示されます</li>
+    <li><strong>PFC目標</strong>（タンパク質・脂質・炭水化物）：設定すると達成率がドーナツグラフで表示されます</li>
+  </ul>
+
+  <div class="tip">目標はトレーナーと相談した数値を入力してください。</div>
+
+  <h1 class="page-title" style="margin-top:24px;">7. 意見箱</h1>
+
+  <p>メニュー（☰）→「📮 意見箱」から、トレーナーへのメッセージを送れます。</p>
+
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>やってみたいトレーニング</td><td>気になるメニューや種目</td></tr>
+    <tr><td>わからなかったこと</td><td>食事・運動・体のことなど</td></tr>
+    <tr><td>今後の目標</td><td>どうなりたいか、短期・長期の目標</td></tr>
+  </table>
+
+  <p>送信した内容はトレーナーが確認して次回のセッションに活かします。</p>
+
+  <div class="footer">PUTTERS パーソナルジム — 会員様専用</div>
+</div>
+
+<!-- ===== P6: モード切替・FAQ ===== -->
+<div class="page">
+  <h1 class="page-title">8. モード切替（生活指導 / 食事管理）</h1>
+
+  <p>トレーニングの内容に合わせてアプリの表示を切り替えることができます。</p>
+
+  <table>
+    <tr><th>モード</th><th>表示される内容</th><th>こんな人向け</th></tr>
+    <tr>
+      <td><strong>食事管理モード</strong><br>（標準）</td>
+      <td>体重・体温・食事・有酸素・宿題 すべて表示</td>
+      <td>食事管理も一緒に行う方</td>
+    </tr>
+    <tr>
+      <td><strong>生活指導モード</strong></td>
+      <td>食事セクションを非表示<br>（体重・体温・有酸素・宿題のみ）</td>
+      <td>まず生活習慣を整えたい方</td>
+    </tr>
+  </table>
+
+  <h3 class="sub-title">切り替え方</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">画面左上のメニュー（☰）をタップ</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">「⚙️ モード切替」をタップ</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">確認メッセージが表示されたら「OK」をタップ</div>
+    </div>
+  </div>
+
+  <div class="note">設定は次回起動時も引き継がれます。松本トレーナーの指示に合わせて切り替えてください。</div>
+
+  <h1 class="page-title" style="margin-top:28px;">9. よくある質問</h1>
+
+  <h3 class="sub-title">Q. アプリが「会員専用です」と表示されて使えない</h3>
+  <p>入力した名前がGoogleカレンダーの予約名と一致していない可能性があります。松本トレーナーに確認してください。名前を変更する場合は、画面に表示される「名前を変更する」ボタンをタップしてください。</p>
+
+  <h3 class="sub-title">Q. 入力途中でアプリを閉じてしまった</h3>
+  <p>当日中であれば入力内容はアプリに保存されています。もう一度アプリを開くと入力内容が復元されます。</p>
+
+  <h3 class="sub-title">Q. 食材の栄養素が出てこない</h3>
+  <p>食材名をシンプルにして再検索してみてください（例：「鶏むね肉（皮なし）100g」→「鶏むね肉」）。それでも出ない場合は「その他（PFCを直接入力）」欄に手入力してください。</p>
+
+  <h3 class="sub-title">Q. 宿題の内容はいつ更新される？</h3>
+  <p>松本トレーナーが来店のたびに更新します。来店日以外は前回の宿題が表示されます。</p>
+
+  <h3 class="sub-title">Q. 記録を間違えて送信してしまった</h3>
+  <p>松本トレーナーに直接お伝えください。次回来店時にまとめて確認します。</p>
+
+  <div style="margin-top:40px; text-align:center; background:#1a1a2e; color:white; border-radius:12px; padding:20px;">
+    <div style="font-size:16pt; font-weight:bold; letter-spacing:3px; margin-bottom:6px;">PUTTERS</div>
+    <div style="font-size:9pt; color:#c8a97e; margin-bottom:12px;">PERSONAL GYM</div>
+    <div style="font-size:10pt; color:#aaa;">ご不明な点は松本トレーナーにお気軽にお声がけください</div>
+  </div>
+
+  <div class="footer">PUTTERS パーソナルジム — 会員様専用</div>
+</div>
+
+</body>
+</html>

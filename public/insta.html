@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>PUTTERS Instagram 投稿</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+      padding: 40px;
+    }
+
+    /* 各スライド：1080×1350px（4:5）をスケール表示 */
+    .slide-wrap {
+      position: relative;
+    }
+    .slide-label {
+      color: #888;
+      font-size: 12px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+      font-family: sans-serif;
+    }
+    .slide {
+      width: 540px;
+      height: 675px;
+      overflow: hidden;
+      position: relative;
+      background: white;
+    }
+
+    /* ===== 共通 ===== */
+    .label {
+      font-size: 9px;
+      color: #c8a97e;
+      letter-spacing: 3px;
+      font-weight: bold;
+    }
+    .gold { color: #c8a97e; }
+    .navy { color: #1a1a2e; }
+
+    /* ===== SLIDE 1：キャッチ ===== */
+    .s1 {
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 52px 48px 44px;
+    }
+    .s1-top .logo {
+      font-size: 9px;
+      color: #c8a97e;
+      letter-spacing: 4px;
+      margin-bottom: 52px;
+    }
+    .s1-top .catch {
+      font-size: 36px;
+      font-weight: bold;
+      color: white;
+      line-height: 1.45;
+    }
+    .s1-top .catch span { color: #c8a97e; }
+    .s1-top .sub {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #aaa;
+      line-height: 1.7;
+    }
+    .s1-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 20px;
+    }
+    .s1-bottom .num {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 2px;
+    }
+    .s1-bottom .tag {
+      font-size: 11px;
+      color: #c8a97e;
+      letter-spacing: 1px;
+    }
+    .s1-avatar {
+      position: absolute;
+      bottom: 60px;
+      right: 44px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #c8a97e;
+    }
+    .s1-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    /* ===== SLIDE 2：3ステップ ===== */
+    .s2 {
+      background: white;
+      display: flex;
+      flex-direction: column;
+      padding: 48px 44px;
+    }
+    .s2-header { margin-bottom: 28px; }
+    .s2-header .title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #1a1a2e;
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+    .s2-body {
+      font-size: 11px;
+      color: #555;
+      line-height: 1.8;
+      margin-bottom: 28px;
+    }
+    .steps { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: #f5f0eb;
+      border-radius: 14px;
+      padding: 16px 20px;
+    }
+    .step-icon { font-size: 28px; flex-shrink: 0; }
+    .step-num {
+      font-size: 9px;
+      color: #c8a97e;
+      letter-spacing: 2px;
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+    .step-text { font-size: 14px; font-weight: bold; color: #1a1a2e; }
+    .step-sub { font-size: 10px; color: #888; margin-top: 2px; }
+    .s2-footer {
+      margin-top: 20px;
+      background: #1a1a2e;
+      border-radius: 10px;
+      padding: 12px 18px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: #c8a97e;
+      letter-spacing: 1px;
+    }
+
+    /* ===== SLIDE 3：PFC具体例 ===== */
+    .s3 {
+      background: white;
+      display: flex;
+      flex-direction: column;
+      padding: 44px 40px;
+    }
+    .s3-header { margin-bottom: 20px; }
+    .s3-header .title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1a1a2e;
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+    .s3-body {
+      font-size: 10.5px;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+    .pfc-table { width: 100%; border-collapse: collapse; }
+    .pfc-table th {
+      background: #1a1a2e;
+      color: white;
+      padding: 8px 10px;
+      font-size: 9px;
+      font-weight: normal;
+      text-align: left;
+    }
+    .pfc-table th:not(:first-child) { text-align: center; }
+    .pfc-table td {
+      padding: 8px 10px;
+      font-size: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .pfc-table td:not(:first-child) { text-align: center; }
+    .pfc-table tr:nth-child(even) td { background: #fafafa; }
+    .pfc-table .hl { color: #c8a97e; font-weight: bold; }
+    .s3-note {
+      margin-top: 14px;
+      font-size: 9.5px;
+      color: #c8a97e;
+      font-weight: bold;
+      background: #fff8f0;
+      border-radius: 8px;
+      padding: 8px 14px;
+    }
+
+    /* ===== SLIDE 4：体重・体温 ===== */
+    .s4 {
+      background: white;
+      display: flex;
+      flex-direction: column;
+      padding: 44px 40px;
+    }
+    .s4-header { margin-bottom: 20px; }
+    .s4-header .title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #1a1a2e;
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+    .s4-body {
+      font-size: 10.5px;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+    .cards { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+    .card {
+      border: 1.5px solid #1a1a2e;
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .card-icon { font-size: 26px; flex-shrink: 0; margin-top: 2px; }
+    .card-title { font-size: 13px; font-weight: bold; color: #1a1a2e; margin-bottom: 6px; }
+    .card-text { font-size: 10px; color: #555; line-height: 1.7; }
+    .card-point {
+      margin-top: 8px;
+      font-size: 9.5px;
+      color: #c8a97e;
+      font-weight: bold;
+      background: #fff8f0;
+      border-radius: 6px;
+      padding: 4px 10px;
+      display: inline-block;
+    }
+
+    /* ===== SLIDE 5：まとめ ===== */
+    .s5 {
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 52px 44px;
+    }
+    .s5-top .logo {
+      font-size: 9px;
+      color: #c8a97e;
+      letter-spacing: 4px;
+      margin-bottom: 28px;
+    }
+    .s5-top .title {
+      font-size: 22px;
+      font-weight: bold;
+      color: white;
+      line-height: 1.45;
+      margin-bottom: 28px;
+    }
+    .s5-top .title span { color: #c8a97e; }
+    .feature-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 12px;
+      color: #ddd;
+      line-height: 1.6;
+    }
+    .feature-list li .check {
+      color: #c8a97e;
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .s5-bottom {
+      background: #c8a97e;
+      border-radius: 14px;
+      padding: 18px 24px;
+      text-align: center;
+    }
+    .s5-bottom .cta-label {
+      font-size: 9px;
+      color: #1a1a2e;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+    .s5-bottom .cta-text {
+      font-size: 17px;
+      font-weight: bold;
+      color: #1a1a2e;
+    }
+    .s5-bottom .cta-sub {
+      font-size: 10px;
+      color: #5a4a30;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SLIDE 1：キャッチ -->
+  <div class="slide-wrap">
+    <div class="slide-label">SLIDE 1 / 6 — キャッチ</div>
+    <div class="slide s1">
+      <div class="s1-top">
+        <div class="logo">PUTTERS PERSONAL GYM</div>
+        <div class="catch"><span>写真1枚</span>で、<br>食事がわかる。</div>
+        <div class="sub">食事管理って難しそう…そんなことないです。<br>撮るだけで、今日の栄養がわかります。<br>PUTTERSが、会員さんのために作りました。</div>
+      </div>
+      <div class="s1-bottom">
+        <div class="num">01 / 06</div>
+        <div class="tag">#PUTTERS #パーソナルジム</div>
+      </div>
+      <div class="s1-avatar">
+        <img src="avatar.jpg" alt="松本トレーナー">
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2：3ステップ -->
+  <div class="slide-wrap">
+    <div class="slide-label">SLIDE 2 / 6 — 使い方</div>
+    <div class="slide s2">
+      <div class="s2-header">
+        <div class="label">HOW IT WORKS</div>
+        <div class="title">使い方は<br>たった3ステップ</div>
+      </div>
+      <div class="s2-body">PUTTERSのアプリは、難しい操作は一切なし。<br>写真を撮るだけで栄養が記録されます。</div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">📷</div>
+          <div>
+            <div class="step-num">STEP 1</div>
+            <div class="step-text">食事を撮影する</div>
+            <div class="step-sub">食べる前でもOK</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">✨</div>
+          <div>
+            <div class="step-num">STEP 2</div>
+            <div class="step-text">AIが自動で解析</div>
+            <div class="step-sub">何が入っているか認識してくれます</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">📊</div>
+          <div>
+            <div class="step-num">STEP 3</div>
+            <div class="step-text">PFCが表示される</div>
+            <div class="step-sub">タンパク質・脂質・炭水化物がわかる</div>
+          </div>
+        </div>
+      </div>
+      <div class="s2-footer">ホーム画面のアイコンを開くだけ</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3：PFC具体例 -->
+  <div class="slide-wrap">
+    <div class="slide-label">SLIDE 3 / 6 — PFC具体例</div>
+    <div class="slide s3">
+      <div class="s3-header">
+        <div class="label">NUTRITION FACTS</div>
+        <div class="title">知ると意外な、<br>食材の栄養</div>
+      </div>
+      <div class="s3-body">PUTTERSのアプリが解析する栄養素。数字を見ると「こんなに入ってるんだ」という気づきが生まれます。</div>
+      <table class="pfc-table">
+        <tr>
+          <th>食材（目安量）</th>
+          <th>タンパク質</th>
+          <th>脂質</th>
+          <th>炭水化物</th>
+        </tr>
+        <tr>
+          <td>🍗 鶏むね肉・皮なし（100g）</td>
+          <td class="hl">24g</td>
+          <td>1.9g</td>
+          <td>0g</td>
+        </tr>
+        <tr>
+          <td>🥚 卵（1個 約60g）</td>
+          <td class="hl">7.4g</td>
+          <td>5.7g</td>
+          <td>0.2g</td>
+        </tr>
+        <tr>
+          <td>🍚 白米（茶碗1杯 約150g）</td>
+          <td>3.8g</td>
+          <td>0.5g</td>
+          <td class="hl">55g</td>
+        </tr>
+        <tr>
+          <td>🐟 サーモン・刺身（100g）</td>
+          <td class="hl">20g</td>
+          <td>12g</td>
+          <td>0.1g</td>
+        </tr>
+        <tr>
+          <td>🥦 ブロッコリー（100g）</td>
+          <td>4.3g</td>
+          <td>0.5g</td>
+          <td>2.3g</td>
+        </tr>
+        <tr>
+          <td>🥛 牛乳（200ml）</td>
+          <td>6.8g</td>
+          <td>7.6g</td>
+          <td>9.6g</td>
+        </tr>
+      </table>
+      <div class="s3-note">金色の数字 = その食材で特に多い栄養素</div>
+      <div style="margin-top:12px; border:1.5px solid #c8a97e; border-radius:12px; padding:12px 16px; display:flex; align-items:center; gap:14px;">
+        <div style="font-size:22px; flex-shrink:0;">🔄</div>
+        <div>
+          <div style="font-size:10.5px; font-weight:bold; color:#1a1a2e; margin-bottom:3px;">日々バージョンアップ中</div>
+          <div style="font-size:9px; color:#666; line-height:1.6;">より使いやすく、より楽しい機能を随時追加しています。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4：体重・体温 -->
+  <div class="slide-wrap">
+    <div class="slide-label">SLIDE 4 / 6 — 体重・体温</div>
+    <div class="slide s4">
+      <div class="s4-header">
+        <div class="label">YOUR GROWTH</div>
+        <div class="title">続けると、体の変化が<br>数字で見えてくる</div>
+      </div>
+      <div class="s4-body">PUTTERSのアプリで毎日記録すると、体の変化がグラフで見えてきます。その変化が"成長の証"です。</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">⚖️</div>
+          <div>
+            <div class="card-title">体重が増える = 筋肉が増えている</div>
+            <div class="card-text">筋トレを続けると、脂肪が減りながら筋肉が増えます。体重が少し増えても「筋肉がついてきた」サインの場合があります。</div>
+            <div class="card-point">数字の変化を長期で見ることが大切</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌡️</div>
+          <div>
+            <div class="card-title">体温が上がる = 代謝が上がっている</div>
+            <div class="card-text">筋肉量が増えると体温が自然と上がり、代謝が良くなります。30日間の平均体温の変化をアプリで追えます。</div>
+            <div class="card-point">30日間の平均体温がアプリで確認できます</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📈</div>
+          <div>
+            <div class="card-title">グラフで進捗を管理</div>
+            <div class="card-text">数字が積み上がると、成長が一目でわかります。週・月ごとにトレーナーが一緒に振り返ります。</div>
+            <div class="card-point">ウィークリー・マンスリーでトレーナーが評価します</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5：宿題・予約 -->
+  <div class="slide-wrap">
+    <div class="slide-label">SLIDE 5 / 6 — 宿題・予約</div>
+    <div class="slide s4">
+      <div class="s4-header">
+        <div class="label">DAILY MANAGEMENT</div>
+        <div class="title">宿題も予約も、<br>アプリひとつで</div>
+      </div>
+      <div class="s4-body">トレーニング以外のサポートも、PUTTERSのアプリにまとまっています。</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <div>
+            <div class="card-title">宿題の確認</div>
+            <div class="card-text">トレーナーから出された宿題をアプリで確認できます。こなした宿題は記録として残ります。</div>
+            <div class="card-point">次のトレーニングまでの課題が一目でわかる</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📅</div>
+          <div>
+            <div class="card-title">予約状況もアプリでわかる</div>
+            <div class="card-text">次回のトレーニング予約をアプリからすぐに確認できます。スケジュール管理もこれ一つで。</div>
+            <div class="card-point">ホーム画面のアイコンから、すぐ開けます</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📬</div>
+          <div>
+            <div class="card-title">📮 意見箱</div>
+            <div class="card-text">やってみたいトレーニング・宿題でわからなかったこと・今後の目標をアプリから松本トレーナーに送れます。次回の来店前に届きます。</div>
+            <div class="card-point">言い忘れをなくすための機能です</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6：まとめ -->
+  <div class="slide-wrap">
+    <div class="slide-label">SLIDE 6 / 6 — まとめ</div>
+    <div class="slide s5">
+      <div class="s5-top">
+        <div class="logo">PUTTERS PERSONAL GYM</div>
+        <div class="title">このアプリ、<br><span>全部まとまってます。</span></div>
+        <ul class="feature-list">
+          <li><span class="check">✓</span>会員さんにもっと自分の体を知ってほしかった</li>
+          <li><span class="check">✓</span>食事管理のハードルを下げたかった</li>
+          <li><span class="check">✓</span>体重・体温の変化を長期で見てほしかった</li>
+          <li><span class="check">✓</span>トレーナーとの記録を共有したかった</li>
+          <li><span class="check">✓</span>だから、アプリを自分で作りました</li>
+        </ul>
+      </div>
+      <div class="s5-bottom">
+        <div class="cta-label">PUTTERS MEMBER ONLY</div>
+        <div class="cta-text">アイコンを開くだけで全部使えます</div>
+        <div class="cta-sub">開発費で言うと、数百万円規模のアプリです。<br>PUTTERSは、このアプリとともに、より良いサービスを提供し続けます。</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
