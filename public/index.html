@@ -425,13 +425,7 @@
       const liteUI = document.getElementById('lite-meal-ui');
       const title = document.getElementById('page-title');
 
-      // 松本大樹は全機能を表示
-      if (getUserName() === '松本大樹') {
-        mealSection.style.display = '';
-        fullUI.style.display = '';
-        liteUI.style.display = '';
-        return;
-      }
+
 
       if (mode === 'life') {
         mealSection.style.display = 'none';
@@ -1574,12 +1568,10 @@
 
     if (_n !== '不明') checkSoreness(_n);
 
-    // 下部固定バー（松本大樹のみ）
-    if (_n === '松本大樹') {
-      document.getElementById('bottom-camera-btn').style.display = 'block';
-      document.getElementById('normal-submit-btn').style.display = 'none';
-      switchMealMode('lite'); // デフォルトは写真モード
-    }
+    // 下部固定バー（全員）
+    document.getElementById('bottom-camera-btn').style.display = 'block';
+    document.getElementById('normal-submit-btn').style.display = 'none';
+    switchMealMode('lite');
 
     function switchMealMode(mode) {
       const fullUI = document.getElementById('full-meal-ui');
