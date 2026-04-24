@@ -1267,8 +1267,13 @@
       if (!raw) return;
       try {
         const data = JSON.parse(raw);
-        const today = new Date().toDateString();
-        if (!data.date || data.date === today) return; // 昨日以前のキャッシュのみ
+        const _now2 = new Date();
+        if (_now2.getHours() < 2) return; // 深夜2時前は自動送信しない
+        const _cacheDay = (_now2.getHours() < 2)
+          ? new Date(_now2.getFullYear(), _now2.getMonth(), _now2.getDate() - 1)
+          : _now2;
+        const today = _cacheDay.toDateString();
+        if (!data.date || data.date === today) return; // 当日キャッシュは送信しない
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const dateStr = yesterday.toISOString().slice(0, 10);
