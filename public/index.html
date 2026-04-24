@@ -957,11 +957,21 @@
         const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) });
         const pfc = await res.json();
         pfcCache[idx] = pfc;
-        const rowEl = document.getElementById(`pfc-row-${idx}`);
-        if (rowEl) {
-          const gram = parseFloat(document.querySelector(`.food-gram[data-idx="${idx}"]`).value) || 100;
-          const r = gram / 100;
-          rowEl.textContent = `${gram}gで P:${(pfc.p*r).toFixed(1)}g F:${(pfc.f*r).toFixed(1)}g C:${(pfc.c*r).toFixed(1)}g ${Math.round(pfc.kcal*r)}kcal`;
+        const gramEl = document.querySelector(`.food-gram[data-idx="${idx}"]`);
+        const gram = parseFloat(gramEl ? gramEl.value : 100) || 100;
+        const r = gram / 100;
+        const chipP = (pfc.p*r).toFixed(1);
+        const chipF = (pfc.f*r).toFixed(1);
+        const chipC = (pfc.c*r).toFixed(1);
+        const chipKcal = Math.round(pfc.kcal*r);
+        const entry = document.querySelector(`.food-name[data-idx="${idx}"]`)?.closest('.food-entry');
+        if (entry) {
+          const safeName = name.replace(/'/g, "\\'");
+          entry.innerHTML = `<div class="food-chip" onclick="expandFoodChip(this, '${idx}', '${safeName}', ${gram})">
+            <span class="food-chip-name">${name} ${gram}g</span>
+            <span class="food-chip-pfc">P:${chipP} F:${chipF} C:${chipC} ${chipKcal}kcal</span>
+            <button class="food-chip-del" onclick="event.stopPropagation(); removeFoodChip(this, '${idx}')">×</button>
+          </div>`;
         }
       } catch (e) {}
     }
