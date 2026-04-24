@@ -519,11 +519,19 @@
       header.dataset.mysetHeader = '1';
       list.appendChild(header);
       const promises = [];
+      const idxList = [];
       for (const f of s.foods) {
         const idx = addFoodRow(f.name, f.gram);
+        idxList.push({ idx, gram: parseFloat(f.gram) || 100 });
         if (f.name) promises.push(searchPFCSilent(idx, f.name));
       }
       await Promise.all(promises);
+      let tp = 0, tf = 0, tc = 0, tkcal = 0;
+      idxList.forEach(({ idx, gram }) => {
+        const pfc = pfcCache[idx];
+        if (pfc) { const r = gram / 100; tp += pfc.p*r; tf += pfc.f*r; tc += pfc.c*r; tkcal += pfc.kcal*r; }
+      });
+      header.textContent = `📦 ${s.name}  P:${tp.toFixed(1)} F:${tf.toFixed(1)} C:${tc.toFixed(1)} ${Math.round(tkcal)}kcal`;
       calcTotal();
       saveCache();
       closeMysetModal();
