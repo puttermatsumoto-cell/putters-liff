@@ -493,26 +493,13 @@
       if (sets.length === 0) {
         list.innerHTML = '<div style="text-align:center;color:#aaa;font-size:14px;padding:20px 0;">セットがまだありません<br><a href="/myset.html" style="color:#c8a97e;">マイセット管理へ →</a></div>';
       } else {
-        list.innerHTML = sets.map((s, i) => {
-          let tp = 0, tf = 0, tc = 0, tkcal = 0, allKnown = true;
-          for (const f of s.foods) {
-            const local = localPFC(f.name);
-            if (local) {
-              const r = (parseFloat(f.gram) || 100) / 100;
-              tp += local.p * r; tf += local.f * r; tc += local.c * r; tkcal += local.kcal * r;
-            } else { allKnown = false; }
-          }
-          const pfcStr = allKnown
-            ? `<div style="font-size:11px; color:#c8a97e; margin-bottom:10px;">P:${tp.toFixed(1)} F:${tf.toFixed(1)} C:${tc.toFixed(1)} ${Math.round(tkcal)}kcal</div>`
-            : `<div style="font-size:11px; color:#aaa; margin-bottom:10px;">${s.foods.map(f => f.name + ' ' + f.gram + 'g').join('・')}</div>`;
-          return `
+        list.innerHTML = sets.map((s, i) => `
           <div style="border:1px solid #eee; border-radius:12px; padding:14px; margin-bottom:10px;">
-            <div style="font-size:14px; font-weight:bold; color:#1a1a2e; margin-bottom:4px;">${s.name}</div>
-            <div style="font-size:12px; color:#888; margin-bottom:4px;">${s.foods.map(f => f.name + ' ' + f.gram + 'g').join('・')}</div>
-            ${pfcStr}
+            <div style="font-size:14px; font-weight:bold; color:#1a1a2e; margin-bottom:6px;">${s.name}</div>
+            <div style="font-size:12px; color:#888; margin-bottom:10px;">${s.foods.map(f => f.name + ' ' + f.gram + 'g').join('・')}</div>
             <button onclick="applyMyset(${i})" style="background:#1a1a2e; color:white; border:none; border-radius:8px; padding:10px 0; width:100%; font-size:14px; cursor:pointer;">追加する</button>
-          </div>`;
-        }).join('');
+          </div>
+        `).join('');
       }
       document.getElementById('myset-modal').style.display = 'flex';
     }
