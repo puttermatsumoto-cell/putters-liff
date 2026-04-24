@@ -431,6 +431,15 @@
       const fullUI = document.getElementById('full-meal-ui');
       const liteUI = document.getElementById('lite-meal-ui');
       const title = document.getElementById('page-title');
+
+      // 松本大樹は全機能を表示
+      if (getUserName() === '松本大樹') {
+        mealSection.style.display = '';
+        fullUI.style.display = '';
+        liteUI.style.display = '';
+        return;
+      }
+
       if (mode === 'life') {
         mealSection.style.display = 'none';
       } else if (mode === 'lite') {
