@@ -1070,7 +1070,11 @@
           <button class="food-chip-del" onclick="event.stopPropagation(); removeFoodChip(this, '${idx}')">×</button>
         </div>`;
         calcTotal();
-      } catch (e) { document.getElementById(`pfc-row-${idx}`) && (document.getElementById(`pfc-row-${idx}`).textContent = '取得できませんでした'); }
+        return;
+      } catch (e) {
+        const pfcRow = document.getElementById(`pfc-row-${idx}`);
+        if (pfcRow) pfcRow.textContent = '取得できませんでした';
+      }
       btn.disabled = false; btn.textContent = '調べる';
     }
 
