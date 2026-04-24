@@ -720,9 +720,15 @@
     }
 
     // localStorageキャッシュ保存
+    function getEffectiveDate() {
+      const now = new Date();
+      if (now.getHours() < 2) now.setDate(now.getDate() - 1);
+      return now.toDateString();
+    }
+
     function saveCache() {
       const data = {
-        date: new Date().toDateString(),
+        date: getEffectiveDate(),
         weight: document.getElementById('weight').value,
         goalWeight: document.getElementById('goal-weight').value,
         temperature: document.getElementById('temperature').value,
@@ -787,7 +793,7 @@
       if (!raw) return;
       try {
         const data = JSON.parse(raw);
-        const today = new Date().toDateString();
+        const today = getEffectiveDate();
         if (data.date && data.date !== today) {
           localStorage.removeItem(CACHE_KEY);
           return;
@@ -1109,7 +1115,7 @@
         const raw = localStorage.getItem(CACHE_KEY);
         if (raw) {
           const cached = JSON.parse(raw);
-          if (cached.date === new Date().toDateString()) {
+          if (cached.date === getEffectiveDate()) {
             savedChecked = cached.checkedIndexes || [];
           }
         }
@@ -1131,7 +1137,7 @@
       if (!raw) return;
       try {
         const data = JSON.parse(raw);
-        const today = new Date().toDateString();
+        const today = getEffectiveDate();
         if (!data.date || data.date === today) return; // 昨日以前のキャッシュのみ
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
