@@ -375,7 +375,8 @@
   <!-- 下部固定バー（松本大樹のみ） -->
   <div id="bottom-camera-btn" style="display:none; position:fixed; bottom:0; left:0; right:0; padding:12px 20px 28px; background:white; box-shadow:0 -2px 12px rgba(0,0,0,0.1); z-index:500; display:none;">
     <div style="display:flex; gap:10px;">
-      <button onclick="document.getElementById('meal-image-input').click()" style="flex:1; padding:14px; background:#f5f0eb; color:#1a1a2e; border:none; border-radius:12px; font-size:15px; font-weight:bold; cursor:pointer;">📷 撮る</button>
+      <button onclick="switchMealMode('lite')" id="bar-btn-camera" style="flex:1; padding:14px; background:#f5f0eb; color:#1a1a2e; border:none; border-radius:12px; font-size:15px; font-weight:bold; cursor:pointer;">📷 撮る</button>
+      <button onclick="switchMealMode('food')" id="bar-btn-input" style="flex:1; padding:14px; background:#f5f0eb; color:#1a1a2e; border:none; border-radius:12px; font-size:15px; font-weight:bold; cursor:pointer;">✏️ 入力</button>
       <button onclick="submitData()" style="flex:2; padding:14px; background:#1a1a2e; color:white; border:none; border-radius:12px; font-size:15px; font-weight:bold; cursor:pointer;">送信 →</button>
     </div>
   </div>
@@ -1447,6 +1448,29 @@
     if (_n === '松本大樹') {
       document.getElementById('bottom-camera-btn').style.display = 'block';
       document.getElementById('normal-submit-btn').style.display = 'none';
+      switchMealMode('lite'); // デフォルトは写真モード
+    }
+
+    function switchMealMode(mode) {
+      const fullUI = document.getElementById('full-meal-ui');
+      const liteUI = document.getElementById('lite-meal-ui');
+      const cameraBtn = document.getElementById('bar-btn-camera');
+      const inputBtn = document.getElementById('bar-btn-input');
+      if (mode === 'lite') {
+        liteUI.style.display = '';
+        fullUI.style.display = 'none';
+        cameraBtn.style.background = '#1a1a2e';
+        cameraBtn.style.color = 'white';
+        inputBtn.style.background = '#f5f0eb';
+        inputBtn.style.color = '#1a1a2e';
+      } else {
+        fullUI.style.display = '';
+        liteUI.style.display = 'none';
+        inputBtn.style.background = '#1a1a2e';
+        inputBtn.style.color = 'white';
+        cameraBtn.style.background = '#f5f0eb';
+        cameraBtn.style.color = '#1a1a2e';
+      }
     }
   </script>
 </body>
