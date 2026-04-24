@@ -1,17 +1,11 @@
 <!DOCTYPE html>
-<!-- v=20260425c -->
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
-  <title>PUTTERSアプリ</title>
-  <script>
-    if (window.location.search.indexOf('nocache') === -1) {
-      window.location.replace(window.location.href.split('?')[0] + '?nocache=' + Date.now());
-    }
-  </script>
+  <title>PUTTERS 生活指導</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -430,7 +424,13 @@
       const liteUI = document.getElementById('lite-meal-ui');
       const title = document.getElementById('page-title');
 
-
+      // 松本大樹は全機能を表示
+      if (getUserName() === '松本大樹') {
+        mealSection.style.display = '';
+        fullUI.style.display = '';
+        liteUI.style.display = '';
+        return;
+      }
 
       if (mode === 'life') {
         mealSection.style.display = 'none';
@@ -1267,13 +1267,8 @@
       if (!raw) return;
       try {
         const data = JSON.parse(raw);
-        const _now2 = new Date();
-        if (_now2.getHours() < 2) return; // 深夜2時前は自動送信しない
-        const _cacheDay = (_now2.getHours() < 2)
-          ? new Date(_now2.getFullYear(), _now2.getMonth(), _now2.getDate() - 1)
-          : _now2;
-        const today = _cacheDay.toDateString();
-        if (!data.date || data.date === today) return; // 当日キャッシュは送信しない
+        const today = new Date().toDateString();
+        if (!data.date || data.date === today) return; // 昨日以前のキャッシュのみ
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const dateStr = yesterday.toISOString().slice(0, 10);
