@@ -162,7 +162,6 @@
     <div class="menu-drawer">
       <div class="menu-label">MENU</div>
       <div class="menu-grid">
-        <a href="#" onclick="openModeModal(); return false;" id="mode-menu-btn"><span class="menu-icon">⚙️</span>コース切替</a>
         <a href="/goals.html"><span class="menu-icon">🎯</span>目標設定</a>
         <a href="/chart-full.html"><span class="menu-icon">📈</span>グラフ</a>
         <a href="/schedule.html"><span class="menu-icon">📅</span>今月の予約</a>
@@ -184,7 +183,7 @@
     <button class="hamburger" onclick="openMenu()">
       <span></span><span></span><span></span>
     </button>
-    <h1 id="page-title">PUTTERS 生活指導</h1>
+    <h1 id="page-title">PUTTERSアプリ</h1>
     <p id="user-greeting" style="font-size:13px; color:#888; margin-top:4px;"></p>
     <button onclick="saveTempAndClose()" style="position:absolute; top:12px; right:0; background:#e0e0e0; border:none; border-radius:50%; width:32px; height:32px; font-size:16px; color:#555; cursor:pointer; display:flex; align-items:center; justify-content:center;">×</button>
   </div>
@@ -425,66 +424,13 @@
     function openMenu() { document.getElementById('menu-overlay').style.display = 'block'; }
     function closeMenu() { document.getElementById('menu-overlay').style.display = 'none'; }
 
-    const MODE_KEY = 'putters_mode';
-    const MODES = {
-      food: { label: '食事指導コース', title: 'PUTTERS 食事指導' },
-      lite: { label: '食事指導ライトコース', title: 'PUTTERS 食事指導ライト' },
-      life: { label: '生活指導コース', title: 'PUTTERS 生活指導' }
-    };
-
     function applyMode() {
-      const mode = localStorage.getItem(MODE_KEY) || 'food';
       const mealSection = document.getElementById('meal-section');
       const fullUI = document.getElementById('full-meal-ui');
       const liteUI = document.getElementById('lite-meal-ui');
-      const title = document.getElementById('page-title');
-
-      // 松本大樹は全機能を表示
-      if (getUserName() === '松本大樹') {
-        mealSection.style.display = '';
-        fullUI.style.display = '';
-        liteUI.style.display = '';
-        return;
-      }
-
-      if (mode === 'life') {
-        mealSection.style.display = 'none';
-      } else if (mode === 'lite') {
-        mealSection.style.display = '';
-        fullUI.style.display = 'none';
-        liteUI.style.display = '';
-      } else {
-        mealSection.style.display = '';
-        fullUI.style.display = '';
-        liteUI.style.display = 'none';
-      }
-      if (title) title.textContent = (MODES[mode] || MODES.food).title;
-    }
-
-    function openModeModal() {
-      closeMenu();
-      const current = localStorage.getItem(MODE_KEY) || 'food';
-      const modal = document.createElement('div');
-      modal.id = 'mode-modal';
-      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center;';
-      modal.innerHTML = `
-        <div style="background:white;border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:480px;">
-          <div style="font-size:16px;font-weight:bold;color:#1a1a2e;margin-bottom:16px;text-align:center;">コースを選択</div>
-          ${Object.entries(MODES).map(([key, m]) => `
-            <button onclick="setMode('${key}')" style="width:100%;padding:14px;margin-bottom:10px;background:${current===key?'#1a1a2e':'white'};color:${current===key?'white':'#333'};border:1px solid ${current===key?'#1a1a2e':'#ddd'};border-radius:12px;font-size:15px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">
-              <span style="font-size:18px;">${current===key?'✅':''}</span>${m.label}
-            </button>
-          `).join('')}
-          <button onclick="document.getElementById('mode-modal').remove()" style="width:100%;padding:12px;background:none;border:1px solid #ddd;border-radius:12px;font-size:14px;color:#888;cursor:pointer;margin-top:4px;">キャンセル</button>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    }
-
-    function setMode(mode) {
-      localStorage.setItem(MODE_KEY, mode);
-      document.getElementById('mode-modal').remove();
-      applyMode();
+      mealSection.style.display = '';
+      fullUI.style.display = '';
+      liteUI.style.display = '';
     }
 
     function openMysetModal() {
