@@ -527,9 +527,12 @@
       }
       await Promise.all(promises);
       let tp = 0, tf = 0, tc = 0, tkcal = 0;
-      idxList.forEach(({ idx, gram }) => {
-        const pfc = pfcCache[idx];
-        if (pfc) { const r = gram / 100; tp += pfc.p*r; tf += pfc.f*r; tc += pfc.c*r; tkcal += pfc.kcal*r; }
+      idxList.forEach(({ idx }) => {
+        const chipPfc = document.querySelector(`.food-chip[onclick*="${idx}"] .food-chip-pfc`);
+        if (chipPfc) {
+          const m = chipPfc.textContent.match(/P:([\d.]+)\s*F:([\d.]+)\s*C:([\d.]+)\s*([\d.]+)kcal/);
+          if (m) { tp += parseFloat(m[1]); tf += parseFloat(m[2]); tc += parseFloat(m[3]); tkcal += parseFloat(m[4]); }
+        }
       });
       header.textContent = `📦 ${s.name}  P:${tp.toFixed(1)} F:${tf.toFixed(1)} C:${tc.toFixed(1)} ${Math.round(tkcal)}kcal`;
       calcTotal();
