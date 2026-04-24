@@ -373,6 +373,11 @@
   <button class="submit-btn" onclick="submitData()">今日の記録を送る</button>
   <p id="message"></p>
 
+  <!-- 下部固定：食事写真ボタン（松本大樹のみ） -->
+  <div id="bottom-camera-btn" style="display:none; position:fixed; bottom:0; left:0; right:0; padding:12px 20px 28px; background:white; box-shadow:0 -2px 12px rgba(0,0,0,0.1); z-index:500;">
+    <button onclick="document.getElementById('meal-image-input').click()" style="width:100%; padding:16px; background:#1a1a2e; color:white; border:none; border-radius:14px; font-size:16px; font-weight:bold; cursor:pointer;">📷 食事の写真を撮る</button>
+  </div>
+
 
   <script>
     function toggleCustomInput() {
@@ -1419,6 +1424,11 @@
     }
 
     if (_n !== '不明') checkSoreness(_n);
+
+    // 下部カメラボタン（松本大樹のみ）
+    if (_n === '松本大樹') {
+      document.getElementById('bottom-camera-btn').style.display = 'block';
+    }
   </script>
 </body>
 </html>
