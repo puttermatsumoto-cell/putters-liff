@@ -951,11 +951,22 @@
       } catch (e) { console.log('cache load error:', e); }
     }
 
+    const FOOD_DB = {
+      '鶏もも皮なし':  { p: 19.0, f: 5.0,  c: 0, kcal: 127 },
+      '鶏もも皮無し':  { p: 19.0, f: 5.0,  c: 0, kcal: 127 },
+      '鶏むね皮なし':  { p: 23.3, f: 1.9,  c: 0, kcal: 116 },
+      '鶏むね皮無し':  { p: 23.3, f: 1.9,  c: 0, kcal: 116 },
+    };
+    function localPFC(name) {
+      const key = Object.keys(FOOD_DB).find(k => name.includes(k));
+      return key ? { ...FOOD_DB[key] } : null;
+    }
+
     // PFC取得（サイレント版・キャッシュ復元用）
     async function searchPFCSilent(idx, name) {
       try {
-        const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) });
-        const pfc = await res.json();
+        const local = localPFC(name);
+        const pfc = local || await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) }).then(r => r.json());
         pfcCache[idx] = pfc;
         const gramEl = document.querySelector(`.food-gram[data-idx="${idx}"]`);
         const gram = parseFloat(gramEl ? gramEl.value : 100) || 100;
@@ -1065,8 +1076,8 @@
       if (!name) return;
       btn.disabled = true; btn.textContent = '...';
       try {
-        const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) });
-        const pfc = await res.json();
+        const local = localPFC(name);
+        const pfc = local || await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) }).then(r => r.json());
         pfcCache[idx] = pfc;
         const gram = parseFloat(document.querySelector(`.food-gram[data-idx="${idx}"]`).value) || 100;
         const r = gram / 100;
