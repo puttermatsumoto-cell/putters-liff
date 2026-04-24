@@ -364,7 +364,7 @@
   <p id="message"></p>
 
   <!-- 下部固定バー（松本大樹のみ） -->
-  <div id="bottom-camera-btn" style="display:none; position:fixed; bottom:0; left:0; right:0; padding:12px 20px 32px; background:#1a1a2e; z-index:500;">
+  <div id="bottom-camera-btn" style="display:none; position:fixed; bottom:0; left:0; right:0; padding:12px 20px 32px; background:#1a1a2e; z-index:500; display:none;">
     <div style="display:flex; gap:8px; align-items:center;">
       <button onclick="switchMealMode('lite')" id="bar-btn-camera" style="flex:1; padding:12px 0; background:transparent; color:#888; border:1px solid #333; border-radius:10px; font-size:13px; font-weight:bold; cursor:pointer; letter-spacing:0.05em;">撮影</button>
       <button onclick="switchMealMode('food')" id="bar-btn-input" style="flex:1; padding:12px 0; background:transparent; color:#888; border:1px solid #333; border-radius:10px; font-size:13px; font-weight:bold; cursor:pointer; letter-spacing:0.05em;">入力</button>
@@ -429,9 +429,6 @@
         mealSection.style.display = '';
         fullUI.style.display = '';
         liteUI.style.display = '';
-        document.getElementById('bottom-camera-btn').style.display = 'block';
-        document.getElementById('normal-submit-btn').style.display = 'none';
-        switchMealMode('lite');
         return;
       }
 
