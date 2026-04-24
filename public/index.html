@@ -50,6 +50,10 @@
     .submit-btn:active { opacity: 0.8; }
     #message { text-align: center; color: #c8a97e; margin-top: 12px; font-size: 14px; }
     .food-row-pfc { font-size: 11px; color: #c8a97e; margin-bottom: 6px; padding-left: 4px; }
+    .food-chip { display: flex; align-items: center; gap: 8px; background: #f5f0eb; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; cursor: pointer; }
+    .food-chip-name { font-size: 13px; font-weight: bold; color: #1a1a2e; flex: 1; }
+    .food-chip-pfc { font-size: 11px; color: #c8a97e; white-space: nowrap; }
+    .food-chip-del { background: none; border: none; color: #ccc; font-size: 16px; cursor: pointer; padding: 0 2px; flex-shrink: 0; }
     .pfc-goal-row { display: flex; gap: 8px; margin-bottom: 12px; }
     .pfc-goal-item { flex: 1; text-align: center; }
     .pfc-goal-item label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; }
@@ -860,10 +864,17 @@
         restaurants: []
       };
       document.querySelectorAll('.food-entry').forEach(entry => {
-        data.foods.push({
-          name: entry.querySelector('.food-name').value,
-          gram: entry.querySelector('.food-gram').value
-        });
+        const chip = entry.querySelector('.food-chip');
+        if (chip) {
+          const nameEl = chip.querySelector('.food-chip-name');
+          const text = nameEl ? nameEl.textContent.trim() : '';
+          const match = text.match(/^(.+?)\s+(\d+(?:\.\d+)?)g$/);
+          data.foods.push({ name: match ? match[1] : text, gram: match ? match[2] : '' });
+        } else {
+          const nameInput = entry.querySelector('.food-name');
+          const gramInput = entry.querySelector('.food-gram');
+          if (nameInput) data.foods.push({ name: nameInput.value, gram: gramInput ? gramInput.value : '' });
+        }
       });
       document.querySelectorAll('.restaurant-entry').forEach(entry => {
         data.restaurants.push({
@@ -989,6 +1000,26 @@
       saveCache();
     }
 
+    function removeFoodChip(btn, idx) {
+      btn.closest('.food-entry').remove();
+      delete pfcCache[idx];
+      calcTotal();
+      saveCache();
+    }
+
+    function expandFoodChip(chip, idx, name, gram) {
+      const entry = chip.closest('.food-entry');
+      entry.innerHTML = `
+        <div class="row">
+          <input type="text" placeholder="食材名" class="food-name" data-idx="${idx}" value="${name}" oninput="saveCache()">
+          <input type="number" placeholder="量(g)" class="food-gram" data-idx="${idx}" value="${gram}" oninput="calcTotal(); saveCache()">
+          <button class="search-btn" onclick="searchPFC('${idx}')">調べる</button>
+          <button onclick="removeFoodRow(this, '${idx}')" style="background:none;border:none;color:#ccc;font-size:18px;cursor:pointer;padding:0 4px;">×</button>
+        </div>
+        <div class="food-row-pfc" id="pfc-row-${idx}"></div>
+      `;
+    }
+
     // 外食行追加
     function addRestaurantRow(text = '') {
       const list = document.getElementById('restaurant-list');
@@ -1027,9 +1058,19 @@
         pfcCache[idx] = pfc;
         const gram = parseFloat(document.querySelector(`.food-gram[data-idx="${idx}"]`).value) || 100;
         const r = gram / 100;
-        document.getElementById(`pfc-row-${idx}`).textContent = `${gram}gで P:${(pfc.p*r).toFixed(1)}g F:${(pfc.f*r).toFixed(1)}g C:${(pfc.c*r).toFixed(1)}g ${Math.round(pfc.kcal*r)}kcal`;
+        const chipP = (pfc.p*r).toFixed(1);
+        const chipF = (pfc.f*r).toFixed(1);
+        const chipC = (pfc.c*r).toFixed(1);
+        const chipKcal = Math.round(pfc.kcal*r);
+        const entry = nameEl.closest('.food-entry');
+        const safeName = name.replace(/'/g, "\\'");
+        entry.innerHTML = `<div class="food-chip" onclick="expandFoodChip(this, '${idx}', '${safeName}', ${gram})">
+          <span class="food-chip-name">${name} ${gram}g</span>
+          <span class="food-chip-pfc">P:${chipP} F:${chipF} C:${chipC} ${chipKcal}kcal</span>
+          <button class="food-chip-del" onclick="event.stopPropagation(); removeFoodChip(this, '${idx}')">×</button>
+        </div>`;
         calcTotal();
-      } catch (e) { document.getElementById(`pfc-row-${idx}`).textContent = '取得できませんでした'; }
+      } catch (e) { document.getElementById(`pfc-row-${idx}`) && (document.getElementById(`pfc-row-${idx}`).textContent = '取得できませんでした'); }
       btn.disabled = false; btn.textContent = '調べる';
     }
 
@@ -1089,10 +1130,22 @@
       let c = liteAnalyses.reduce((s, a) => s + (a.c || 0), 0);
       let kcal = liteAnalyses.reduce((s, a) => s + (a.kcal || 0), 0);
 
-      // 手打ち分も合算
+      // 手打ち分（入力中の行）
       document.querySelectorAll('.food-gram').forEach(gramEl => {
         const idx = gramEl.dataset.idx;
         const gram = parseFloat(gramEl.value) || 0;
+        if (pfcCache[idx] && gram > 0) {
+          const r = gram / 100;
+          p += pfcCache[idx].p * r; f += pfcCache[idx].f * r;
+          c += pfcCache[idx].c * r; kcal += pfcCache[idx].kcal * r;
+        }
+      });
+      // チップ化済みの行
+      document.querySelectorAll('.food-chip').forEach(chip => {
+        const onclickAttr = chip.getAttribute('onclick') || '';
+        const m = onclickAttr.match(/expandFoodChip\(this, '([^']+)', '[^']*', ([\d.]+)\)/);
+        if (!m) return;
+        const idx = m[1]; const gram = parseFloat(m[2]) || 0;
         if (pfcCache[idx] && gram > 0) {
           const r = gram / 100;
           p += pfcCache[idx].p * r; f += pfcCache[idx].f * r;
@@ -1215,9 +1268,15 @@
       // 写真解析・手打ちを常に両方含める
       liteAnalyses.forEach(a => { if (a.description) foods.push('[写真解析] ' + (a.time ? a.time + ' ' : '') + a.description); });
       document.querySelectorAll('.food-entry').forEach(entry => {
-        const name = entry.querySelector('.food-name').value.trim();
-        const gram = entry.querySelector('.food-gram').value;
-        if (name) foods.push(name + ' ' + (gram || 0) + 'g');
+        const chip = entry.querySelector('.food-chip');
+        if (chip) {
+          const text = chip.querySelector('.food-chip-name')?.textContent.trim() || '';
+          if (text) foods.push(text);
+        } else {
+          const name = entry.querySelector('.food-name')?.value.trim();
+          const gram = entry.querySelector('.food-gram')?.value;
+          if (name) foods.push(name + ' ' + (gram || 0) + 'g');
+        }
       });
       document.querySelectorAll('.restaurant-entry').forEach(entry => {
         const name = entry.querySelector('.restaurant-name').value.trim();
