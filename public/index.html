@@ -1239,10 +1239,14 @@
         }
       });
 
-      document.getElementById('message').textContent = '送信中...';
-
       const userName = getUserName();
       if (userName === '不明') { checkName(); return; }
+
+      // 確認ダイアログ
+      const confirmed = confirm('今日の記録を送信しますか？');
+      if (!confirmed) return;
+
+      document.getElementById('message').textContent = '送信中...';
 
       try {
         const recordDate = dateStr || new Date().toISOString().slice(0, 10);
