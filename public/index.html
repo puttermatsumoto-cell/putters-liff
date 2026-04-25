@@ -1376,6 +1376,15 @@
       }
     }
 
+    // マイセットが空の人にプロテインを自動追加
+    (function() {
+      const sets = JSON.parse(localStorage.getItem('putters_mysets') || '[]');
+      if (sets.length === 0) {
+        sets.push({ name: 'プロテイン', foods: [{ name: 'プロテイン', gram: 20, p: 19.0, f: 0.2, c: 0.8 }] });
+        localStorage.setItem('putters_mysets', JSON.stringify(sets));
+      }
+    })();
+
     // 初期化
     autoSubmitYesterday().then(() => {
       loadCache().then(() => {
