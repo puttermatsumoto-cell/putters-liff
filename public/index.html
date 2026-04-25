@@ -157,9 +157,9 @@
   </div>
 
   <!-- メニュードロワー -->
-  <div id="menu-overlay" class="menu-overlay">
-    <div class="menu-bg" onclick="closeMenu()"></div>
-    <div class="menu-drawer">
+  <div id="menu-overlay" class="menu-overlay" onclick="closeMenu()">
+    <div class="menu-bg"></div>
+    <div class="menu-drawer" onclick="event.stopPropagation()">
       <div class="menu-label">MENU</div>
       <div class="menu-grid">
         <a href="/goals.html"><span class="menu-icon">🎯</span>目標設定</a>
