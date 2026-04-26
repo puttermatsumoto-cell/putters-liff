@@ -1459,10 +1459,10 @@
     // 下部固定バー（全員）
     document.getElementById('bottom-camera-btn').style.display = 'block';
     (function() {
-      const d = getEffectiveDate();
+      const d = new Date();
+      if (d.getHours() < 2) d.setDate(d.getDate() - 1);
       const days = ['日','月','火','水','木','金','土'];
-      const label = (d.getMonth()+1) + '/' + d.getDate() + '（' + days[d.getDay()] + '）の記録';
-      document.getElementById('bar-date-label').textContent = label;
+      document.getElementById('bar-date-label').textContent = (d.getMonth()+1) + '/' + d.getDate() + '（' + days[d.getDay()] + '）の記録';
     })();
     document.getElementById('normal-submit-btn').style.display = 'none';
     switchMealMode('lite');
