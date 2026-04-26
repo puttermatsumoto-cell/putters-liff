@@ -872,16 +872,26 @@
     // PFC取得（サイレント版・キャッシュ復元用）
     async function searchPFCSilent(idx, name, presetPfc = null) {
       try {
-        const local = presetPfc || localPFC(name);
-        const pfc = local || await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) }).then(r => r.json());
-        pfcCache[idx] = pfc;
         const gramEl = document.querySelector(`.food-gram[data-idx="${idx}"]`);
         const gram = parseFloat(gramEl ? gramEl.value : 100) || 100;
-        const r = gram / 100;
-        const chipP = (pfc.p*r).toFixed(1);
-        const chipF = (pfc.f*r).toFixed(1);
-        const chipC = (pfc.c*r).toFixed(1);
-        const chipKcal = Math.round(pfc.kcal*r);
+        let chipP, chipF, chipC, chipKcal;
+        if (presetPfc) {
+          chipP = presetPfc.p.toFixed(1);
+          chipF = presetPfc.f.toFixed(1);
+          chipC = presetPfc.c.toFixed(1);
+          chipKcal = Math.round(presetPfc.kcal);
+          const r = gram / 100 || 1;
+          pfcCache[idx] = { p: presetPfc.p/r, f: presetPfc.f/r, c: presetPfc.c/r, kcal: presetPfc.kcal/r };
+        } else {
+          const local = localPFC(name);
+          const pfc = local || await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) }).then(r => r.json());
+          pfcCache[idx] = pfc;
+          const r = gram / 100;
+          chipP = (pfc.p*r).toFixed(1);
+          chipF = (pfc.f*r).toFixed(1);
+          chipC = (pfc.c*r).toFixed(1);
+          chipKcal = Math.round(pfc.kcal*r);
+        }
         const entry = document.querySelector(`.food-name[data-idx="${idx}"]`)?.closest('.food-entry');
         if (entry) {
           const safeName = name.replace(/'/g, "\\'");
