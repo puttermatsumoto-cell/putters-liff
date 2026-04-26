@@ -365,7 +365,8 @@
   <p id="message"></p>
 
   <!-- 下部固定バー（松本大樹のみ） -->
-  <div id="bottom-camera-btn" style="display:none; position:fixed; bottom:0; left:0; right:0; padding:16px 16px 16px; background:#1a1a2e; z-index:500;">
+  <div id="bottom-camera-btn" style="display:none; position:fixed; bottom:0; left:0; right:0; padding:10px 16px 16px; background:#1a1a2e; z-index:500;">
+    <div id="bar-date-label" style="text-align:center; font-size:11px; color:#c8a97e; margin-bottom:8px; letter-spacing:0.05em;"></div>
     <div style="display:flex; gap:12px; align-items:center; width:100%;">
       <button id="bar-menu-btn" onclick="openMenu()" style="display:block; padding:14px 12px; background:transparent; color:#c8a97e; border:1px solid #444; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6; letter-spacing:0.05em;">☰<br>MENU</button>
       <button onclick="switchMealMode('lite'); document.getElementById('meal-image-input').click();" id="bar-btn-camera" style="flex:1; padding:14px 0; background:transparent; color:#888; border:1px solid #333; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6;">📷<br>撮影</button>
@@ -1443,6 +1444,12 @@
 
     // 下部固定バー（全員）
     document.getElementById('bottom-camera-btn').style.display = 'block';
+    (function() {
+      const d = getEffectiveDate();
+      const days = ['日','月','火','水','木','金','土'];
+      const label = (d.getMonth()+1) + '/' + d.getDate() + '（' + days[d.getDay()] + '）の記録';
+      document.getElementById('bar-date-label').textContent = label;
+    })();
     document.getElementById('normal-submit-btn').style.display = 'none';
     switchMealMode('lite');
 
