@@ -457,8 +457,27 @@
       const idxList = [];
       for (const f of s.foods) {
         const idx = addFoodRow(f.name, f.gram);
-        idxList.push({ idx, gram: parseFloat(f.gram) || 100 });
-        if (f.name) promises.push(searchPFCSilent(idx, f.name));
+        const gram = parseFloat(f.gram) || 100;
+        idxList.push({ idx, gram });
+        if (f.name) {
+          if (f.p || f.f || f.c) {
+            const r = gram / 100;
+            const pfc = { p: parseFloat(f.p)||0, f: parseFloat(f.f)||0, c: parseFloat(f.c)||0, kcal: (parseFloat(f.p)||0)*4+(parseFloat(f.f)||0)*9+(parseFloat(f.c)||0)*4 };
+            pfcCache[idx] = pfc;
+            const chipP = (pfc.p*r).toFixed(1), chipF = (pfc.f*r).toFixed(1), chipC = (pfc.c*r).toFixed(1), chipKcal = Math.round(pfc.kcal*r);
+            const entry = document.querySelector(`.food-name[data-idx="${idx}"]`)?.closest('.food-entry');
+            if (entry) {
+              const safeName = f.name.replace(/'/g, "\\'");
+              entry.innerHTML = `<div class="food-chip" onclick="expandFoodChip(this, '${idx}', '${safeName}', ${gram})">
+                <span class="food-chip-name">${f.name} ${gram}g</span>
+                <span class="food-chip-pfc">P:${chipP} F:${chipF} C:${chipC} ${chipKcal}kcal</span>
+                <button class="food-chip-del" onclick="event.stopPropagation(); removeFoodChip(this, '${idx}')">×</button>
+              </div>`;
+            }
+          } else {
+            promises.push(searchPFCSilent(idx, f.name));
+          }
+        }
       }
       await Promise.all(promises);
       let tp = 0, tf = 0, tc = 0, tkcal = 0;
