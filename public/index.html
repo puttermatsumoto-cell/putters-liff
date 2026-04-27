@@ -192,6 +192,7 @@
     <button id="prev-day-btn" onclick="loadPrevDayEdit()" style="display:none; position:absolute; top:12px; left:48px; background:none; border:1px solid #ddd; border-radius:8px; padding:6px 10px; font-size:13px; color:#888; cursor:pointer; line-height:1.4;">⏮️<br>前日</button>
     <h1 id="page-title">PUTTERSアプリ</h1>
     <p id="user-greeting" style="font-size:13px; color:#888; margin-top:4px;"></p>
+    <button id="next-day-btn" onclick="toggleNextDay()" style="display:none; position:absolute; top:12px; right:36px; background:none; border:1px solid #ddd; border-radius:8px; padding:6px 10px; font-size:13px; color:#888; cursor:pointer; line-height:1.4;">📅<br>翌日</button>
     <button onclick="saveTempAndClose()" style="position:absolute; top:12px; right:0; background:#e0e0e0; border:none; border-radius:50%; width:32px; height:32px; font-size:16px; color:#555; cursor:pointer; display:flex; align-items:center; justify-content:center;">×</button>
   </div>
   <div id="save-toast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#1a1a2e; color:#c8a97e; padding:10px 20px; border-radius:20px; font-size:13px; z-index:999;">一時保存しました</div>
@@ -501,6 +502,25 @@
       const keys = Object.keys(history).sort();
       if (keys.length > 2) keys.slice(0, keys.length - 2).forEach(k => delete history[k]);
       localStorage.setItem(DETAIL_HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function toggleNextDay() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dateStr = tomorrow.toISOString().slice(0, 10);
+      const btn = document.getElementById('next-day-btn');
+      const banner = document.getElementById('edit-date-banner');
+      if (editingDate === dateStr) {
+        editingDate = null;
+        btn.style.color = '#888';
+        btn.style.borderColor = '#ddd';
+        if (banner) banner.style.display = 'none';
+      } else {
+        editingDate = dateStr;
+        btn.style.color = '#c8a97e';
+        btn.style.borderColor = '#c8a97e';
+        if (banner) { banner.textContent = '📅 ' + dateStr + ' の記録を入力中'; banner.style.display = 'block'; }
+      }
     }
 
     async function loadPrevDayEdit() {
@@ -1596,6 +1616,7 @@
 
     // 下部固定バー（全員）
     document.getElementById('bottom-camera-btn').style.display = 'block';
+    document.getElementById('next-day-btn').style.display = 'block';
     if (_n === '松本大樹') document.getElementById('prev-day-btn').style.display = 'block';
     (function() {
       const d = new Date();
