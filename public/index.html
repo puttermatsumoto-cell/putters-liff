@@ -185,15 +185,17 @@
     </div>
   </div>
 
-  <div style="position:relative; text-align:center; padding-top:12px;">
-    <button class="hamburger" onclick="openMenu()">
-      <span></span><span></span><span></span>
-    </button>
-    <button id="prev-day-btn" onclick="loadPrevDayEdit()" style="display:none; position:absolute; top:12px; left:48px; background:none; border:1px solid #ddd; border-radius:8px; padding:6px 10px; font-size:13px; color:#888; cursor:pointer; line-height:1.4;">⏮️<br>前日</button>
-    <h1 id="page-title">PUTTERSアプリ</h1>
+  <div style="text-align:center; padding-top:12px; position:relative;">
+    <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+      <button class="hamburger" onclick="openMenu()" style="flex-shrink:0;"><span></span><span></span><span></span></button>
+      <h1 id="page-title" style="margin:0;">PUTTERSアプリ</h1>
+      <button onclick="saveTempAndClose()" style="background:#e0e0e0; border:none; border-radius:50%; width:32px; height:32px; font-size:16px; color:#555; cursor:pointer; flex-shrink:0;">×</button>
+    </div>
     <p id="user-greeting" style="font-size:13px; color:#888; margin-top:4px;"></p>
-    <button id="next-day-btn" onclick="toggleNextDay()" style="display:none; position:absolute; top:12px; right:40px; background:none; border:1px solid #ddd; border-radius:8px; padding:6px 10px; font-size:13px; color:#888; cursor:pointer; line-height:1.4;">⏭️<br>翌日</button>
-    <button onclick="saveTempAndClose()" style="position:absolute; top:12px; right:0; background:#e0e0e0; border:none; border-radius:50%; width:32px; height:32px; font-size:16px; color:#555; cursor:pointer; display:flex; align-items:center; justify-content:center;">×</button>
+    <div id="day-nav-btns" style="display:none; justify-content:center; gap:12px; margin-top:8px;">
+      <button id="prev-day-btn" onclick="loadPrevDayEdit()" style="display:none; background:none; border:1px solid #ddd; border-radius:8px; padding:4px 14px; font-size:13px; color:#888; cursor:pointer; line-height:1.4;">⏮️ 前日</button>
+      <button id="next-day-btn" onclick="toggleNextDay()" style="display:none; background:none; border:1px solid #ddd; border-radius:8px; padding:4px 14px; font-size:13px; color:#888; cursor:pointer; line-height:1.4;">⏭️ 翌日</button>
+    </div>
   </div>
   <div id="save-toast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#1a1a2e; color:#c8a97e; padding:10px 20px; border-radius:20px; font-size:13px; z-index:999;">一時保存しました</div>
 
@@ -1616,6 +1618,7 @@
 
     // 下部固定バー（全員）
     document.getElementById('bottom-camera-btn').style.display = 'block';
+    document.getElementById('day-nav-btns').style.display = 'flex';
     document.getElementById('next-day-btn').style.display = 'block';
     if (_n === '松本大樹') document.getElementById('prev-day-btn').style.display = 'block';
     (function() {
