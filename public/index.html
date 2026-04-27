@@ -513,15 +513,38 @@
       const btn = document.getElementById('next-day-btn');
       const banner = document.getElementById('edit-date-banner');
       if (editingDate === dateStr) {
+        // 翌日モード解除 → 今日のキャッシュを復元
         editingDate = null;
         btn.style.color = '#888';
         btn.style.borderColor = '#ddd';
         if (banner) banner.style.display = 'none';
+        // フォームリセットして今日のキャッシュを再ロード
+        document.getElementById('weight').value = '';
+        document.getElementById('goal-weight').value = '';
+        document.getElementById('temperature').value = '';
+        document.getElementById('cardio').value = '';
+        document.getElementById('food-list').innerHTML = '';
+        document.querySelectorAll('.restaurant-entry').forEach(e => e.remove());
+        document.querySelectorAll('.manual-pfc-row').forEach(e => e.remove());
+        liteAnalyses = [];
+        calcTotal();
+        loadCache();
       } else {
+        if (!confirm('翌日モードに切り替えます。現在の入力はそのまま保持されます。翌日の食事を入力してください。')) return;
         editingDate = dateStr;
         btn.style.color = '#c8a97e';
         btn.style.borderColor = '#c8a97e';
-        if (banner) { banner.textContent = '📅 ' + dateStr + ' の記録を入力中'; banner.style.display = 'block'; }
+        if (banner) { banner.textContent = '📅 ' + dateStr + ' の記録を入力中（もう一度押すと今日に戻る）'; banner.style.display = 'block'; }
+        // フォームをクリア（今日のキャッシュはそのまま残す）
+        document.getElementById('food-list').innerHTML = '';
+        document.querySelectorAll('.restaurant-entry').forEach(e => e.remove());
+        document.querySelectorAll('.manual-pfc-row').forEach(e => e.remove());
+        liteAnalyses = [];
+        document.getElementById('weight').value = '';
+        document.getElementById('goal-weight').value = '';
+        document.getElementById('temperature').value = '';
+        document.getElementById('cardio').value = '';
+        calcTotal();
       }
     }
 
