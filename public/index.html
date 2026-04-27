@@ -1436,7 +1436,7 @@
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
       overlay.innerHTML = `
-        <div style="background:#fff;border-radius:16px;padding:20px;width:100%;max-width:360px;">
+        <div style="background:#fff;border-radius:16px;padding:20px;width:100%;max-width:360px;max-height:90vh;overflow-y:auto;">
           <p style="font-size:14px;font-weight:bold;color:#1a1a2e;margin-bottom:12px;">📋 解析結果を編集</p>
           <textarea id="edit-desc" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px;font-size:13px;resize:none;height:60px;box-sizing:border-box;">${a.description || ''}</textarea>
           <p style="font-size:12px;color:#888;margin:12px 0 6px;">量の調整（比率でPFCが自動計算されます）</p>
