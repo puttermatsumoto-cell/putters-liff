@@ -1414,6 +1414,7 @@
         `<div style="background:#f5f0eb; border-radius:8px; padding:10px; margin-bottom:6px;">
           <div style="display:flex; align-items:flex-start; gap:8px;">
             <span style="flex:1; font-size:13px; color:#555;">📋 ${a.time ? a.time + ' | ' : ''}${a.description || ''}</span>
+            <button onclick="editLiteAnalysis(${i})" style="background:none; border:none; color:#c8a97e; font-size:14px; cursor:pointer; padding:0 4px; line-height:1; flex-shrink:0;">✏️</button>
             <button onclick="removeLiteAnalysis(${i})" style="background:none; border:none; color:#aaa; font-size:16px; cursor:pointer; padding:0; line-height:1; flex-shrink:0;">×</button>
           </div>
           <div style="display:flex; gap:12px; margin-top:6px; font-size:12px; color:#c8a97e; font-weight:bold;">
@@ -1424,6 +1425,67 @@
           </div>
         </div>`
       ).join('');
+    }
+
+    function editLiteAnalysis(i) {
+      const a = liteAnalyses[i];
+      const baseP = a.baseP ?? a.p;
+      const baseF = a.baseF ?? a.f;
+      const baseC = a.baseC ?? a.c;
+      const baseKcal = a.baseKcal ?? a.kcal;
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+      overlay.innerHTML = `
+        <div style="background:#fff;border-radius:16px;padding:20px;width:100%;max-width:360px;">
+          <p style="font-size:14px;font-weight:bold;color:#1a1a2e;margin-bottom:12px;">📋 解析結果を編集</p>
+          <textarea id="edit-desc" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px;font-size:13px;resize:none;height:60px;box-sizing:border-box;">${a.description || ''}</textarea>
+          <p style="font-size:12px;color:#888;margin:12px 0 6px;">量の調整（比率でPFCが自動計算されます）</p>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <div style="flex:1;text-align:center;">
+              <div style="font-size:11px;color:#888;margin-bottom:4px;">元の量</div>
+              <input id="edit-base-qty" type="number" value="1" min="0.01" step="any" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px;font-size:16px;text-align:center;box-sizing:border-box;" oninput="updateLiteEditPreview(${baseP},${baseF},${baseC},${baseKcal})">
+            </div>
+            <div style="font-size:18px;color:#aaa;">→</div>
+            <div style="flex:1;text-align:center;">
+              <div style="font-size:11px;color:#888;margin-bottom:4px;">実際の量</div>
+              <input id="edit-actual-qty" type="number" value="1" min="0" step="any" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px;font-size:16px;text-align:center;box-sizing:border-box;" oninput="updateLiteEditPreview(${baseP},${baseF},${baseC},${baseKcal})">
+            </div>
+          </div>
+          <div id="edit-pfc-preview" style="display:flex;gap:12px;justify-content:center;font-size:13px;color:#c8a97e;font-weight:bold;margin-bottom:16px;">
+            <span>P: ${(a.p||0).toFixed(1)}g</span>
+            <span>F: ${(a.f||0).toFixed(1)}g</span>
+            <span>C: ${(a.c||0).toFixed(1)}g</span>
+            <span>${Math.round(a.kcal||0)}kcal</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;background:#eee;border:none;border-radius:10px;font-size:14px;cursor:pointer;">キャンセル</button>
+            <button onclick="saveLiteEdit(${i},${baseP},${baseF},${baseC},${baseKcal})" style="flex:2;padding:12px;background:#1a1a2e;color:#c8a97e;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;">保存</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+    }
+
+    function updateLiteEditPreview(baseP, baseF, baseC, baseKcal) {
+      const base = parseFloat(document.getElementById('edit-base-qty').value) || 1;
+      const actual = parseFloat(document.getElementById('edit-actual-qty').value) || 0;
+      const ratio = actual / base;
+      document.getElementById('edit-pfc-preview').innerHTML =
+        `<span>P: ${(baseP*ratio).toFixed(1)}g</span>
+         <span>F: ${(baseF*ratio).toFixed(1)}g</span>
+         <span>C: ${(baseC*ratio).toFixed(1)}g</span>
+         <span>${Math.round(baseKcal*ratio)}kcal</span>`;
+    }
+
+    function saveLiteEdit(i, baseP, baseF, baseC, baseKcal) {
+      const base = parseFloat(document.getElementById('edit-base-qty').value) || 1;
+      const actual = parseFloat(document.getElementById('edit-actual-qty').value) || 0;
+      const ratio = actual / base;
+      const desc = document.getElementById('edit-desc').value.trim();
+      liteAnalyses[i] = { ...liteAnalyses[i], description: desc, p: baseP*ratio, f: baseF*ratio, c: baseC*ratio, kcal: baseKcal*ratio, baseP, baseF, baseC, baseKcal };
+      document.querySelector('div[style*="position:fixed"][style*="9999"]').remove();
+      renderLiteAnalyses();
+      calcTotal();
+      saveCache();
     }
 
     function removeLiteAnalysis(i) {
