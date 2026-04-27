@@ -189,6 +189,7 @@
     <button class="hamburger" onclick="openMenu()">
       <span></span><span></span><span></span>
     </button>
+    <button id="prev-day-btn" onclick="loadPrevDayEdit()" style="display:none; position:absolute; top:12px; left:48px; background:none; border:1px solid #ddd; border-radius:8px; padding:4px 8px; font-size:11px; color:#888; cursor:pointer; line-height:1.4;">⏮️<br>前日</button>
     <h1 id="page-title">PUTTERSアプリ</h1>
     <p id="user-greeting" style="font-size:13px; color:#888; margin-top:4px;"></p>
     <button onclick="saveTempAndClose()" style="position:absolute; top:12px; right:0; background:#e0e0e0; border:none; border-radius:50%; width:32px; height:32px; font-size:16px; color:#555; cursor:pointer; display:flex; align-items:center; justify-content:center;">×</button>
@@ -372,8 +373,7 @@
       <button id="bar-menu-btn" onclick="openMenu()" style="display:block; padding:14px 12px; background:transparent; color:#c8a97e; border:1px solid #444; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6; letter-spacing:0.05em;">☰<br>MENU</button>
       <button onclick="switchMealMode('lite'); document.getElementById('meal-image-input').click();" id="bar-btn-camera" style="flex:1; padding:14px 0; background:transparent; color:#888; border:1px solid #333; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6;">📷<br>撮影</button>
       <button onclick="switchMealMode('food')" id="bar-btn-input" style="flex:1; padding:14px 0; background:transparent; color:#888; border:1px solid #333; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6;">✏️<br>入力</button>
-      <button onclick="loadPrevDayEdit()" style="flex:1; padding:14px 0; background:transparent; color:#888; border:1px solid #333; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6;">⏮️<br>前日</button>
-      <button onclick="submitData()" style="flex:2; padding:14px 0; background:#c8a97e; color:#1a1a2e; border:none; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6;">📤<br>記録を送る</button>
+<button onclick="submitData()" style="flex:2; padding:14px 0; background:#c8a97e; color:#1a1a2e; border:none; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6;">📤<br>記録を送る</button>
     </div>
   </div>
 
@@ -1533,6 +1533,7 @@
 
     // 下部固定バー（全員）
     document.getElementById('bottom-camera-btn').style.display = 'block';
+    if (_n === '松本大樹') document.getElementById('prev-day-btn').style.display = 'block';
     (function() {
       const d = new Date();
       if (d.getHours() < 2) d.setDate(d.getDate() - 1);
