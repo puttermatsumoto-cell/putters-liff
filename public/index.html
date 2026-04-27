@@ -691,8 +691,8 @@
       renderDonut('donut-f', 'donut-pct-f', f, gf, '#ffb74d');
       renderDonut('donut-c', 'donut-pct-c', c, gc, '#81c784');
     }
-    function saveHistory(weight, p, f, c, kcal, temperature, cardio) {
-      const today = new Date().toISOString().slice(0, 10);
+    function saveHistory(weight, p, f, c, kcal, temperature, cardio, dateOverride) {
+      const today = dateOverride || new Date().toISOString().slice(0, 10);
       let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
       history = history.filter(d => d.date !== today);
       history.push({ date: today, weight: parseFloat(weight) || null, p: parseFloat(p) || 0, f: parseFloat(f) || 0, c: parseFloat(c) || 0, kcal: parseFloat(kcal) || 0, temperature: parseFloat(temperature) || null, cardio: parseFloat(cardio) || 0 });
@@ -1337,7 +1337,7 @@
           method: 'POST',
           body: JSON.stringify({ name: userName, date: recordDate, weight, goalWeight, temperature, foods: foods.join(', '), p, f, c, kcal, cardio, checkedTasks: checkedTasks.join('、'), uncheckedTasks: uncheckedTasks.join('、') })
         });
-        saveHistory(weight, p, f, c, kcal, temperature, cardio);
+        saveHistory(weight, p, f, c, kcal, temperature, cardio, editingDate || undefined);
         saveHWHistory(checkedTasks.length, currentTasks.length);
         renderCharts();
         renderHWCalendar();
