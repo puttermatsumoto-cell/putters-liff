@@ -1200,6 +1200,7 @@
           body: JSON.stringify({ name: userName, date: dateStr, weight: data.weight || '', goalWeight: data.goalWeight || '', temperature: data.temperature || '', foods: foods.join(', '), p: autoP.toFixed(1), f: autoF.toFixed(1), c: autoC.toFixed(1), kcal: Math.round(autoKcal), cardio: data.cardio || 0, checkedTasks: checkedTasks.join('、'), uncheckedTasks: uncheckedTasks.join('、') })
         });
         localStorage.removeItem(CACHE_KEY);
+        saveHistory(data.weight || '', autoP.toFixed(1), autoF.toFixed(1), autoC.toFixed(1), Math.round(autoKcal), data.temperature || '', data.cardio || 0);
         const hwChecked = [...(data.checkedTaskTexts || []), ...(data.customTasks || []).filter(t => t.checked).map(t => t.text)];
         const hwTotal = [...(data.checkedTaskTexts || []), ...(data.uncheckedTaskTexts || []), ...(data.customTasks || [])].length;
         const hwHistory = JSON.parse(localStorage.getItem(HW_HISTORY_KEY) || '{}');
