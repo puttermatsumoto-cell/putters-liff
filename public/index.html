@@ -192,9 +192,10 @@
       <h1 id="page-title" style="margin:0;">PUTTERSアプリ</h1>
     </div>
     <p id="user-greeting" style="font-size:13px; color:#888; margin-top:4px;"></p>
-    <div id="day-nav-btns" style="display:none; justify-content:center; gap:12px; margin-top:8px;">
-      <button id="prev-day-btn" onclick="loadPrevDayEdit()" style="display:none; background:none; border:1px solid #ddd; border-radius:10px; padding:10px 20px; font-size:15px; color:#888; cursor:pointer;">⏮️ 前日</button>
-      <button id="next-day-btn" onclick="toggleNextDay()" style="display:none; background:none; border:1px solid #ddd; border-radius:10px; padding:10px 20px; font-size:15px; color:#888; cursor:pointer;">⏭️ 翌日</button>
+    <div id="day-nav-btns" style="display:none; justify-content:center; gap:8px; margin-top:8px;">
+      <button id="prev-day-btn" onclick="loadPrevDayEdit()" style="display:none; background:none; border:1px solid #ddd; border-radius:10px; padding:10px 16px; font-size:14px; color:#888; cursor:pointer;">⏮️ 前日</button>
+      <button id="today-btn" onclick="switchToToday()" style="display:none; background:#1a1a2e; border:1px solid #1a1a2e; border-radius:10px; padding:10px 16px; font-size:14px; color:#c8a97e; cursor:pointer; font-weight:bold;">本日</button>
+      <button id="next-day-btn" onclick="toggleNextDay()" style="display:none; background:none; border:1px solid #ddd; border-radius:10px; padding:10px 16px; font-size:14px; color:#888; cursor:pointer;">⏭️ 翌日</button>
     </div>
   </div>
   <div id="save-toast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#1a1a2e; color:#c8a97e; padding:10px 20px; border-radius:20px; font-size:13px; z-index:999;">一時保存しました</div>
@@ -506,6 +507,32 @@
       localStorage.setItem(DETAIL_HISTORY_KEY, JSON.stringify(history));
     }
 
+    function setDayNavActive(active) {
+      const prev = document.getElementById('prev-day-btn');
+      const today = document.getElementById('today-btn');
+      const next = document.getElementById('next-day-btn');
+      [prev, today, next].forEach(b => { if (b) { b.style.background = 'none'; b.style.borderColor = '#ddd'; b.style.color = '#888'; b.style.fontWeight = ''; } });
+      const btn = active === 'prev' ? prev : active === 'next' ? next : today;
+      if (btn) { btn.style.background = '#1a1a2e'; btn.style.borderColor = '#1a1a2e'; btn.style.color = '#c8a97e'; btn.style.fontWeight = 'bold'; }
+    }
+
+    function switchToToday() {
+      editingDate = null;
+      const banner = document.getElementById('edit-date-banner');
+      if (banner) banner.style.display = 'none';
+      setDayNavActive('today');
+      document.getElementById('weight').value = '';
+      document.getElementById('goal-weight').value = '';
+      document.getElementById('temperature').value = '';
+      document.getElementById('cardio').value = '';
+      document.getElementById('food-list').innerHTML = '';
+      document.querySelectorAll('.restaurant-entry').forEach(e => e.remove());
+      document.querySelectorAll('.manual-pfc-row').forEach(e => e.remove());
+      liteAnalyses = [];
+      calcTotal();
+      loadCache();
+    }
+
     function toggleNextDay() {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -513,29 +540,11 @@
       const btn = document.getElementById('next-day-btn');
       const banner = document.getElementById('edit-date-banner');
       if (editingDate === dateStr) {
-        // 翌日モード解除 → 今日のキャッシュを復元
-        editingDate = null;
-        btn.style.color = '#888';
-        btn.style.borderColor = '#ddd';
-        if (banner) banner.style.display = 'none';
-        // フォームリセットして今日のキャッシュを再ロード
-        document.getElementById('weight').value = '';
-        document.getElementById('goal-weight').value = '';
-        document.getElementById('temperature').value = '';
-        document.getElementById('cardio').value = '';
-        document.getElementById('food-list').innerHTML = '';
-        document.querySelectorAll('.restaurant-entry').forEach(e => e.remove());
-        document.querySelectorAll('.manual-pfc-row').forEach(e => e.remove());
-        liteAnalyses = [];
-        calcTotal();
-        loadCache();
+        switchToToday();
       } else {
-        if (!confirm('翌日モードに切り替えます。現在の入力はそのまま保持されます。翌日の食事を入力してください。')) return;
         editingDate = dateStr;
-        btn.style.color = '#c8a97e';
-        btn.style.borderColor = '#c8a97e';
-        if (banner) { banner.textContent = '📅 ' + dateStr + ' の記録を入力中（もう一度押すと今日に戻る）'; banner.style.display = 'block'; }
-        // フォームをクリア（今日のキャッシュはそのまま残す）
+        if (banner) { banner.textContent = '📅 ' + dateStr + ' の記録を入力中'; banner.style.display = 'block'; }
+        setDayNavActive('next');
         document.getElementById('food-list').innerHTML = '';
         document.querySelectorAll('.restaurant-entry').forEach(e => e.remove());
         document.querySelectorAll('.manual-pfc-row').forEach(e => e.remove());
@@ -590,6 +599,7 @@
         for (const r of data.restaurants) { const idx = addRestaurantRow(r.text); if (r.text) await searchRestaurantPFCSilent(idx, r.text); }
       }
       editingDate = dateStr;
+      setDayNavActive('prev');
       const banner = document.getElementById('edit-date-banner');
       if (banner) { banner.textContent = '✏️ ' + dateStr + ' を編集中'; banner.style.display = 'block'; }
       calcTotal(); updateGoalBar();
@@ -1642,8 +1652,10 @@
     // 下部固定バー（全員）
     document.getElementById('bottom-camera-btn').style.display = 'block';
     document.getElementById('day-nav-btns').style.display = 'flex';
+    document.getElementById('today-btn').style.display = 'block';
     document.getElementById('next-day-btn').style.display = 'block';
     if (_n === '松本大樹') document.getElementById('prev-day-btn').style.display = 'block';
+    setDayNavActive('today');
     (function() {
       const d = new Date();
       if (d.getHours() < 2) d.setDate(d.getDate() - 1);
