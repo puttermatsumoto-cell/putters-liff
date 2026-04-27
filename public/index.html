@@ -1420,7 +1420,7 @@
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          const MAX = 1024;
+          const MAX = 1600;
           let w = img.width, h = img.height;
           if (w > MAX || h > MAX) {
             if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
