@@ -367,10 +367,12 @@
   <!-- 下部固定バー（松本大樹のみ） -->
   <div id="bottom-camera-btn" style="display:none; position:fixed; bottom:0; left:0; right:0; padding:10px 16px 16px; background:#1a1a2e; z-index:500;">
     <div id="bar-date-label" style="text-align:center; font-size:11px; color:#c8a97e; margin-bottom:8px; letter-spacing:0.05em;"></div>
+    <div id="edit-date-banner" style="display:none; text-align:center; font-size:11px; color:#ff8c00; margin-bottom:6px; font-weight:bold;"></div>
     <div style="display:flex; gap:12px; align-items:center; width:100%;">
       <button id="bar-menu-btn" onclick="openMenu()" style="display:block; padding:14px 12px; background:transparent; color:#c8a97e; border:1px solid #444; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6; letter-spacing:0.05em;">☰<br>MENU</button>
       <button onclick="switchMealMode('lite'); document.getElementById('meal-image-input').click();" id="bar-btn-camera" style="flex:1; padding:14px 0; background:transparent; color:#888; border:1px solid #333; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6;">📷<br>撮影</button>
       <button onclick="switchMealMode('food')" id="bar-btn-input" style="flex:1; padding:14px 0; background:transparent; color:#888; border:1px solid #333; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6;">✏️<br>入力</button>
+      <button onclick="loadPrevDayEdit()" style="flex:1; padding:14px 0; background:transparent; color:#888; border:1px solid #333; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6;">⏮️<br>前日</button>
       <button onclick="submitData()" style="flex:2; padding:14px 0; background:#c8a97e; color:#1a1a2e; border:none; border-radius:10px; font-size:12px; font-weight:bold; cursor:pointer; line-height:1.6;">📤<br>記録を送る</button>
     </div>
   </div>
@@ -490,6 +492,63 @@
 
     const HISTORY_KEY = 'putters_history';
     const NAME_KEY = 'putters_user_name';
+    const DETAIL_HISTORY_KEY = 'putters_detail_history';
+    let editingDate = null;
+
+    function saveDetailHistory(dateStr, data) {
+      let history = JSON.parse(localStorage.getItem(DETAIL_HISTORY_KEY) || '{}');
+      history[dateStr] = data;
+      const keys = Object.keys(history).sort();
+      if (keys.length > 2) keys.slice(0, keys.length - 2).forEach(k => delete history[k]);
+      localStorage.setItem(DETAIL_HISTORY_KEY, JSON.stringify(history));
+    }
+
+    async function loadPrevDayEdit() {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const dateStr = yesterday.toISOString().slice(0, 10);
+      const history = JSON.parse(localStorage.getItem(DETAIL_HISTORY_KEY) || '{}');
+      const data = history[dateStr];
+      if (!data) { alert('前日のデータが見つかりません'); return; }
+      if (!confirm(dateStr + 'のデータを読み込みます。現在の入力は消えます。')) return;
+      // フォームリセット
+      document.getElementById('weight').value = '';
+      document.getElementById('goal-weight').value = '';
+      document.getElementById('temperature').value = '';
+      document.getElementById('cardio').value = '';
+      document.getElementById('food-list').innerHTML = '';
+      document.querySelectorAll('.restaurant-entry').forEach(e => e.remove());
+      document.querySelectorAll('.manual-pfc-row').forEach(e => e.remove());
+      liteAnalyses = [];
+      localStorage.removeItem(CACHE_KEY);
+      // 復元
+      if (data.weight) document.getElementById('weight').value = data.weight;
+      if (data.goalWeight) document.getElementById('goal-weight').value = data.goalWeight;
+      if (data.temperature) document.getElementById('temperature').value = data.temperature;
+      if (data.cardio) document.getElementById('cardio').value = data.cardio;
+      if (data.liteAnalyses && data.liteAnalyses.length > 0) { liteAnalyses = data.liteAnalyses; renderLiteAnalyses(); }
+      if (data.manualPFCs && data.manualPFCs.length > 0) data.manualPFCs.forEach(m => addManualPFCRow(m.p, m.f, m.c));
+      if (data.foods && data.foods.length > 0) {
+        const foodList = document.getElementById('food-list');
+        for (const f of data.foods) {
+          if (f._header) {
+            const h = document.createElement('div');
+            h.style.cssText = 'font-size:12px; color:#c8a97e; font-weight:bold; padding:4px 2px 6px; border-bottom:1px solid #f0e8dc; margin-bottom:6px;';
+            h.textContent = f._header; h.dataset.mysetHeader = '1'; foodList.appendChild(h);
+          } else {
+            const idx = addFoodRow(f.name, f.gram);
+            if (f.name) await searchPFCSilent(idx, f.name, f.p != null ? { p: f.p, f: f.f, c: f.c } : null);
+          }
+        }
+      }
+      if (data.restaurants && data.restaurants.length > 0) {
+        for (const r of data.restaurants) { const idx = addRestaurantRow(r.text); if (r.text) await searchRestaurantPFCSilent(idx, r.text); }
+      }
+      editingDate = dateStr;
+      const banner = document.getElementById('edit-date-banner');
+      if (banner) { banner.textContent = '✏️ ' + dateStr + ' を編集中'; banner.style.display = 'block'; }
+      calcTotal(); updateGoalBar();
+    }
 
     async function saveName() {
       const name = document.getElementById('name-input').value.trim();
@@ -1199,6 +1258,7 @@
           method: 'POST',
           body: JSON.stringify({ name: userName, date: dateStr, weight: data.weight || '', goalWeight: data.goalWeight || '', temperature: data.temperature || '', foods: foods.join(', '), p: autoP.toFixed(1), f: autoF.toFixed(1), c: autoC.toFixed(1), kcal: Math.round(autoKcal), cardio: data.cardio || 0, checkedTasks: checkedTasks.join('、'), uncheckedTasks: uncheckedTasks.join('、') })
         });
+        saveDetailHistory(dateStr, data);
         localStorage.removeItem(CACHE_KEY);
         saveHistory(data.weight || '', autoP.toFixed(1), autoF.toFixed(1), autoC.toFixed(1), Math.round(autoKcal), data.temperature || '', data.cardio || 0);
         const hwChecked = [...(data.checkedTaskTexts || []), ...(data.customTasks || []).filter(t => t.checked).map(t => t.text)];
@@ -1272,7 +1332,7 @@
       document.getElementById('message').textContent = '送信中...';
 
       try {
-        const recordDate = dateStr || new Date().toISOString().slice(0, 10);
+        const recordDate = editingDate || dateStr || new Date().toISOString().slice(0, 10);
         await fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify({ name: userName, date: recordDate, weight, goalWeight, temperature, foods: foods.join(', '), p, f, c, kcal, cardio, checkedTasks: checkedTasks.join('、'), uncheckedTasks: uncheckedTasks.join('、') })
@@ -1281,7 +1341,12 @@
         saveHWHistory(checkedTasks.length, currentTasks.length);
         renderCharts();
         renderHWCalendar();
+        const cacheForDetail = localStorage.getItem(CACHE_KEY);
+        if (cacheForDetail) saveDetailHistory(recordDate, JSON.parse(cacheForDetail));
         localStorage.removeItem(CACHE_KEY);
+        editingDate = null;
+        const banner = document.getElementById('edit-date-banner');
+        if (banner) banner.style.display = 'none';
         showCompleteScreen(checkedTasks.length, currentTasks.length);
       } catch (e) {
         document.getElementById('message').textContent = '❌ 送信に失敗しました';
