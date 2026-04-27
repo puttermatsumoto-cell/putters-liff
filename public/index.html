@@ -762,9 +762,15 @@
           const chip = el.querySelector('.food-chip');
           if (chip) {
             const nameEl = chip.querySelector('.food-chip-name');
+            const pfcEl = chip.querySelector('.food-chip-pfc');
             const text = nameEl ? nameEl.textContent.trim() : '';
             const match = text.match(/^(.+?)\s+(\d+(?:\.\d+)?)g$/);
-            data.foods.push({ name: match ? match[1] : text, gram: match ? match[2] : '' });
+            const chipPFC = {};
+            if (pfcEl) {
+              const m = pfcEl.textContent.match(/P:([\d.]+)\s*F:([\d.]+)\s*C:([\d.]+)/);
+              if (m) { chipPFC.p = parseFloat(m[1]); chipPFC.f = parseFloat(m[2]); chipPFC.c = parseFloat(m[3]); }
+            }
+            data.foods.push({ name: match ? match[1] : text, gram: match ? match[2] : '', ...chipPFC });
           } else {
             const nameInput = el.querySelector('.food-name');
             const gramInput = el.querySelector('.food-gram');
@@ -1173,11 +1179,14 @@
         (data.restaurants || []).forEach(r => { if (r.text) foods.push('[外食] ' + r.text); });
         // PFCを合算（写真解析＋手打ち）
         const autoP = (data.liteAnalyses || []).reduce((s, a) => s + (a.p || 0), 0)
-          + (data.manualPFCs || []).reduce((s, m) => s + (parseFloat(m.p) || 0), 0);
+          + (data.manualPFCs || []).reduce((s, m) => s + (parseFloat(m.p) || 0), 0)
+          + (data.foods || []).reduce((s, f) => s + (parseFloat(f.p) || 0), 0);
         const autoF = (data.liteAnalyses || []).reduce((s, a) => s + (a.f || 0), 0)
-          + (data.manualPFCs || []).reduce((s, m) => s + (parseFloat(m.f) || 0), 0);
+          + (data.manualPFCs || []).reduce((s, m) => s + (parseFloat(m.f) || 0), 0)
+          + (data.foods || []).reduce((s, f) => s + (parseFloat(f.f) || 0), 0);
         const autoC = (data.liteAnalyses || []).reduce((s, a) => s + (a.c || 0), 0)
-          + (data.manualPFCs || []).reduce((s, m) => s + (parseFloat(m.c) || 0), 0);
+          + (data.manualPFCs || []).reduce((s, m) => s + (parseFloat(m.c) || 0), 0)
+          + (data.foods || []).reduce((s, f) => s + (parseFloat(f.c) || 0), 0);
         const autoKcal = autoP * 4 + autoF * 9 + autoC * 4;
         // カスタムタスクを宿題テキストに追加
         const checkedTasks = [...(data.checkedTaskTexts || [])];
