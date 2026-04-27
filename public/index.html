@@ -1434,6 +1434,7 @@
       const baseC = a.baseC ?? a.c;
       const baseKcal = a.baseKcal ?? a.kcal;
       const overlay = document.createElement('div');
+      overlay.id = 'lite-edit-overlay';
       overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
       overlay.innerHTML = `
         <div style="background:#fff;border-radius:16px;padding:20px;width:100%;max-width:360px;max-height:90vh;overflow-y:auto;">
@@ -1458,7 +1459,7 @@
             <span>${Math.round(a.kcal||0)}kcal</span>
           </div>
           <div style="display:flex;gap:8px;">
-            <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;background:#eee;border:none;border-radius:10px;font-size:14px;cursor:pointer;">キャンセル</button>
+            <button onclick="document.getElementById('lite-edit-overlay').remove()" style="flex:1;padding:12px;background:#eee;border:none;border-radius:10px;font-size:14px;cursor:pointer;">キャンセル</button>
             <button onclick="saveLiteEdit(${i},${baseP},${baseF},${baseC},${baseKcal})" style="flex:2;padding:12px;background:#1a1a2e;color:#c8a97e;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;">保存</button>
           </div>
         </div>`;
@@ -1482,7 +1483,7 @@
       const ratio = actual / base;
       const desc = document.getElementById('edit-desc').value.trim();
       liteAnalyses[i] = { ...liteAnalyses[i], description: desc, p: baseP*ratio, f: baseF*ratio, c: baseC*ratio, kcal: baseKcal*ratio, baseP, baseF, baseC, baseKcal };
-      document.querySelector('div[style*="position:fixed"][style*="9999"]').remove();
+      document.getElementById('lite-edit-overlay').remove();
       renderLiteAnalyses();
       calcTotal();
       saveCache();
