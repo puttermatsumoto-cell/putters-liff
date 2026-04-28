@@ -1688,6 +1688,12 @@
     })();
 
     // 初期化
+    // 前日編集後にLIFFが閉じた場合、本日キャッシュのバックアップを復元
+    const _todayBackup = localStorage.getItem('putters_cache_today_backup');
+    if (_todayBackup && !localStorage.getItem(CACHE_KEY)) {
+      localStorage.setItem(CACHE_KEY, _todayBackup);
+      localStorage.removeItem('putters_cache_today_backup');
+    }
     autoSubmitYesterday().then(() => {
       loadCache().then(() => {
         if (document.getElementById('food-list').children.length === 0) addFoodRow();
