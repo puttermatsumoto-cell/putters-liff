@@ -497,6 +497,7 @@
     const HISTORY_KEY = 'putters_history';
     const NAME_KEY = 'putters_user_name';
     const DETAIL_HISTORY_KEY = 'putters_detail_history';
+    const TOMORROW_CACHE_KEY = 'putters_cache_tomorrow';
     let editingDate = null;
 
     function saveDetailHistory(dateStr, data) {
@@ -562,6 +563,24 @@
         document.getElementById('temperature').value = '';
         document.getElementById('cardio').value = '';
         calcTotal();
+        // 翌日のキャッシュがあれば復元
+        const tomorrowCache = localStorage.getItem(TOMORROW_CACHE_KEY);
+        if (tomorrowCache) {
+          const d = JSON.parse(tomorrowCache);
+          if (d.weight) document.getElementById('weight').value = d.weight;
+          if (d.temperature) document.getElementById('temperature').value = d.temperature;
+          if (d.cardio) document.getElementById('cardio').value = d.cardio;
+          if (d.liteAnalyses && d.liteAnalyses.length > 0) { liteAnalyses = d.liteAnalyses; renderLiteAnalyses(); }
+          if (d.manualPFCs && d.manualPFCs.length > 0) d.manualPFCs.forEach(m => addManualPFCRow(m.p, m.f, m.c));
+          if (d.foods && d.foods.length > 0) {
+            const fl = document.getElementById('food-list');
+            for (const f of d.foods) {
+              if (f._header) { const h = document.createElement('div'); h.style.cssText='font-size:12px;color:#c8a97e;font-weight:bold;padding:4px 2px 6px;border-bottom:1px solid #f0e8dc;margin-bottom:6px;'; h.textContent=f._header; h.dataset.mysetHeader='1'; fl.appendChild(h); }
+              else { const idx = addFoodRow(f.name, f.gram); if (f.name) searchPFCSilent(idx, f.name, f.p != null ? {p:f.p,f:f.f,c:f.c} : null); }
+            }
+          }
+          calcTotal();
+        }
       }
     }
 
@@ -927,7 +946,10 @@
         text: el.querySelector('label').textContent,
         checked: el.querySelector('input[type="checkbox"]').checked
       }));
-      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+      const saveKey = (editingDate === tomorrowStr) ? TOMORROW_CACHE_KEY : CACHE_KEY;
+      localStorage.setItem(saveKey, JSON.stringify(data));
     }
 
     // localStorageキャッシュ復元
