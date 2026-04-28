@@ -952,6 +952,7 @@
       const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
       const tomorrowStr = tomorrow.toISOString().slice(0, 10);
       const saveKey = (editingDate === tomorrowStr) ? TOMORROW_CACHE_KEY : CACHE_KEY;
+      if (saveKey === TOMORROW_CACHE_KEY) data._tomorrowDate = tomorrowStr;
       localStorage.setItem(saveKey, JSON.stringify(data));
     }
 
@@ -1633,6 +1634,25 @@
         sets.push({ name: 'プロテイン', foods: [{ name: 'プロテイン', gram: 20, p: 19.0, f: 0.2, c: 0.8 }] });
         localStorage.setItem('putters_mysets', JSON.stringify(sets));
       }
+    })();
+
+    // 翌日キャッシュを本日キャッシュに引き継ぎ
+    (function migrateTomorrowCache() {
+      const tomorrowCache = localStorage.getItem(TOMORROW_CACHE_KEY);
+      if (!tomorrowCache) return;
+      const today = getEffectiveDate();
+      const todayISO = (() => { const d = new Date(); if (d.getHours() < 2) d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); })();
+      try {
+        const d = JSON.parse(tomorrowCache);
+        // 翌日キャッシュの日付が今日と一致したら本日キャッシュに移行
+        if (d._tomorrowDate === todayISO) {
+          if (!localStorage.getItem(CACHE_KEY)) {
+            d.date = today;
+            localStorage.setItem(CACHE_KEY, JSON.stringify(d));
+          }
+          localStorage.removeItem(TOMORROW_CACHE_KEY);
+        }
+      } catch(e) {}
     })();
 
     // 初期化
