@@ -541,7 +541,7 @@
       loadCache();
     }
 
-    function toggleNextDay() {
+    async function toggleNextDay() {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dateStr = tomorrow.toISOString().slice(0, 10);
@@ -577,10 +577,12 @@
           if (d.manualPFCs && d.manualPFCs.length > 0) d.manualPFCs.forEach(m => addManualPFCRow(m.p, m.f, m.c));
           if (d.foods && d.foods.length > 0) {
             const fl = document.getElementById('food-list');
+            const pfcPromises = [];
             for (const f of d.foods) {
               if (f._header) { const h = document.createElement('div'); h.style.cssText='font-size:12px;color:#c8a97e;font-weight:bold;padding:4px 2px 6px;border-bottom:1px solid #f0e8dc;margin-bottom:6px;'; h.textContent=f._header; h.dataset.mysetHeader='1'; fl.appendChild(h); }
-              else { const idx = addFoodRow(f.name, f.gram); if (f.name) searchPFCSilent(idx, f.name, f.p != null ? {p:f.p,f:f.f,c:f.c} : null); }
+              else { const idx = addFoodRow(f.name, f.gram); if (f.name) pfcPromises.push(searchPFCSilent(idx, f.name, f.p != null ? {p:f.p,f:f.f,c:f.c} : null)); }
             }
+            await Promise.all(pfcPromises);
           }
           calcTotal();
         }
