@@ -934,8 +934,8 @@
             const match = text.match(/^(.+?)\s+(\d+(?:\.\d+)?)g$/);
             const chipPFC = {};
             if (pfcEl) {
-              const m = pfcEl.textContent.match(/P:([\d.]+)\s*F:([\d.]+)\s*C:([\d.]+)/);
-              if (m) { chipPFC.p = parseFloat(m[1]); chipPFC.f = parseFloat(m[2]); chipPFC.c = parseFloat(m[3]); }
+              const m = pfcEl.textContent.match(/P:([\d.]+)\s*F:([\d.]+)\s*C:([\d.]+)\s*([\d.]+)kcal/);
+              if (m) { chipPFC.p = parseFloat(m[1]); chipPFC.f = parseFloat(m[2]); chipPFC.c = parseFloat(m[3]); chipPFC.kcal = parseFloat(m[4]); }
             }
             data.foods.push({ name: match ? match[1] : text, gram: match ? match[2] : '', ...chipPFC });
           } else {
@@ -1064,12 +1064,13 @@
         const gram = parseFloat(gramEl ? gramEl.value : 100) || 100;
         let chipP, chipF, chipC, chipKcal;
         if (presetPfc) {
+          const kcalVal = presetPfc.kcal != null ? presetPfc.kcal : presetPfc.p * 4 + presetPfc.f * 9 + presetPfc.c * 4;
           chipP = presetPfc.p.toFixed(1);
           chipF = presetPfc.f.toFixed(1);
           chipC = presetPfc.c.toFixed(1);
-          chipKcal = Math.round(presetPfc.kcal);
+          chipKcal = Math.round(kcalVal);
           const r = gram / 100 || 1;
-          pfcCache[idx] = { p: presetPfc.p/r, f: presetPfc.f/r, c: presetPfc.c/r, kcal: presetPfc.kcal/r };
+          pfcCache[idx] = { p: presetPfc.p/r, f: presetPfc.f/r, c: presetPfc.c/r, kcal: kcalVal/r };
         } else {
           const local = localPFC(name);
           const pfc = local || await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) }).then(r => r.json());
