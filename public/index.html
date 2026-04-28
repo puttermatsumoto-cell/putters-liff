@@ -1752,7 +1752,7 @@
     document.getElementById('day-nav-btns').style.display = 'flex';
     document.getElementById('today-btn').style.display = 'block';
     document.getElementById('next-day-btn').style.display = 'block';
-    if (_n === '松本大樹') { const pb = document.getElementById('prev-day-btn'); pb.style.display = 'block'; pb.dataset.enabled = '1'; }
+    { const pb = document.getElementById('prev-day-btn'); pb.style.display = 'block'; pb.dataset.enabled = '1'; }
     setDayNavActive('today');
     (function() {
       const d = new Date();
