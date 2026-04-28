@@ -952,9 +952,13 @@
       }));
       const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
       const tomorrowStr = getLocalDateISO(tomorrow);
-      const saveKey = (editingDate === tomorrowStr) ? TOMORROW_CACHE_KEY : CACHE_KEY;
-      if (saveKey === TOMORROW_CACHE_KEY) data._tomorrowDate = tomorrowStr;
-      localStorage.setItem(saveKey, JSON.stringify(data));
+      if (editingDate === tomorrowStr) {
+        data._tomorrowDate = tomorrowStr;
+        localStorage.setItem(TOMORROW_CACHE_KEY, JSON.stringify(data));
+      } else if (!editingDate) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      }
+      // 前日編集モード中はキャッシュを書き込まない（本日分を保護）
     }
 
     // JST基準の日付文字列（yyyy-mm-dd）
