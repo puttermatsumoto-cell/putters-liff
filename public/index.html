@@ -192,7 +192,7 @@
       <h1 id="page-title" style="margin:0;">PUTTERSアプリ</h1>
     </div>
     <p id="user-greeting" style="font-size:13px; color:#888; margin-top:4px;"></p>
-    <div id="day-nav-btns" style="display:none; justify-content:center; gap:8px; margin-top:8px;">
+<div id="day-nav-btns" style="display:none; justify-content:center; gap:8px; margin-top:8px;">
       <button id="prev-day-btn" onclick="loadPrevDayEdit()" style="display:none; background:none; border:1px solid #ddd; border-radius:10px; padding:10px 16px; font-size:14px; color:#888; cursor:pointer;">⏮️ 前日</button>
       <button id="today-btn" onclick="switchToToday()" style="display:none; background:#1a1a2e; border:1px solid #1a1a2e; border-radius:10px; padding:10px 16px; font-size:14px; color:#c8a97e; cursor:pointer; font-weight:bold;">本日</button>
       <button id="next-day-btn" onclick="toggleNextDay()" style="display:none; background:none; border:1px solid #ddd; border-radius:10px; padding:10px 16px; font-size:14px; color:#888; cursor:pointer;">⏭️ 翌日</button>
@@ -903,6 +903,7 @@
     }
 
     // localStorageキャッシュ保存
+
     function getEffectiveDate() {
       const now = new Date();
       if (now.getHours() < 2) now.setDate(now.getDate() - 1);
@@ -1758,7 +1759,7 @@
       const d = new Date();
       if (d.getHours() < 2) d.setDate(d.getDate() - 1);
       const days = ['日','月','火','水','木','金','土'];
-      document.getElementById('bar-date-label').textContent = (d.getMonth()+1) + '/' + d.getDate() + '（' + days[d.getDay()] + '）の記録';
+      document.getElementById('bar-date-label').textContent = (d.getMonth()+1) + '/' + d.getDate() + '（' + days[d.getDay()] + '）の記録　26時に更新';
     })();
     document.getElementById('normal-submit-btn').style.display = 'none';
     switchMealMode('lite');
