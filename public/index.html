@@ -562,6 +562,9 @@
         document.getElementById('goal-weight').value = '';
         document.getElementById('temperature').value = '';
         document.getElementById('cardio').value = '';
+        // 宿題チェックをリセット
+        document.querySelectorAll('#checklist input[type="checkbox"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.custom-task-item input[type="checkbox"]').forEach(cb => cb.checked = false);
         calcTotal();
         // 翌日のキャッシュがあれば復元
         const tomorrowCache = localStorage.getItem(TOMORROW_CACHE_KEY);
