@@ -513,9 +513,13 @@
       const prev = document.getElementById('prev-day-btn');
       const today = document.getElementById('today-btn');
       const next = document.getElementById('next-day-btn');
-      [prev, today, next].forEach(b => { if (b) { b.style.background = 'none'; b.style.borderColor = '#ddd'; b.style.color = '#888'; b.style.fontWeight = ''; } });
+      [today, next].forEach(b => { if (b) { b.style.background = 'none'; b.style.borderColor = '#ddd'; b.style.color = '#888'; b.style.fontWeight = ''; b.style.display = 'block'; } });
+      if (prev && prev.dataset.enabled) { prev.style.background = 'none'; prev.style.borderColor = '#ddd'; prev.style.color = '#888'; prev.style.fontWeight = ''; prev.style.display = 'block'; }
       const btn = active === 'prev' ? prev : active === 'next' ? next : today;
       if (btn) { btn.style.background = '#1a1a2e'; btn.style.borderColor = '#1a1a2e'; btn.style.color = '#c8a97e'; btn.style.fontWeight = 'bold'; }
+      // 前日モード中は翌日ボタンを非表示、翌日モード中は前日ボタンを非表示
+      if (active === 'prev' && next) next.style.display = 'none';
+      if (active === 'next' && prev) prev.style.display = 'none';
     }
 
     function switchToToday() {
@@ -1748,7 +1752,7 @@
     document.getElementById('day-nav-btns').style.display = 'flex';
     document.getElementById('today-btn').style.display = 'block';
     document.getElementById('next-day-btn').style.display = 'block';
-    if (_n === '松本大樹') document.getElementById('prev-day-btn').style.display = 'block';
+    if (_n === '松本大樹') { const pb = document.getElementById('prev-day-btn'); pb.style.display = 'block'; pb.dataset.enabled = '1'; }
     setDayNavActive('today');
     (function() {
       const d = new Date();
