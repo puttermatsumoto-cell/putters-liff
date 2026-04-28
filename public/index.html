@@ -544,7 +544,7 @@
     async function toggleNextDay() {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      const dateStr = tomorrow.toISOString().slice(0, 10);
+      const dateStr = getLocalDateISO(tomorrow);
       const btn = document.getElementById('next-day-btn');
       const banner = document.getElementById('edit-date-banner');
       if (editingDate === dateStr) {
@@ -592,7 +592,7 @@
     async function loadPrevDayEdit() {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      const dateStr = yesterday.toISOString().slice(0, 10);
+      const dateStr = getLocalDateISO(yesterday);
       const history = JSON.parse(localStorage.getItem(DETAIL_HISTORY_KEY) || '{}');
       const data = history[dateStr];
       if (!data) { alert('前日のデータが見つかりません'); return; }
@@ -952,10 +952,16 @@
         checked: el.querySelector('input[type="checkbox"]').checked
       }));
       const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+      const tomorrowStr = getLocalDateISO(tomorrow);
       const saveKey = (editingDate === tomorrowStr) ? TOMORROW_CACHE_KEY : CACHE_KEY;
       if (saveKey === TOMORROW_CACHE_KEY) data._tomorrowDate = tomorrowStr;
       localStorage.setItem(saveKey, JSON.stringify(data));
+    }
+
+    // JST基準の日付文字列（yyyy-mm-dd）
+    function getLocalDateISO(date) {
+      const d = date || new Date();
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
 
     // localStorageキャッシュ復元
@@ -1322,7 +1328,7 @@
         if (!data.date || data.date === today) return; // 昨日以前のキャッシュのみ
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        const dateStr = yesterday.toISOString().slice(0, 10);
+        const dateStr = getLocalDateISO(yesterday);
         const userName = getUserName();
         if (userName === '不明') return;
         // 食事内容を組み立て（写真解析＋手打ち両方）
