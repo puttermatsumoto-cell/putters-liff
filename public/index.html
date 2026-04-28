@@ -1026,7 +1026,7 @@
               foodList.appendChild(h);
             } else {
               const idx = addFoodRow(f.name, f.gram);
-              if (f.name) pfcPromises.push(searchPFCSilent(idx, f.name));
+              if (f.name) pfcPromises.push(searchPFCSilent(idx, f.name, f.p != null ? { p: f.p, f: f.f, c: f.c, kcal: f.kcal } : null));
             }
           }
         }
