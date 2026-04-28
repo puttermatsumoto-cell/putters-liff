@@ -519,6 +519,7 @@
     }
 
     function switchToToday() {
+      if (editingDate) saveCache(); // 現在のモードのデータを保存してから切り替え
       editingDate = null;
       const banner = document.getElementById('edit-date-banner');
       if (banner) banner.style.display = 'none';
@@ -601,7 +602,7 @@
       yesterday.setDate(yesterday.getDate() - 1);
       const dateStr = getLocalDateISO(yesterday);
       const history = JSON.parse(localStorage.getItem(DETAIL_HISTORY_KEY) || '{}');
-      const data = history[dateStr];
+      let data = history[dateStr];
       // フォームリセット
       document.getElementById('weight').value = '';
       document.getElementById('goal-weight').value = '';
@@ -654,6 +655,7 @@
       const banner = document.getElementById('edit-date-banner');
       if (banner) { banner.textContent = '✏️ ' + dateStr + ' を編集中'; banner.style.display = 'block'; }
       calcTotal(); updateGoalBar();
+      saveCache(); // 前日データをPREVDAY_CACHE_KEYに保存
     }
 
     async function saveName() {
