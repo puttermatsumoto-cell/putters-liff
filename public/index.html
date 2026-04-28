@@ -1465,7 +1465,7 @@
         saveHWHistory(checkedTasks.length, currentTasks.length);
         renderCharts();
         renderHWCalendar();
-        const cacheForDetail = localStorage.getItem(CACHE_KEY);
+        const cacheForDetail = localStorage.getItem(editingDate ? PREVDAY_CACHE_KEY : CACHE_KEY);
         if (cacheForDetail) saveDetailHistory(recordDate, JSON.parse(cacheForDetail));
         localStorage.removeItem(CACHE_KEY);
         editingDate = null;
