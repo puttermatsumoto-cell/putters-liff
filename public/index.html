@@ -595,7 +595,6 @@
       const dateStr = getLocalDateISO(yesterday);
       const history = JSON.parse(localStorage.getItem(DETAIL_HISTORY_KEY) || '{}');
       const data = history[dateStr];
-      if (!data) { alert('前日のデータが見つかりません'); return; }
       if (!confirm(dateStr + 'のデータを読み込みます。現在の入力は消えます。')) return;
       // フォームリセット
       document.getElementById('weight').value = '';
