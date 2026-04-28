@@ -498,6 +498,7 @@
     const NAME_KEY = 'putters_user_name';
     const DETAIL_HISTORY_KEY = 'putters_detail_history';
     const TOMORROW_CACHE_KEY = 'putters_cache_tomorrow';
+    const PREVDAY_CACHE_KEY = 'putters_cache_prevday';
     let editingDate = null;
 
     function saveDetailHistory(dateStr, data) {
@@ -537,6 +538,12 @@
       if (backup) {
         localStorage.setItem(CACHE_KEY, backup);
         localStorage.removeItem('putters_cache_today_backup');
+      }
+      // 本日の宿題チェック状態を復元
+      const todayChecks = JSON.parse(localStorage.getItem('putters_today_checks') || '[]');
+      if (todayChecks.length > 0) {
+        document.querySelectorAll('#checklist input[type="checkbox"]').forEach((cb, i) => { cb.checked = todayChecks[i] || false; });
+        localStorage.removeItem('putters_today_checks');
       }
       loadCache();
     }
@@ -607,7 +614,16 @@
       // 今日のキャッシュを退避（本日に戻るときに復元）
       const todayCache = localStorage.getItem(CACHE_KEY);
       if (todayCache) localStorage.setItem('putters_cache_today_backup', todayCache);
+      // 本日の宿題チェック状態を退避
+      const todayChecks = Array.from(document.querySelectorAll('#checklist input[type="checkbox"]')).map(cb => cb.checked);
+      localStorage.setItem('putters_today_checks', JSON.stringify(todayChecks));
       localStorage.removeItem(CACHE_KEY);
+      // 前日モードで保存済みのキャッシュがあれば優先して使う
+      const prevCache = localStorage.getItem(PREVDAY_CACHE_KEY);
+      if (prevCache && !data) { try { data = JSON.parse(prevCache); } catch(e) {} }
+      // 宿題チェックを前日用にリセット
+      document.querySelectorAll('#checklist input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('.custom-task-item input[type="checkbox"]').forEach(cb => cb.checked = false);
       // 復元（dataがある場合のみ）
       if (data) {
         if (data.weight) document.getElementById('weight').value = data.weight;
@@ -956,10 +972,11 @@
       if (editingDate === tomorrowStr) {
         data._tomorrowDate = tomorrowStr;
         localStorage.setItem(TOMORROW_CACHE_KEY, JSON.stringify(data));
-      } else if (!editingDate) {
+      } else if (editingDate) {
+        localStorage.setItem(PREVDAY_CACHE_KEY, JSON.stringify(data));
+      } else {
         localStorage.setItem(CACHE_KEY, JSON.stringify(data));
       }
-      // 前日編集モード中はキャッシュを書き込まない（本日分を保護）
     }
 
     // JST基準の日付文字列（yyyy-mm-dd）
