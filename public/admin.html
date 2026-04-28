@@ -69,6 +69,7 @@
   <div class="tab" onclick="switchTab('homework')">📋 宿題管理</div>
   <div class="tab" onclick="switchTab('monthly')">📊 マンスリーレポート</div>
   <div class="tab" onclick="switchTab('holiday')">🗓️ 休み管理</div>
+  <div class="tab" onclick="switchTab('random-hw')">🎲 ランダム宿題</div>
   <div class="tab" onclick="switchTab('soreness')">💪 筋肉痛</div>
   <div class="tab" onclick="switchTab('graph')">📈 個人グラフ</div>
 </div>
@@ -185,6 +186,19 @@
     </div>
   </div>
 
+  <!-- ランダム宿題 -->
+  <div id="page-random-hw" class="page">
+    <div class="card">
+      <h2>🎲 ランダム宿題プール</h2>
+      <p style="font-size:13px;color:#888;margin-bottom:12px;">宿題に「ランダム宿題」を設定したユーザーに、ここから毎日1つランダムで表示されます。</p>
+      <div id="random-hw-list" style="margin-bottom:16px;"></div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="random-hw-input" placeholder="新しいタスクを入力..." style="flex:1;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;">
+        <button onclick="addRandomHw()" style="background:#1a1a2e;color:white;border:none;border-radius:8px;padding:10px 16px;font-size:14px;cursor:pointer;">追加</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 筋肉痛 -->
   <div id="page-soreness" class="page">
     <div class="card">
@@ -269,7 +283,36 @@
     event.target.classList.add('active');
     document.getElementById('page-' + tab).classList.add('active');
     if (tab === 'soreness') loadSoreness();
+    if (tab === 'random-hw') loadRandomHw();
     if (tab === 'graph') document.getElementById('graph-name-input').focus();
+  }
+
+  async function loadRandomHw() {
+    const res = await fetch(GAS_URL + '?action=getRandomTasks');
+    const data = await res.json();
+    const list = document.getElementById('random-hw-list');
+    const tasks = data.tasks || [];
+    if (tasks.length === 0) { list.innerHTML = '<p style="color:#aaa;font-size:13px;">タスクがありません</p>'; return; }
+    list.innerHTML = tasks.map((t, i) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;">
+        <span style="flex:1;font-size:14px;">${t}</span>
+        <button onclick="deleteRandomHw(${i})" style="background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;font-size:12px;color:#888;cursor:pointer;">削除</button>
+      </div>`).join('');
+  }
+
+  async function addRandomHw() {
+    const input = document.getElementById('random-hw-input');
+    const task = input.value.trim();
+    if (!task) return;
+    await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'addRandomTask', task }) });
+    input.value = '';
+    loadRandomHw();
+  }
+
+  async function deleteRandomHw(index) {
+    if (!confirm('削除しますか？')) return;
+    await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteRandomTask', index }) });
+    loadRandomHw();
   }
 
   async function loadSoreness() {
