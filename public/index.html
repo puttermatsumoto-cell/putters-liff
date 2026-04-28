@@ -608,28 +608,30 @@
       const todayCache = localStorage.getItem(CACHE_KEY);
       if (todayCache) localStorage.setItem('putters_cache_today_backup', todayCache);
       localStorage.removeItem(CACHE_KEY);
-      // 復元
-      if (data.weight) document.getElementById('weight').value = data.weight;
-      if (data.goalWeight) document.getElementById('goal-weight').value = data.goalWeight;
-      if (data.temperature) document.getElementById('temperature').value = data.temperature;
-      if (data.cardio) document.getElementById('cardio').value = data.cardio;
-      if (data.liteAnalyses && data.liteAnalyses.length > 0) { liteAnalyses = data.liteAnalyses; renderLiteAnalyses(); }
-      if (data.manualPFCs && data.manualPFCs.length > 0) data.manualPFCs.forEach(m => addManualPFCRow(m.p, m.f, m.c));
-      if (data.foods && data.foods.length > 0) {
-        const foodList = document.getElementById('food-list');
-        for (const f of data.foods) {
-          if (f._header) {
-            const h = document.createElement('div');
-            h.style.cssText = 'font-size:12px; color:#c8a97e; font-weight:bold; padding:4px 2px 6px; border-bottom:1px solid #f0e8dc; margin-bottom:6px;';
-            h.textContent = f._header; h.dataset.mysetHeader = '1'; foodList.appendChild(h);
-          } else {
-            const idx = addFoodRow(f.name, f.gram);
-            if (f.name) await searchPFCSilent(idx, f.name, f.p != null ? { p: f.p, f: f.f, c: f.c } : null);
+      // 復元（dataがある場合のみ）
+      if (data) {
+        if (data.weight) document.getElementById('weight').value = data.weight;
+        if (data.goalWeight) document.getElementById('goal-weight').value = data.goalWeight;
+        if (data.temperature) document.getElementById('temperature').value = data.temperature;
+        if (data.cardio) document.getElementById('cardio').value = data.cardio;
+        if (data.liteAnalyses && data.liteAnalyses.length > 0) { liteAnalyses = data.liteAnalyses; renderLiteAnalyses(); }
+        if (data.manualPFCs && data.manualPFCs.length > 0) data.manualPFCs.forEach(m => addManualPFCRow(m.p, m.f, m.c));
+        if (data.foods && data.foods.length > 0) {
+          const foodList = document.getElementById('food-list');
+          for (const f of data.foods) {
+            if (f._header) {
+              const h = document.createElement('div');
+              h.style.cssText = 'font-size:12px; color:#c8a97e; font-weight:bold; padding:4px 2px 6px; border-bottom:1px solid #f0e8dc; margin-bottom:6px;';
+              h.textContent = f._header; h.dataset.mysetHeader = '1'; foodList.appendChild(h);
+            } else {
+              const idx = addFoodRow(f.name, f.gram);
+              if (f.name) await searchPFCSilent(idx, f.name, f.p != null ? { p: f.p, f: f.f, c: f.c } : null);
+            }
           }
         }
-      }
-      if (data.restaurants && data.restaurants.length > 0) {
-        for (const r of data.restaurants) { const idx = addRestaurantRow(r.text); if (r.text) await searchRestaurantPFCSilent(idx, r.text); }
+        if (data.restaurants && data.restaurants.length > 0) {
+          for (const r of data.restaurants) { const idx = addRestaurantRow(r.text); if (r.text) await searchRestaurantPFCSilent(idx, r.text); }
+        }
       }
       editingDate = dateStr;
       setDayNavActive('prev');
