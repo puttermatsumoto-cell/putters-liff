@@ -344,6 +344,12 @@
   <!-- 宿題チェックリスト -->
   <div class="section">
     <h2>📋 今日の宿題</h2>
+    <!-- タイマー表示 -->
+    <div id="hw-timer-box" style="display:none; text-align:center; background:#1a1a2e; border-radius:16px; padding:20px 16px; margin-bottom:16px;">
+      <div id="hw-timer-label" style="font-size:13px; color:#c8a97e; margin-bottom:6px;"></div>
+      <div id="hw-timer-display" style="font-size:64px; font-weight:bold; color:white; letter-spacing:2px; line-height:1;">0:00</div>
+      <button id="hw-timer-stop-btn" onclick="stopHwTimer()" style="margin-top:12px; background:none; border:1px solid #555; border-radius:10px; padding:8px 20px; color:#aaa; font-size:13px; cursor:pointer;">キャンセル</button>
+    </div>
     <div id="checklist">
       <p style="color:#aaa; font-size:14px;">読み込み中...</p>
     </div>
@@ -910,6 +916,59 @@
       return now.toDateString();
     }
 
+    function parseTaskSeconds(task) {
+      let secs = 0;
+      const m = task.match(/(\d+)\s*分/);
+      const s = task.match(/(\d+)\s*秒/);
+      if (m) secs += parseInt(m[1]) * 60;
+      if (s) secs += parseInt(s[1]);
+      return secs;
+    }
+
+    function formatSecs(secs) {
+      const m = Math.floor(secs / 60), s = secs % 60;
+      return m > 0 ? (m + '分' + (s > 0 ? s + '秒' : '')) : s + '秒';
+    }
+
+    let _hwTimerInterval = null;
+    let _hwTimerCheckboxId = null;
+
+    function startHwTimer(secs, label, checkboxId) {
+      if (_hwTimerInterval) clearInterval(_hwTimerInterval);
+      _hwTimerCheckboxId = checkboxId;
+      const box = document.getElementById('hw-timer-box');
+      const display = document.getElementById('hw-timer-display');
+      const lbl = document.getElementById('hw-timer-label');
+      box.style.display = 'block';
+      lbl.textContent = label;
+      let remaining = secs;
+      const render = () => {
+        const m = Math.floor(remaining / 60), s = remaining % 60;
+        display.textContent = m + ':' + String(s).padStart(2, '0');
+      };
+      render();
+      _hwTimerInterval = setInterval(() => {
+        remaining--;
+        render();
+        if (remaining <= 0) {
+          clearInterval(_hwTimerInterval);
+          _hwTimerInterval = null;
+          box.style.display = 'none';
+          // チェックを入れる
+          const cb = document.getElementById(_hwTimerCheckboxId);
+          if (cb && !cb.checked) { cb.checked = true; saveCache(); }
+          // バイブ＋音
+          try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch(e) {}
+          try { const ctx = new AudioContext(); const o = ctx.createOscillator(); o.connect(ctx.destination); o.frequency.value = 880; o.start(); setTimeout(() => o.stop(), 300); } catch(e) {}
+        }
+      }, 1000);
+    }
+
+    function stopHwTimer() {
+      if (_hwTimerInterval) { clearInterval(_hwTimerInterval); _hwTimerInterval = null; }
+      document.getElementById('hw-timer-box').style.display = 'none';
+    }
+
     function saveCache() {
       const data = {
         date: getEffectiveDate(),
@@ -1342,7 +1401,9 @@
       tasks.forEach((task, i) => {
         const div = document.createElement('div');
         div.className = 'checklist-item';
-        div.innerHTML = `<input type="checkbox" id="task-${i}" ${mergedChecked.includes(i) ? 'checked' : ''}><label for="task-${i}">${task}</label>`;
+        const secs = parseTaskSeconds(task);
+        const timerBtn = secs ? `<button onclick="startHwTimer(${secs}, '${task.replace(/'/g,"\\'")}', 'task-${i}')" style="margin-left:auto; flex-shrink:0; background:none; border:1px solid #ddd; border-radius:8px; padding:4px 10px; font-size:12px; color:#888; cursor:pointer;">▶ ${formatSecs(secs)}</button>` : '';
+        div.innerHTML = `<input type="checkbox" id="task-${i}" ${mergedChecked.includes(i) ? 'checked' : ''}><label for="task-${i}">${task}</label>${timerBtn}`;
         div.querySelector('input').addEventListener('change', saveCache);
         container.appendChild(div);
       });
