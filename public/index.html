@@ -1790,6 +1790,11 @@
     // ========== 筋肉痛チェック ==========
     async function checkSoreness(name) {
       const today = new Date().toISOString().slice(0, 10);
+      // 松本大樹は強制表示（テスト用）
+      if (name === '松本大樹') {
+        document.getElementById('soreness-card').style.display = 'flex';
+        return;
+      }
       if (localStorage.getItem('putters_soreness_checked') === today) return;
 
       const res = await fetch(GAS_URL + '?action=checkYesterdayTraining&name=' + encodeURIComponent(name));
