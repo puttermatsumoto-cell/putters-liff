@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>食材からレシピ提案</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
+    h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 24px; font-weight: 700; }
+    .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .card-title { font-size: 15px; font-weight: bold; color: #1a1a2e; margin-bottom: 12px; }
+    .ingredient-row { background: #fafafa; border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+    .row-top { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .row-top input[type="text"] { flex: 2; border: 1px solid #ddd; border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+    .row-top input[type="number"] { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+    .row-top .unit { font-size: 12px; color: #888; white-space: nowrap; }
+    .row-top .rm { background: none; border: none; color: #ccc; font-size: 20px; cursor: pointer; padding: 0 4px; }
+    .pfc-row { display: flex; gap: 6px; font-size: 12px; color: #aaa; align-items: center; }
+    .pfc-row span { background: #f0f0f0; border-radius: 6px; padding: 3px 8px; }
+    .pfc-row span b { color: #555; }
+    .add-btn { background: none; border: 1px dashed #ccc; border-radius: 8px; padding: 10px; width: 100%; color: #aaa; font-size: 14px; cursor: pointer; margin: 4px 0 16px; }
+    .target-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .target-row label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; }
+    .target-row .field { flex: 1; }
+    .target-row input { border: 1px solid #ddd; border-radius: 8px; padding: 8px 10px; font-size: 14px; width: 100%; }
+    .suggest-btn { background: #1a1a2e; color: white; border: none; border-radius: 12px; padding: 14px; width: 100%; font-size: 15px; font-weight: bold; cursor: pointer; }
+    .suggest-btn:disabled { opacity: 0.5; }
+    .recipe-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .recipe-name { font-size: 16px; font-weight: bold; color: #1a1a2e; margin-bottom: 4px; }
+    .recipe-desc { font-size: 13px; color: #888; margin-bottom: 12px; }
+    .recipe-pfc { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .recipe-pfc span { border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: bold; }
+    .pfc-p { background: #fde8e8; color: #c62828; }
+    .pfc-f { background: #fff3e0; color: #e65100; }
+    .pfc-c { background: #e8f5e9; color: #2e7d32; }
+    .pfc-k { background: #ede7f6; color: #4527a0; }
+    .steps { list-style: none; }
+    .steps li { font-size: 13px; color: #555; padding: 6px 0; border-bottom: 1px solid #f5f5f5; display: flex; gap: 8px; }
+    .steps li:last-child { border-bottom: none; }
+    .steps li .num { background: #1a1a2e; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+    #toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #c8a97e; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 999; }
+    .loading { text-align: center; color: #888; font-size: 14px; padding: 20px; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← 戻る</a>
+  <h1>🍳 食材からレシピ提案</h1>
+
+  <div class="card">
+    <div class="card-title">食材を入力</div>
+    <div id="ingredient-rows"></div>
+    <button class="add-btn" onclick="addRow()">＋ 食材を追加</button>
+
+    <div class="card-title" style="margin-top:4px;">目標PFC（任意）</div>
+    <div class="target-row">
+      <div class="field"><label>P（タンパク質）g</label><input type="number" id="target-p" placeholder="例: 150"></div>
+      <div class="field"><label>F（脂質）g</label><input type="number" id="target-f" placeholder="例: 50"></div>
+      <div class="field"><label>C（炭水化物）g</label><input type="number" id="target-c" placeholder="例: 200"></div>
+    </div>
+
+    <button class="suggest-btn" onclick="suggest()" id="suggest-btn">✨ レシピを提案する</button>
+  </div>
+
+  <div id="results"></div>
+  <div id="toast"></div>
+
+  <script>
+    const PFC_CACHE = {};
+
+    function addRow(name = '', amount = '') {
+      const div = document.createElement('div');
+      div.className = 'ingredient-row';
+      div.innerHTML = `
+        <div class="row-top">
+          <input type="text" placeholder="食材名（例：鶏むね肉）" value="${name}" oninput="onNameInput(this)" onblur="fetchPfc(this)">
+          <input type="number" placeholder="g" value="${amount}" oninput="updatePfcDisplay(this.closest('.ingredient-row'))">
+          <span class="unit">g</span>
+          <button class="rm" onclick="this.closest('.ingredient-row').remove()">×</button>
+        </div>
+        <div class="pfc-row">
+          <span>P: <b class="pv">-</b>g</span>
+          <span>F: <b class="fv">-</b>g</span>
+          <span>C: <b class="cv">-</b>g</span>
+          <span><b class="kv">-</b>kcal</span>
+        </div>
+        <input type="hidden" class="p100" value="">
+        <input type="hidden" class="f100" value="">
+        <input type="hidden" class="c100" value="">
+        <input type="hidden" class="k100" value="">
+      `;
+      document.getElementById('ingredient-rows').appendChild(div);
+    }
+
+    function onNameInput(input) {
+      const row = input.closest('.ingredient-row');
+      row.querySelector('.pv').textContent = '-';
+      row.querySelector('.fv').textContent = '-';
+      row.querySelector('.cv').textContent = '-';
+      row.querySelector('.kv').textContent = '-';
+      row.querySelector('.p100').value = '';
+    }
+
+    async function fetchPfc(input) {
+      const name = input.value.trim();
+      if (!name) return;
+      const row = input.closest('.ingredient-row');
+      if (PFC_CACHE[name]) {
+        setPfc(row, PFC_CACHE[name]);
+        return;
+      }
+      try {
+        const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) });
+        const pfc = await res.json();
+        PFC_CACHE[name] = pfc;
+        setPfc(row, pfc);
+      } catch(e) {}
+    }
+
+    function setPfc(row, pfc) {
+      row.querySelector('.p100').value = pfc.p || 0;
+      row.querySelector('.f100').value = pfc.f || 0;
+      row.querySelector('.c100').value = pfc.c || 0;
+      row.querySelector('.k100').value = pfc.kcal || 0;
+      updatePfcDisplay(row);
+    }
+
+    function updatePfcDisplay(row) {
+      const amount = parseFloat(row.querySelector('input[type="number"]').value) || 0;
+      const p100 = parseFloat(row.querySelector('.p100').value) || 0;
+      const f100 = parseFloat(row.querySelector('.f100').value) || 0;
+      const c100 = parseFloat(row.querySelector('.c100').value) || 0;
+      const k100 = parseFloat(row.querySelector('.k100').value) || 0;
+      if (!p100 && !f100 && !c100) return;
+      const ratio = amount / 100;
+      row.querySelector('.pv').textContent = (p100 * ratio).toFixed(1);
+      row.querySelector('.fv').textContent = (f100 * ratio).toFixed(1);
+      row.querySelector('.cv').textContent = (c100 * ratio).toFixed(1);
+      row.querySelector('.kv').textContent = Math.round(k100 * ratio);
+    }
+
+    async function suggest() {
+      const rows = document.querySelectorAll('.ingredient-row');
+      const ingredients = [];
+      for (const row of rows) {
+        const name = row.querySelector('input[type="text"]').value.trim();
+        const amount = parseFloat(row.querySelector('input[type="number"]').value) || 0;
+        const p100 = parseFloat(row.querySelector('.p100').value) || 0;
+        const f100 = parseFloat(row.querySelector('.f100').value) || 0;
+        const c100 = parseFloat(row.querySelector('.c100').value) || 0;
+        const k100 = parseFloat(row.querySelector('.k100').value) || 0;
+        if (!name || !amount) continue;
+        const ratio = amount / 100;
+        ingredients.push({ name, amount, p: +(p100 * ratio).toFixed(1), f: +(f100 * ratio).toFixed(1), c: +(c100 * ratio).toFixed(1), kcal: Math.round(k100 * ratio) });
+      }
+      if (ingredients.length === 0) { showToast('食材を入力してください'); return; }
+
+      const btn = document.getElementById('suggest-btn');
+      btn.disabled = true;
+      btn.textContent = '考え中...';
+      document.getElementById('results').innerHTML = '<div class="loading">レシピを考えています...</div>';
+
+      try {
+        const res = await fetch('/api/recipe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ingredients,
+            targetP: document.getElementById('target-p').value,
+            targetF: document.getElementById('target-f').value,
+            targetC: document.getElementById('target-c').value
+          })
+        });
+        const data = await res.json();
+        renderRecipes(data.recipes || []);
+      } catch(e) {
+        showToast('エラーが発生しました');
+        document.getElementById('results').innerHTML = '';
+      }
+
+      btn.disabled = false;
+      btn.textContent = '✨ レシピを提案する';
+    }
+
+    function renderRecipes(recipes) {
+      if (recipes.length === 0) {
+        document.getElementById('results').innerHTML = '<div class="loading">レシピを取得できませんでした</div>';
+        return;
+      }
+      document.getElementById('results').innerHTML = recipes.map(r => `
+        <div class="recipe-card">
+          <div class="recipe-name">${r.name}</div>
+          <div class="recipe-desc">${r.desc}</div>
+          <div class="recipe-pfc">
+            <span class="pfc-p">P ${r.p}g</span>
+            <span class="pfc-f">F ${r.f}g</span>
+            <span class="pfc-c">C ${r.c}g</span>
+            <span class="pfc-k">${r.kcal}kcal</span>
+          </div>
+          <ul class="steps">
+            ${r.steps.map((s, i) => `<li><span class="num">${i+1}</span>${s}</li>`).join('')}
+          </ul>
+        </div>
+      `).join('');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2000);
+    }
+
+    // 最初の行を追加
+    addRow();
+  </script>
+</body>
+</html>
