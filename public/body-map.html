@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>筋肉痛チェック</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; min-height: 100vh; padding: 16px; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 16px; }
+    h1 { font-size: 18px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 700; }
+    .subtitle { text-align: center; font-size: 13px; color: #888; margin-bottom: 16px; }
+    .view-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+    .view-tab { padding: 8px 28px; border: 2px solid #ddd; border-radius: 20px; background: white; font-size: 14px; cursor: pointer; color: #888; font-weight: bold; }
+    .view-tab.active { border-color: #1a1a2e; background: #1a1a2e; color: white; }
+    .svg-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
+    svg .muscle { cursor: pointer; transition: fill 0.15s, opacity 0.15s; }
+    svg .muscle:hover { opacity: 0.75; }
+    svg .muscle.selected { fill: #e57373 !important; }
+    .selected-list { background: white; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; min-height: 52px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .selected-list .label { font-size: 12px; color: #aaa; margin-bottom: 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { background: #fde8e8; color: #c62828; border-radius: 20px; padding: 4px 12px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
+    .chip button { background: none; border: none; color: #c62828; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+    .empty-chip { font-size: 13px; color: #ccc; }
+    .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .btn-none { flex: 1; padding: 14px; border: 2px solid #81c784; border-radius: 12px; background: white; color: #388e3c; font-size: 14px; font-weight: bold; cursor: pointer; }
+    .btn-none.active { background: #e8f5e9; }
+    .btn-submit { flex: 2; padding: 14px; background: #1a1a2e; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; }
+    .btn-submit:disabled { opacity: 0.4; }
+    #toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #c8a97e; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 999; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← 戻る</a>
+  <h1>💪 筋肉痛チェック</h1>
+  <p class="subtitle">痛い部位をタップして選んでください</p>
+
+  <div class="view-tabs">
+    <button class="view-tab active" onclick="switchView('front')">前面</button>
+    <button class="view-tab" onclick="switchView('back')">背面</button>
+  </div>
+
+  <div class="svg-wrap">
+    <!-- 前面 -->
+    <svg id="svg-front" width="220" height="460" viewBox="0 0 220 460" xmlns="http://www.w3.org/2000/svg">
+      <!-- シルエット背景 -->
+      <defs>
+        <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/></filter>
+      </defs>
+
+      <!-- 頭 -->
+      <ellipse cx="110" cy="32" rx="22" ry="26" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+      <!-- 耳 -->
+      <ellipse cx="89" cy="33" rx="5" ry="7" fill="#e0c8b0" stroke="#ccc" stroke-width="1"/>
+      <ellipse cx="131" cy="33" rx="5" ry="7" fill="#e0c8b0" stroke="#ccc" stroke-width="1"/>
+
+      <!-- 首 -->
+      <rect x="102" y="55" width="16" height="18" rx="4" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+
+      <!-- 僧帽筋（前） -->
+      <path d="M88 68 Q110 62 132 68 L138 82 Q110 78 82 82 Z" class="muscle" data-part="僧帽筋" fill="#b0c4de" stroke="white" stroke-width="1.5"/>
+
+      <!-- 肩・三角筋 左 -->
+      <ellipse cx="72" cy="92" rx="18" ry="14" class="muscle" data-part="肩（左）" fill="#a8c4e0" stroke="white" stroke-width="1.5"/>
+      <!-- 肩・三角筋 右 -->
+      <ellipse cx="148" cy="92" rx="18" ry="14" class="muscle" data-part="肩（右）" fill="#a8c4e0" stroke="white" stroke-width="1.5"/>
+
+      <!-- 胸 左 -->
+      <path d="M84 82 Q95 78 110 80 L110 120 Q95 122 82 118 Z" class="muscle" data-part="胸（左）" fill="#a8d8b0" stroke="white" stroke-width="1.5"/>
+      <!-- 胸 右 -->
+      <path d="M136 82 Q125 78 110 80 L110 120 Q125 122 138 118 Z" class="muscle" data-part="胸（右）" fill="#a8d8b0" stroke="white" stroke-width="1.5"/>
+
+      <!-- 腹直筋 -->
+      <path d="M100 120 Q110 118 120 120 L120 200 Q110 202 100 200 Z" class="muscle" data-part="腹" fill="#c8d8a8" stroke="white" stroke-width="1.5"/>
+      <!-- 腹の縦線 -->
+      <line x1="110" y1="120" x2="110" y2="200" stroke="white" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="100" y1="145" x2="120" y2="145" stroke="white" stroke-width="1"/>
+      <line x1="100" y1="170" x2="120" y2="170" stroke="white" stroke-width="1"/>
+
+      <!-- 上腕二頭筋 左 -->
+      <path d="M58 102 Q52 104 50 120 L52 155 Q60 158 68 155 L70 120 Q66 106 58 102 Z" class="muscle" data-part="上腕二頭筋（左）" fill="#d4b0e0" stroke="white" stroke-width="1.5"/>
+      <!-- 上腕二頭筋 右 -->
+      <path d="M162 102 Q168 104 170 120 L168 155 Q160 158 152 155 L150 120 Q154 106 162 102 Z" class="muscle" data-part="上腕二頭筋（右）" fill="#d4b0e0" stroke="white" stroke-width="1.5"/>
+
+      <!-- 前腕 左 -->
+      <path d="M52 158 Q46 162 44 178 L46 215 Q54 218 62 215 L64 178 Q60 162 52 158 Z" class="muscle" data-part="前腕（左）" fill="#e0c8a0" stroke="white" stroke-width="1.5"/>
+      <!-- 前腕 右 -->
+      <path d="M168 158 Q174 162 176 178 L174 215 Q166 218 158 215 L156 178 Q160 162 168 158 Z" class="muscle" data-part="前腕（右）" fill="#e0c8a0" stroke="white" stroke-width="1.5"/>
+
+      <!-- 手 左 -->
+      <ellipse cx="50" cy="228" rx="10" ry="14" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+      <!-- 手 右 -->
+      <ellipse cx="170" cy="228" rx="10" ry="14" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+
+      <!-- 体幹（腰回り） -->
+      <path d="M84 200 Q110 204 136 200 L140 230 Q110 234 80 230 Z" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+
+      <!-- 大腿四頭筋 左 -->
+      <path d="M84 230 Q95 226 106 230 L108 340 Q96 344 84 340 Z" class="muscle" data-part="大腿四頭筋（左）" fill="#f0c8a0" stroke="white" stroke-width="1.5"/>
+      <!-- 大腿四頭筋 右 -->
+      <path d="M136 230 Q125 226 114 230 L112 340 Q124 344 136 340 Z" class="muscle" data-part="大腿四頭筋（右）" fill="#f0c8a0" stroke="white" stroke-width="1.5"/>
+
+      <!-- 内転筋 左 -->
+      <path d="M106 232 Q110 228 114 232 L114 320 Q110 324 106 320 Z" class="muscle" data-part="内転筋（左）" fill="#f0a8c0" stroke="white" stroke-width="1.5"/>
+      <!-- 内転筋 右（右足の内側） -->
+      <path d="M106 232 Q110 228 114 232 L114 320 Q110 324 106 320 Z" class="muscle" data-part="内転筋（右）" fill="#f0a8c0" stroke="white" stroke-width="1.5" style="display:none"/>
+
+      <!-- すね 左 -->
+      <path d="M86 344 Q94 340 104 344 L104 420 Q94 424 86 420 Z" class="muscle" data-part="すね（左）" fill="#c8e0d0" stroke="white" stroke-width="1.5"/>
+      <!-- すね 右 -->
+      <path d="M116 344 Q124 340 134 344 L134 420 Q124 424 116 420 Z" class="muscle" data-part="すね（右）" fill="#c8e0d0" stroke="white" stroke-width="1.5"/>
+
+      <!-- 足 左 -->
+      <ellipse cx="94" cy="432" rx="14" ry="8" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+      <!-- 足 右 -->
+      <ellipse cx="126" cy="432" rx="14" ry="8" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+
+      <!-- ラベル -->
+      <text x="110" y="77" text-anchor="middle" font-size="8" fill="#555" pointer-events="none">僧帽筋</text>
+      <text x="72" y="93" text-anchor="middle" font-size="8" fill="#555" pointer-events="none">肩L</text>
+      <text x="148" y="93" text-anchor="middle" font-size="8" fill="#555" pointer-events="none">肩R</text>
+      <text x="95" y="100" text-anchor="middle" font-size="8" fill="#555" pointer-events="none">胸L</text>
+      <text x="125" y="100" text-anchor="middle" font-size="8" fill="#555" pointer-events="none">胸R</text>
+      <text x="110" y="162" text-anchor="middle" font-size="8" fill="#555" pointer-events="none">腹</text>
+      <text x="59" y="132" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">二頭L</text>
+      <text x="161" y="132" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">二頭R</text>
+      <text x="53" y="190" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">前腕L</text>
+      <text x="167" y="190" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">前腕R</text>
+      <text x="94" y="285" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">四頭L</text>
+      <text x="126" y="285" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">四頭R</text>
+      <text x="110" y="275" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">内転</text>
+      <text x="94" y="384" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">すねL</text>
+      <text x="125" y="384" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">すねR</text>
+    </svg>
+
+    <!-- 背面 -->
+    <svg id="svg-back" width="220" height="460" viewBox="0 0 220 460" xmlns="http://www.w3.org/2000/svg" style="display:none">
+      <!-- 頭 -->
+      <ellipse cx="110" cy="32" rx="22" ry="26" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+      <ellipse cx="89" cy="33" rx="5" ry="7" fill="#e0c8b0" stroke="#ccc" stroke-width="1"/>
+      <ellipse cx="131" cy="33" rx="5" ry="7" fill="#e0c8b0" stroke="#ccc" stroke-width="1"/>
+
+      <!-- 首 -->
+      <rect x="102" y="55" width="16" height="18" rx="4" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+
+      <!-- 僧帽筋（後） -->
+      <path d="M82 68 Q110 58 138 68 L142 100 Q110 92 78 100 Z" class="muscle" data-part="僧帽筋" fill="#b0c4de" stroke="white" stroke-width="1.5"/>
+
+      <!-- 肩後・三角筋後 左 -->
+      <ellipse cx="70" cy="94" rx="18" ry="14" class="muscle" data-part="肩（左）" fill="#a8c4e0" stroke="white" stroke-width="1.5"/>
+      <!-- 肩後・三角筋後 右 -->
+      <ellipse cx="150" cy="94" rx="18" ry="14" class="muscle" data-part="肩（右）" fill="#a8c4e0" stroke="white" stroke-width="1.5"/>
+
+      <!-- 広背筋 左 -->
+      <path d="M82 100 Q95 96 108 100 L106 160 Q92 164 80 158 Z" class="muscle" data-part="広背筋（左）" fill="#a0c8d8" stroke="white" stroke-width="1.5"/>
+      <!-- 広背筋 右 -->
+      <path d="M138 100 Q125 96 112 100 L114 160 Q128 164 140 158 Z" class="muscle" data-part="広背筋（右）" fill="#a0c8d8" stroke="white" stroke-width="1.5"/>
+
+      <!-- 脊柱起立筋 -->
+      <path d="M104 100 Q110 98 116 100 L116 200 Q110 202 104 200 Z" class="muscle" data-part="脊柱起立筋" fill="#b8c8a0" stroke="white" stroke-width="1.5"/>
+      <line x1="110" y1="100" x2="110" y2="200" stroke="white" stroke-width="1" stroke-dasharray="3,3"/>
+
+      <!-- 腰 -->
+      <path d="M88 200 Q110 196 132 200 L134 225 Q110 228 86 225 Z" class="muscle" data-part="腰" fill="#e0b8a0" stroke="white" stroke-width="1.5"/>
+
+      <!-- 上腕三頭筋 左 -->
+      <path d="M58 104 Q52 108 50 124 L52 158 Q60 162 68 158 L70 124 Q66 108 58 104 Z" class="muscle" data-part="上腕三頭筋（左）" fill="#c8b0d8" stroke="white" stroke-width="1.5"/>
+      <!-- 上腕三頭筋 右 -->
+      <path d="M162 104 Q168 108 170 124 L168 158 Q160 162 152 158 L150 124 Q154 108 162 104 Z" class="muscle" data-part="上腕三頭筋（右）" fill="#c8b0d8" stroke="white" stroke-width="1.5"/>
+
+      <!-- 前腕後 左 -->
+      <path d="M52 160 Q46 164 44 180 L46 216 Q54 220 62 216 L64 180 Q60 164 52 160 Z" class="muscle" data-part="前腕（左）" fill="#e0c8a0" stroke="white" stroke-width="1.5"/>
+      <!-- 前腕後 右 -->
+      <path d="M168 160 Q174 164 176 180 L174 216 Q166 220 158 216 L156 180 Q160 164 168 160 Z" class="muscle" data-part="前腕（右）" fill="#e0c8a0" stroke="white" stroke-width="1.5"/>
+
+      <!-- 手 -->
+      <ellipse cx="50" cy="228" rx="10" ry="14" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+      <ellipse cx="170" cy="228" rx="10" ry="14" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+
+      <!-- 臀部 左 -->
+      <path d="M86 226 Q98 222 110 226 L110 280 Q96 286 84 280 Z" class="muscle" data-part="臀部（左）" fill="#f0b8a0" stroke="white" stroke-width="1.5"/>
+      <!-- 臀部 右 -->
+      <path d="M134 226 Q122 222 110 226 L110 280 Q124 286 136 280 Z" class="muscle" data-part="臀部（右）" fill="#f0b8a0" stroke="white" stroke-width="1.5"/>
+
+      <!-- ハムストリング 左 -->
+      <path d="M84 282 Q95 278 108 282 L106 360 Q94 364 84 360 Z" class="muscle" data-part="ハムストリング（左）" fill="#e8c890" stroke="white" stroke-width="1.5"/>
+      <!-- ハムストリング 右 -->
+      <path d="M136 282 Q125 278 112 282 L114 360 Q126 364 136 360 Z" class="muscle" data-part="ハムストリング（右）" fill="#e8c890" stroke="white" stroke-width="1.5"/>
+
+      <!-- ふくらはぎ 左 -->
+      <path d="M84 363 Q93 358 104 363 L102 422 Q93 426 84 422 Z" class="muscle" data-part="ふくらはぎ（左）" fill="#a8d0b8" stroke="white" stroke-width="1.5"/>
+      <!-- ふくらはぎ 右 -->
+      <path d="M116 363 Q125 358 136 363 L136 422 Q127 426 116 422 Z" class="muscle" data-part="ふくらはぎ（右）" fill="#a8d0b8" stroke="white" stroke-width="1.5"/>
+
+      <!-- 足 -->
+      <ellipse cx="93" cy="432" rx="14" ry="8" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+      <ellipse cx="127" cy="432" rx="14" ry="8" fill="#e8d5c0" stroke="#ccc" stroke-width="1"/>
+
+      <!-- ラベル -->
+      <text x="110" y="78" text-anchor="middle" font-size="8" fill="#555" pointer-events="none">僧帽筋</text>
+      <text x="70" y="95" text-anchor="middle" font-size="8" fill="#555" pointer-events="none">肩L</text>
+      <text x="150" y="95" text-anchor="middle" font-size="8" fill="#555" pointer-events="none">肩R</text>
+      <text x="94" y="130" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">広背L</text>
+      <text x="126" y="130" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">広背R</text>
+      <text x="110" y="152" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">脊柱</text>
+      <text x="110" y="214" text-anchor="middle" font-size="8" fill="#555" pointer-events="none">腰</text>
+      <text x="59" y="134" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">三頭L</text>
+      <text x="161" y="134" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">三頭R</text>
+      <text x="53" y="192" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">前腕L</text>
+      <text x="167" y="192" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">前腕R</text>
+      <text x="94" y="254" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">臀部L</text>
+      <text x="126" y="254" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">臀部R</text>
+      <text x="94" y="322" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">ハムL</text>
+      <text x="126" y="322" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">ハムR</text>
+      <text x="93" y="394" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">ふくらL</text>
+      <text x="127" y="394" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">ふくらR</text>
+    </svg>
+  </div>
+
+  <!-- 選択中の部位 -->
+  <div class="selected-list">
+    <div class="label">選択中の部位</div>
+    <div class="chips" id="chips"><span class="empty-chip">タップして部位を選んでください</span></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-none" id="btn-none" onclick="toggleNone()">筋肉痛なし ✓</button>
+    <button class="btn-submit" id="btn-submit" onclick="submitSoreness()">記録する</button>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzJzBkOKXHpU3G_yVimn3AhHu-OqLJmSUSCJ8a9Rxt2-gX8QzU3tDFw-H8jXl-SGPPU/exec';
+    const selected = new Set();
+    let noneMode = false;
+
+    // 内転筋は前面で左右まとめて1つとして扱う
+    document.querySelectorAll('.muscle').forEach(el => {
+      el.addEventListener('click', () => {
+        if (noneMode) { noneMode = false; document.getElementById('btn-none').classList.remove('active'); }
+        const part = el.dataset.part;
+        // 内転筋は左右同じ部位として扱う
+        const key = part.startsWith('内転筋') ? '内転筋' : part;
+        if (selected.has(key)) {
+          selected.delete(key);
+          el.classList.remove('selected');
+          // 同じpartの全要素を解除
+          document.querySelectorAll(`.muscle[data-part="${part}"]`).forEach(e => e.classList.remove('selected'));
+        } else {
+          selected.add(key);
+          el.classList.add('selected');
+          document.querySelectorAll(`.muscle[data-part="${part}"]`).forEach(e => e.classList.add('selected'));
+          // 内転筋は両面で同期
+          if (key === '内転筋') {
+            document.querySelectorAll('.muscle[data-part^="内転筋"]').forEach(e => e.classList.add('selected'));
+          }
+        }
+        renderChips();
+      });
+    });
+
+    function renderChips() {
+      const chips = document.getElementById('chips');
+      if (selected.size === 0) {
+        chips.innerHTML = '<span class="empty-chip">タップして部位を選んでください</span>';
+        return;
+      }
+      chips.innerHTML = [...selected].map(p => `
+        <div class="chip">${p}<button onclick="removeChip('${p}')">×</button></div>
+      `).join('');
+    }
+
+    function removeChip(part) {
+      selected.delete(part);
+      // SVGのハイライトも解除（左右含む）
+      document.querySelectorAll('.muscle').forEach(el => {
+        const key = el.dataset.part.startsWith('内転筋') ? '内転筋' : el.dataset.part;
+        if (key === part) el.classList.remove('selected');
+      });
+      renderChips();
+    }
+
+    function toggleNone() {
+      noneMode = !noneMode;
+      document.getElementById('btn-none').classList.toggle('active', noneMode);
+      if (noneMode) {
+        selected.clear();
+        document.querySelectorAll('.muscle').forEach(el => el.classList.remove('selected'));
+        renderChips();
+      }
+    }
+
+    function switchView(view) {
+      document.getElementById('svg-front').style.display = view === 'front' ? 'block' : 'none';
+      document.getElementById('svg-back').style.display = view === 'back' ? 'block' : 'none';
+      document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    async function submitSoreness() {
+      if (!noneMode && selected.size === 0) {
+        alert('部位を選ぶか「筋肉痛なし」を選んでください');
+        return;
+      }
+      const name = localStorage.getItem('putters_user_name') || '不明';
+      const today = new Date().toISOString().slice(0, 10);
+      const parts = noneMode ? 'none' : [...selected].join(',');
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true;
+      btn.textContent = '送信中...';
+      try {
+        await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'saveSoreness', name, date: today, parts })
+        });
+        localStorage.setItem('putters_soreness_checked', today);
+        showToast('記録しました！');
+        setTimeout(() => { window.location.href = '/'; }, 1200);
+      } catch(e) {
+        btn.disabled = false;
+        btn.textContent = '記録する';
+        alert('送信に失敗しました');
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2000);
+    }
+  </script>
+</body>
+</html>
