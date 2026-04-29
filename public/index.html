@@ -1105,6 +1105,23 @@
         updateGoalBar();
         calcTotal();
       } catch (e) { console.log('cache load error:', e); }
+
+      // レシピページから食材をインポート
+      const recipeImport = localStorage.getItem('putters_recipe_import');
+      if (recipeImport) {
+        localStorage.removeItem('putters_recipe_import');
+        try {
+          const foods = JSON.parse(recipeImport);
+          const promises = [];
+          for (const f of foods) {
+            const idx = addFoodRow(f.name, f.gram);
+            promises.push(searchPFCSilent(idx, f.name, { p: f.p100, f: f.f100, c: f.c100, kcal: f.k100 }));
+          }
+          await Promise.all(promises);
+          calcTotal();
+          saveCache();
+        } catch(e) {}
+      }
     }
 
     const FOOD_DB = {
