@@ -932,7 +932,7 @@
     function toYouTubeEmbed(url) {
       if (!url) return '';
       const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/))([^?&]+)/);
-      return m ? 'https://www.youtube.com/embed/' + m[1] + '?autoplay=1' : '';
+      return m ? 'https://www.youtube.com/embed/' + m[1] + '?autoplay=1&mute=1' : '';
     }
 
     function showHwVideo(url) {
