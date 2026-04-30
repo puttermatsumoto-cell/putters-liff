@@ -953,10 +953,6 @@
       const lbl = document.getElementById('hw-timer-label');
       const videoWrap = document.getElementById('hw-video-wrap');
       const iframe = document.getElementById('hw-video-iframe');
-      // 動画
-      const embedUrl = toYouTubeEmbed(videoUrl || '');
-      if (embedUrl) { iframe.src = embedUrl; videoWrap.style.display = 'block'; }
-      else { iframe.src = ''; videoWrap.style.display = 'none'; }
       display.style.display = 'block';
       document.getElementById('hw-timer-stop-btn').textContent = 'キャンセル';
       box.style.display = 'block';
@@ -967,7 +963,8 @@
         display.textContent = m + ':' + String(s).padStart(2, '0');
       };
       render();
-      _hwTimerInterval = setInterval(() => {
+      const startInterval = () => {
+        _hwTimerInterval = setInterval(() => {
         remaining--;
         render();
         if (remaining <= 0) {
@@ -983,7 +980,19 @@
           try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch(e) {}
           try { const ctx = new AudioContext(); const o = ctx.createOscillator(); o.connect(ctx.destination); o.frequency.value = 880; o.start(); setTimeout(() => o.stop(), 300); } catch(e) {}
         }
-      }, 1000);
+        }, 1000);
+      };
+      // 動画
+      const embedUrl = toYouTubeEmbed(videoUrl || '');
+      if (embedUrl) {
+        videoWrap.style.display = 'block';
+        iframe.onload = () => { iframe.onload = null; startInterval(); };
+        iframe.src = embedUrl;
+      } else {
+        iframe.src = '';
+        videoWrap.style.display = 'none';
+        startInterval();
+      }
     }
 
     function stopHwTimer() {
