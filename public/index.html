@@ -340,6 +340,9 @@
     <!-- タイマー表示 -->
     <div id="hw-timer-box" style="display:none; text-align:center; background:#1a1a2e; border-radius:16px; padding:20px 16px; margin-bottom:16px;">
       <div id="hw-timer-label" style="font-size:13px; color:#c8a97e; margin-bottom:6px;"></div>
+      <div id="hw-video-wrap" style="display:none; margin-bottom:12px; border-radius:10px; overflow:hidden;">
+        <iframe id="hw-video-iframe" width="100%" height="200" frameborder="0" allowfullscreen style="display:block;"></iframe>
+      </div>
       <div id="hw-timer-display" style="font-size:64px; font-weight:bold; color:white; letter-spacing:2px; line-height:1;">0:00</div>
       <button id="hw-timer-stop-btn" onclick="stopHwTimer()" style="margin-top:12px; background:none; border:1px solid #555; border-radius:10px; padding:8px 20px; color:#aaa; font-size:13px; cursor:pointer;">キャンセル</button>
     </div>
@@ -926,12 +929,36 @@
     let _hwTimerInterval = null;
     let _hwTimerCheckboxId = null;
 
-    function startHwTimer(secs, label, checkboxId) {
+    function toYouTubeEmbed(url) {
+      if (!url) return '';
+      const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/))([^?&]+)/);
+      return m ? 'https://www.youtube.com/embed/' + m[1] + '?autoplay=1' : '';
+    }
+
+    function showHwVideo(url) {
+      const embedUrl = toYouTubeEmbed(url);
+      if (!embedUrl) return;
+      document.getElementById('hw-video-iframe').src = embedUrl;
+      document.getElementById('hw-video-wrap').style.display = 'block';
+      document.getElementById('hw-timer-box').style.display = 'block';
+      document.getElementById('hw-timer-display').style.display = 'none';
+      document.getElementById('hw-timer-stop-btn').textContent = '閉じる';
+    }
+
+    function startHwTimer(secs, label, checkboxId, videoUrl) {
       if (_hwTimerInterval) clearInterval(_hwTimerInterval);
       _hwTimerCheckboxId = checkboxId;
       const box = document.getElementById('hw-timer-box');
       const display = document.getElementById('hw-timer-display');
       const lbl = document.getElementById('hw-timer-label');
+      const videoWrap = document.getElementById('hw-video-wrap');
+      const iframe = document.getElementById('hw-video-iframe');
+      // 動画
+      const embedUrl = toYouTubeEmbed(videoUrl || '');
+      if (embedUrl) { iframe.src = embedUrl; videoWrap.style.display = 'block'; }
+      else { iframe.src = ''; videoWrap.style.display = 'none'; }
+      display.style.display = 'block';
+      document.getElementById('hw-timer-stop-btn').textContent = 'キャンセル';
       box.style.display = 'block';
       lbl.textContent = label;
       let remaining = secs;
@@ -946,6 +973,8 @@
         if (remaining <= 0) {
           clearInterval(_hwTimerInterval);
           _hwTimerInterval = null;
+          document.getElementById('hw-video-iframe').src = '';
+          document.getElementById('hw-video-wrap').style.display = 'none';
           box.style.display = 'none';
           // チェックを入れる
           const cb = document.getElementById(_hwTimerCheckboxId);
@@ -959,6 +988,9 @@
 
     function stopHwTimer() {
       if (_hwTimerInterval) { clearInterval(_hwTimerInterval); _hwTimerInterval = null; }
+      document.getElementById('hw-video-iframe').src = '';
+      document.getElementById('hw-video-wrap').style.display = 'none';
+      document.getElementById('hw-timer-display').style.display = 'block';
       document.getElementById('hw-timer-box').style.display = 'none';
     }
 
@@ -1387,6 +1419,7 @@
           const res = await fetch(GAS_URL + '?name=' + encodeURIComponent(userName));
           const data = await res.json();
           if (data.tasks && data.tasks.length > 0) tasks = data.tasks;
+          if (data.videoUrls) window._hwVideoUrls = data.videoUrls;
         } catch (e) {}
       }
       currentTasks = tasks;
@@ -1412,8 +1445,16 @@
         const div = document.createElement('div');
         div.className = 'checklist-item';
         const secs = parseTaskSeconds(task);
-        const timerBtn = secs ? `<button onclick="startHwTimer(${secs}, '${task.replace(/'/g,"\\'")}', 'task-${i}')" style="margin-left:auto; flex-shrink:0; background:none; border:1px solid #ddd; border-radius:8px; padding:4px 10px; font-size:12px; color:#888; cursor:pointer;">▶ ${formatSecs(secs)}</button>` : '';
-        div.innerHTML = `<input type="checkbox" id="task-${i}" ${mergedChecked.includes(i) ? 'checked' : ''}><label for="task-${i}">${task}</label>${timerBtn}`;
+        const videoUrl = (window._hwVideoUrls || {})[task] || '';
+        const escapedTask = task.replace(/'/g, "\\'");
+        const escapedUrl = videoUrl.replace(/'/g, "\\'");
+        let rightBtn = '';
+        if (secs) {
+          rightBtn = `<button onclick="startHwTimer(${secs}, '${escapedTask}', 'task-${i}', '${escapedUrl}')" style="margin-left:auto; flex-shrink:0; background:none; border:1px solid #ddd; border-radius:8px; padding:4px 10px; font-size:12px; color:#888; cursor:pointer;">▶ ${formatSecs(secs)}</button>`;
+        } else if (videoUrl) {
+          rightBtn = `<button onclick="showHwVideo('${escapedUrl}')" style="margin-left:auto; flex-shrink:0; background:none; border:1px solid #ddd; border-radius:8px; padding:4px 10px; font-size:12px; color:#888; cursor:pointer;">▶ 動画</button>`;
+        }
+        div.innerHTML = `<input type="checkbox" id="task-${i}" ${mergedChecked.includes(i) ? 'checked' : ''}><label for="task-${i}">${task}</label>${rightBtn}`;
         div.querySelector('input').addEventListener('change', saveCache);
         container.appendChild(div);
       });
