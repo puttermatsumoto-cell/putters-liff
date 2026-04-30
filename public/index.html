@@ -212,7 +212,7 @@
       <h2>💪 筋肉痛チェック</h2>
       <p>昨日トレーニングしましたね！<br>今日はどこが筋肉痛ですか？</p>
       <a href="/body-map.html" style="display:block; width:100%; padding:14px; background:#1a1a2e; color:white; border:none; border-radius:10px; font-size:15px; font-weight:bold; cursor:pointer; margin-bottom:8px; text-align:center; text-decoration:none;">🫁 人体図から選ぶ</a>
-      <button class="soreness-none" id="btn-soreness-none">筋肉痛なし</button>
+      <button class="soreness-none" id="btn-soreness-none" onclick="this.classList.add('selected'); submitSoreness()">筋肉痛なし ✓</button>
       <button onclick="document.getElementById('soreness-card').style.display='none'" style="width:100%;padding:10px;background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;margin-top:4px;">後で答える</button>
     </div>
   </div>
