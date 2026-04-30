@@ -986,8 +986,9 @@
       const embedUrl = toYouTubeEmbed(videoUrl || '');
       if (embedUrl) {
         videoWrap.style.display = 'block';
-        iframe.onload = () => { iframe.onload = null; startInterval(); };
         iframe.src = embedUrl;
+        display.textContent = '動画を読み込み中...';
+        setTimeout(() => { render(); startInterval(); }, 3000);
       } else {
         iframe.src = '';
         videoWrap.style.display = 'none';
