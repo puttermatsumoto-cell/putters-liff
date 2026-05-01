@@ -75,6 +75,8 @@
         <div class="card-title">
           <span>${s.name}</span>
           <div style="display:flex;gap:6px;">
+            ${i > 0 ? `<button class="del-btn" onclick="moveSet(${i}, -1)">↑</button>` : ''}
+            ${i < sets.length - 1 ? `<button class="del-btn" onclick="moveSet(${i}, 1)">↓</button>` : ''}
             <button class="edit-btn" onclick="startEdit(${i})">編集</button>
             <button class="del-btn" onclick="deleteSet(${i})">削除</button>
           </div>
@@ -85,6 +87,15 @@
         }).join('')}
       </div>
     `).join('');
+  }
+
+  function moveSet(i, dir) {
+    const sets = getSets();
+    const j = i + dir;
+    if (j < 0 || j >= sets.length) return;
+    [sets[i], sets[j]] = [sets[j], sets[i]];
+    saveSets(sets);
+    renderSets();
   }
 
   function deleteSet(i) {
