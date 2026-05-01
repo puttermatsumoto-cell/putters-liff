@@ -193,17 +193,18 @@
         if (!f.name) continue;
         if (parseFloat(f.p) > 0 || parseFloat(f.f) > 0 || parseFloat(f.c) > 0) continue; // PFCあればスキップ
         try {
-          const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: f.name }) });
+          const res = await fetch(location.origin + '/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: f.name }) });
           const pfc = await res.json();
           const r = (parseFloat(f.gram) || 100) / 100;
           f.p = parseFloat((pfc.p * r).toFixed(1));
           f.f = parseFloat((pfc.f * r).toFixed(1));
           f.c = parseFloat((pfc.c * r).toFixed(1));
           changed = true;
-        } catch(e) {}
+        } catch(e) { console.error('PFC fetch error:', f.name, e); }
       }
     }
     if (changed) { saveSets(sets); renderSets(); }
+    console.log('fixMissingPFC done, changed:', changed);
   }
 
   renderSets();
