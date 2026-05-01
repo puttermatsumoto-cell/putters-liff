@@ -17,6 +17,9 @@
     .del-btn { background: none; border: 1px solid #eee; color: #aaa; border-radius: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
     .del-btn:active { background: #fee; color: #e57373; }
     .edit-btn { background: none; border: 1px solid #c8a97e; color: #c8a97e; border-radius: 8px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+    .drag-handle { color: #ccc; font-size: 20px; cursor: grab; padding: 0 8px 0 0; line-height: 1; touch-action: none; user-select: none; }
+    .card.dragging { opacity: 0.4; }
+    .card.drag-over { border: 2px dashed #c8a97e; }
     .add-section { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
     .add-section h2 { font-size: 15px; color: #1a1a2e; margin-bottom: 16px; font-weight: bold; }
     input[type="text"], input[type="number"] { border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; font-size: 14px; width: 100%; margin-bottom: 8px; }
@@ -70,13 +73,13 @@
     const sets = getSets();
     const el = document.getElementById('set-list');
     if (sets.length === 0) { el.innerHTML = '<div class="empty" style="margin-bottom:16px;">まだセットがありません</div>'; return; }
+
     el.innerHTML = sets.map((s, i) => `
-      <div class="card">
+      <div class="card" data-index="${i}">
         <div class="card-title">
+          <span class="drag-handle" data-index="${i}">≡</span>
           <span>${s.name}</span>
           <div style="display:flex;gap:6px;">
-            ${i > 0 ? `<button class="del-btn" onclick="moveSet(${i}, -1)">↑</button>` : ''}
-            ${i < sets.length - 1 ? `<button class="del-btn" onclick="moveSet(${i}, 1)">↓</button>` : ''}
             <button class="edit-btn" onclick="startEdit(${i})">編集</button>
             <button class="del-btn" onclick="deleteSet(${i})">削除</button>
           </div>
@@ -87,15 +90,45 @@
         }).join('')}
       </div>
     `).join('');
+    initDrag();
   }
 
-  function moveSet(i, dir) {
-    const sets = getSets();
-    const j = i + dir;
-    if (j < 0 || j >= sets.length) return;
-    [sets[i], sets[j]] = [sets[j], sets[i]];
-    saveSets(sets);
-    renderSets();
+  let dragSrcIndex = -1;
+
+  function initDrag() {
+    const cards = document.querySelectorAll('#set-list .card');
+    cards.forEach(card => {
+      const handle = card.querySelector('.drag-handle');
+      if (!handle) return;
+      handle.addEventListener('touchstart', e => {
+        dragSrcIndex = parseInt(card.dataset.index);
+        card.classList.add('dragging');
+        e.preventDefault();
+      }, { passive: false });
+      handle.addEventListener('touchmove', e => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const overCard = target && target.closest('.card');
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('drag-over'));
+        if (overCard && overCard !== card) overCard.classList.add('drag-over');
+      }, { passive: false });
+      handle.addEventListener('touchend', e => {
+        const touch = e.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const overCard = target && target.closest('.card');
+        document.querySelectorAll('.card').forEach(c => { c.classList.remove('dragging'); c.classList.remove('drag-over'); });
+        if (overCard && parseInt(overCard.dataset.index) !== dragSrcIndex) {
+          const destIndex = parseInt(overCard.dataset.index);
+          const sets = getSets();
+          const [moved] = sets.splice(dragSrcIndex, 1);
+          sets.splice(destIndex, 0, moved);
+          saveSets(sets);
+          renderSets();
+        }
+        dragSrcIndex = -1;
+      });
+    });
   }
 
   function deleteSet(i) {
