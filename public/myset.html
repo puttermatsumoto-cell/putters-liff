@@ -116,6 +116,28 @@
     document.getElementById('cancel-btn').style.display = 'none';
   }
 
+  async function fetchPFCForRow(row) {
+    const nameEl = row.querySelector('.row-name');
+    const gramEl = row.querySelector('.row-gram');
+    const pEl = row.querySelector('.row-p');
+    const fEl = row.querySelector('.row-f');
+    const cEl = row.querySelector('.row-c');
+    const name = nameEl.value.trim();
+    if (!name) return;
+    if (parseFloat(pEl.value) || parseFloat(fEl.value) || parseFloat(cEl.value)) return; // 入力済みはスキップ
+    nameEl.style.opacity = '0.5';
+    try {
+      const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) });
+      const pfc = await res.json();
+      const gram = parseFloat(gramEl.value) || 100;
+      const r = gram / 100;
+      pEl.value = (pfc.p * r).toFixed(1);
+      fEl.value = (pfc.f * r).toFixed(1);
+      cEl.value = (pfc.c * r).toFixed(1);
+    } catch(e) {}
+    nameEl.style.opacity = '1';
+  }
+
   function addFoodRow(name = '', gram = '', p = '', f = '', c = '') {
     const div = document.createElement('div');
     div.className = 'food-row';
@@ -132,6 +154,7 @@
         <div><label>C(g)</label><input type="number" placeholder="0" class="row-c" value="${c}" step="0.1" min="0"></div>
       </div>
     `;
+    div.querySelector('.row-name').addEventListener('blur', () => fetchPFCForRow(div));
     document.getElementById('food-rows').appendChild(div);
   }
 
