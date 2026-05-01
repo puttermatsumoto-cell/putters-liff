@@ -185,8 +185,30 @@
     setTimeout(() => toast.style.display = 'none', 2000);
   }
 
+  async function fixMissingPFC() {
+    const sets = getSets();
+    let changed = false;
+    for (const s of sets) {
+      for (const f of s.foods) {
+        if (!f.name) continue;
+        if (f.p > 0 || f.f > 0 || f.c > 0) continue; // PFCあればスキップ
+        try {
+          const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: f.name }) });
+          const pfc = await res.json();
+          const r = (parseFloat(f.gram) || 100) / 100;
+          f.p = parseFloat((pfc.p * r).toFixed(1));
+          f.f = parseFloat((pfc.f * r).toFixed(1));
+          f.c = parseFloat((pfc.c * r).toFixed(1));
+          changed = true;
+        } catch(e) {}
+      }
+    }
+    if (changed) { saveSets(sets); renderSets(); }
+  }
+
   renderSets();
   addFoodRow();
+  fixMissingPFC();
 </script>
 </body>
 </html>
