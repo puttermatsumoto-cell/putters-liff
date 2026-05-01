@@ -191,7 +191,7 @@
     for (const s of sets) {
       for (const f of s.foods) {
         if (!f.name) continue;
-        if (f.p > 0 || f.f > 0 || f.c > 0) continue; // PFCあればスキップ
+        if (parseFloat(f.p) > 0 || parseFloat(f.f) > 0 || parseFloat(f.c) > 0) continue; // PFCあればスキップ
         try {
           const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: f.name }) });
           const pfc = await res.json();
