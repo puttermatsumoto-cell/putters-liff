@@ -124,7 +124,7 @@
     const cEl = row.querySelector('.row-c');
     const name = nameEl.value.trim();
     if (!name) return;
-    if (parseFloat(pEl.value) || parseFloat(fEl.value) || parseFloat(cEl.value)) return; // 入力済みはスキップ
+    if ((pEl.value !== '' && parseFloat(pEl.value) > 0) || (fEl.value !== '' && parseFloat(fEl.value) > 0) || (cEl.value !== '' && parseFloat(cEl.value) > 0)) return; // 入力済みはスキップ
     nameEl.style.opacity = '0.5';
     try {
       const res = await fetch('/api/pfc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ food: name }) });
