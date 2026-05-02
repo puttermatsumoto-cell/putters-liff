@@ -81,6 +81,12 @@
     .anim-enter { color: #4caf50; font-weight: bold; }
     .anim-exit { color: #e57373; font-weight: bold; }
 
+    .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: 8px; }
+    .choice-btn { padding: 16px 8px; border: 2px solid #ddd; border-radius: 12px; background: white; font-size: 15px; color: #1a1a2e; cursor: pointer; font-weight: bold; }
+    .choice-btn:active { background: #f5f0eb; }
+    .choice-btn.correct { background: #e8f5e9; border-color: #4caf50; color: #4caf50; }
+    .choice-btn.wrong { background: #ffeaea; border-color: #e57373; color: #e57373; }
+
     #toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #c8a97e; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 999; }
   </style>
 </head>
@@ -216,17 +222,28 @@
         if (data.error) throw new Error(data.error);
         currentAnswer = data.answer;
         currentPlace = category === 'place' ? data.question : '';
-        card.innerHTML = `
-          <div class="quiz-question">${data.question}</div>
-          <div class="quiz-hint">${data.hint || ''}</div>
-          <div class="answer-area">
-            <input type="text" id="answer-input" placeholder="読み方">
-            <button class="submit-btn" onclick="checkAnswer()">答える</button>
-          </div>
-        `;
-        const inp = document.getElementById('answer-input');
-        inp.focus();
-        inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+        const choices = data.choices && data.choices.length === 4 ? data.choices : null;
+        if (choices) {
+          card.innerHTML = `
+            <div class="quiz-question">${data.question}</div>
+            <div class="quiz-hint">${data.hint || ''}</div>
+            <div class="choices-grid">
+              ${choices.map(c => `<button class="choice-btn" onclick="checkChoiceAnswer('${c.replace(/'/g, "\\'")}')">${c}</button>`).join('')}
+            </div>
+          `;
+        } else {
+          card.innerHTML = `
+            <div class="quiz-question">${data.question}</div>
+            <div class="quiz-hint">${data.hint || ''}</div>
+            <div class="answer-area">
+              <input type="text" id="answer-input" placeholder="読み方">
+              <button class="submit-btn" onclick="checkAnswer()">答える</button>
+            </div>
+          `;
+          const inp = document.getElementById('answer-input');
+          inp.focus();
+          inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+        }
       } catch(e) {
         card.innerHTML = '<div class="loading">エラーが発生しました。</div><br><button class="start-btn" onclick="startQuiz()">再試行</button>';
       }
@@ -373,6 +390,33 @@
       inp.focus();
       inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
     }
+  }
+
+  function checkChoiceAnswer(selected) {
+    if (answered) return;
+    answered = true;
+    total++;
+    document.getElementById('score-total').textContent = total;
+    const card = document.getElementById('quiz-card');
+    document.querySelectorAll('.choice-btn').forEach(btn => {
+      btn.disabled = true;
+      if (btn.textContent === currentAnswer) btn.classList.add('correct');
+      else if (btn.textContent === selected) btn.classList.add('wrong');
+    });
+    const isCorrect = selected === currentAnswer;
+    if (isCorrect) {
+      correct++;
+      document.getElementById('score-correct').textContent = correct;
+      card.innerHTML += `<div class="result correct">⭕ 正解！</div>`;
+      if (total % 3 === 0) markToday();
+    } else {
+      card.innerHTML += `<div class="result wrong">❌ 不正解…</div>`;
+    }
+    if (currentPlace) {
+      card.innerHTML += `<div class="map-wrap"><iframe src="https://maps.google.com/maps?q=${encodeURIComponent(currentPlace)}&output=embed" allowfullscreen></iframe></div>`;
+    }
+    card.innerHTML += calcBrainAge();
+    card.innerHTML += `<button class="next-btn" onclick="startQuiz()">次の問題</button>`;
   }
 
   function checkAnswer() {
