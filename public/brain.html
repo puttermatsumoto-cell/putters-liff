@@ -55,6 +55,11 @@
     .map-wrap iframe { width: 100%; height: 100%; border: none; }
 
     .next-btn { background: #c8a97e; color: white; border: none; border-radius: 12px; padding: 14px 40px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 16px; }
+    .brain-age-card { background: #1a1a2e; border-radius: 16px; padding: 20px; margin-top: 16px; text-align: center; width: 100%; }
+    .brain-age-label { font-size: 12px; color: #c8a97e; letter-spacing: 1px; margin-bottom: 4px; }
+    .brain-age-num { font-size: 48px; font-weight: bold; color: white; line-height: 1; }
+    .brain-age-unit { font-size: 16px; color: #c8a97e; }
+    .brain-age-comment { font-size: 13px; color: #aaa; margin-top: 8px; }
     .start-btn { background: #1a1a2e; color: white; border: none; border-radius: 16px; padding: 16px 40px; font-size: 16px; font-weight: bold; cursor: pointer; }
     .loading { color: #aaa; font-size: 14px; }
 
@@ -262,7 +267,24 @@
     if (currentPlace) {
       card.innerHTML += `<div class="map-wrap"><iframe src="https://maps.google.com/maps?q=${encodeURIComponent(currentPlace)}&output=embed" allowfullscreen></iframe></div>`;
     }
+    card.innerHTML += calcBrainAge();
     card.innerHTML += `<button class="next-btn" onclick="startQuiz()">次の問題</button>`;
+  }
+
+  function calcBrainAge() {
+    if (total === 0) return '';
+    const rate = correct / total;
+    const levelBonus = (level - 1) * 5;
+    let age = Math.round(80 - rate * 50 - levelBonus);
+    age = Math.max(15, Math.min(99, age));
+    const kcal = parseFloat((total * (0.5 + (level - 1) * 0.5)).toFixed(1));
+    const comment = age <= 25 ? '🧠 冴えてる！' : age <= 40 ? '😊 好調です' : age <= 60 ? '🙂 まあまあ' : '😅 もう少し頑張ろう';
+    return `<div class="brain-age-card">
+      <div class="brain-age-label">今の脳年齢</div>
+      <div class="brain-age-num">${age}<span class="brain-age-unit">歳</span></div>
+      <div class="brain-age-comment">${comment}</div>
+      <div style="margin-top:10px;font-size:12px;color:#888;">脳トレ消費カロリー（なんとなく）約 <span style="color:#c8a97e;font-weight:bold;">${kcal} kcal</span></div>
+    </div>`;
   }
 
   renderCalendar();
