@@ -287,28 +287,36 @@
   function generateCalc() {
     const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
     if (level === 1) {
-      // 足し算・引き算
-      const a = r(1, 50), b = r(1, 50);
+      // 3桁の足し算・引き算
+      const a = r(100, 999), b = r(100, 999);
       if (Math.random() < 0.5) return { expr: `${a} ＋ ${b}`, answer: a + b };
       const big = Math.max(a, b), small = Math.min(a, b);
       return { expr: `${big} － ${small}`, answer: big - small };
     } else if (level === 2) {
-      // 掛け算・割り算
-      if (Math.random() < 0.5) {
-        const a = r(2, 12), b = r(2, 12);
+      // 2〜3桁の掛け算・割り算
+      const type = r(0, 2);
+      if (type === 0) {
+        const a = r(11, 99), b = r(11, 99);
         return { expr: `${a} × ${b}`, answer: a * b };
-      } else {
-        const b = r(2, 9), ans = r(2, 12);
+      } else if (type === 1) {
+        const b = r(11, 25), ans = r(11, 40);
         return { expr: `${b * ans} ÷ ${b}`, answer: ans };
+      } else {
+        const a = r(100, 999), b = r(100, 999);
+        if (Math.random() < 0.5) return { expr: `${a} ＋ ${b}`, answer: a + b };
+        const big = Math.max(a, b), small = Math.min(a, b);
+        return { expr: `${big} － ${small}`, answer: big - small };
       }
     } else {
-      // 複合（2段階）
-      const a = r(2, 15), b = r(2, 9), c = r(1, 10);
+      // 3段階複合計算
+      const a = r(11, 99), b = r(11, 50), c = r(11, 99), d = r(2, 9);
       const ops = [
         { expr: `${a} × ${b} ＋ ${c}`, answer: a * b + c },
         { expr: `${a} × ${b} － ${c}`, answer: a * b - c },
-        { expr: `${c} ＋ ${a} × ${b}`, answer: c + a * b },
         { expr: `(${a} ＋ ${c}) × ${b}`, answer: (a + c) * b },
+        { expr: `${a} × ${b} ＋ ${c} × ${d}`, answer: a * b + c * d },
+        { expr: `${a} × ${b} － ${c} × ${d}`, answer: a * b - c * d },
+        { expr: `(${a} － ${d}) × ${b} ＋ ${c}`, answer: (a - d) * b + c },
       ];
       return ops[r(0, ops.length - 1)];
     }
