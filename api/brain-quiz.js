@@ -1,22 +1,30 @@
+const REGIONS = ['北海道','東北','関東','中部','近畿','中国','四国','九州・沖縄'];
+const KANJI_THEMES = ['自然','体・医療','感情','動作','食べ物','動植物','建物・場所','人物・社会','時間・数','難読熟語'];
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { category, level } = req.body;
+  const rand = Math.floor(Math.random() * 10000);
+  const region = REGIONS[Math.floor(Math.random() * REGIONS.length)];
+  const theme = KANJI_THEMES[Math.floor(Math.random() * KANJI_THEMES.length)];
 
   const prompts = {
-    kanji: `日本語の漢字の読み問題を1問作ってください。難易度: ${level}（1=簡単, 2=普通, 3=難しい）。
+    kanji: `乱数${rand}を使って、テーマ「${theme}」に関連する漢字の読み問題を1問作ってください。難易度: ${level}（1=簡単, 2=普通, 3=難しい）。
 難易度1: 小学生レベルの漢字（例: 友達、学校）
 難易度2: 中学生レベルの漢字（例: 憧れ、曖昧）
 難易度3: 大人でも難しい漢字（例: 蠢く、囁く）
+毎回必ず違う漢字を出してください。
 以下のJSON形式のみで返してください:
-{"question": "漢字（ひらがなは伏せ字にしない、送り仮名はひらがなで）", "answer": "読み方（ひらがな）", "hint": "使い方の例文"}`,
+{"question": "漢字（送り仮名はひらがなで）", "answer": "読み方（ひらがな）", "hint": "使い方の例文"}`,
 
-    place: `日本全国からランダムに地名・難読地名の読み問題を1問作ってください。北海道から沖縄まで偏りなく出題してください。難易度: ${level}（1=簡単, 2=普通, 3=難しい）。
-難易度1: 都道府県・有名都市（例: 大阪、京都）
-難易度2: やや難しい市区町村（例: 大鰐、養父）
-難易度3: 難読地名（例: 乙訓、行徳）
+    place: `乱数${rand}を使って、${region}地方の地名・難読地名の読み問題を1問作ってください。難易度: ${level}（1=簡単, 2=普通, 3=難しい）。
+難易度1: 有名な市区町村
+難易度2: やや難しい市区町村・地区名
+難易度3: 難読地名・小さな地名
+毎回必ず違う地名を出してください。
 以下のJSON形式のみで返してください:
-{"question": "地名（漢字のみ、都道府県名は含めない）", "answer": "読み方（ひらがな）", "hint": "○○県・○○地方など場所のヒント"}`,
+{"question": "地名（漢字のみ）", "answer": "読み方（ひらがな）", "hint": "○○県・${region}地方など場所のヒント"}`,
 
     count: null
   };
