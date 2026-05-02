@@ -114,9 +114,9 @@
     </div>
   </div>
 
-  <div class="section-card">
-    <h2>難易度</h2>
-    <div class="btn-row">
+  <div class="section-card" id="level-card">
+    <h2 id="level-label">難易度</h2>
+    <div class="btn-row" id="level-btns">
       <button class="sel-btn selected" onclick="setLevel(1, this)">かんたん</button>
       <button class="sel-btn" onclick="setLevel(2, this)">ふつう</button>
       <button class="sel-btn" onclick="setLevel(3, this)">むずかしい</button>
@@ -198,10 +198,18 @@
     document.querySelectorAll('.section-card')[1].querySelectorAll('.sel-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
   }
+  const KANJI_LEVELS = { 1: '漢検3級', 2: '漢検2級', 3: '漢検1級' };
+  const PLACE_LEVELS = { 1: 'かんたん', 2: 'ふつう', 3: 'むずかしい' };
+  const CALC_LEVELS  = { 1: 'かんたん', 2: 'ふつう', 3: 'むずかしい' };
+  const COUNT_LEVELS = { 1: 'かんたん', 2: 'ふつう', 3: 'むずかしい' };
+
   function setCategory(c, btn) {
     category = c;
     document.querySelectorAll('.section-card')[0].querySelectorAll('.sel-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
+    const map = c === 'kanji' ? KANJI_LEVELS : c === 'place' ? PLACE_LEVELS : c === 'calc' ? CALC_LEVELS : COUNT_LEVELS;
+    const btns = document.getElementById('level-btns').querySelectorAll('.sel-btn');
+    btns.forEach((b, i) => b.textContent = map[i + 1]);
   }
 
   async function startQuiz() {
