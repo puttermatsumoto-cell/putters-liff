@@ -233,7 +233,7 @@
         if (data.error) throw new Error(data.error);
         currentAnswer = data.answer;
         currentPlace = category === 'place' ? data.question : '';
-        const choices = data.choices && data.choices.length === 4 ? data.choices : null;
+        const choices = data.choices && data.choices.length === 4 ? data.choices.sort(() => Math.random() - 0.5) : null;
         if (choices) {
           card.innerHTML = `
             <div class="quiz-question">${data.question}</div>
