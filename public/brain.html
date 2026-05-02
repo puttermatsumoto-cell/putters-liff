@@ -108,6 +108,7 @@
     <h2>カテゴリ</h2>
     <div class="btn-row">
       <button class="sel-btn selected" onclick="setCategory('count', this)">👥 人数</button>
+      <button class="sel-btn" onclick="setCategory('calc', this)">🔢 計算</button>
       <button class="sel-btn" onclick="setCategory('kanji', this)">漢字</button>
       <button class="sel-btn" onclick="setCategory('place', this)">🗾 地名</button>
     </div>
@@ -211,6 +212,8 @@
 
     if (category === 'count') {
       showCountQuiz();
+    } else if (category === 'calc') {
+      showCalcQuiz();
     } else {
       try {
         const res = await fetch('/api/brain-quiz', {
@@ -247,6 +250,59 @@
       } catch(e) {
         card.innerHTML = '<div class="loading">エラーが発生しました。</div><br><button class="start-btn" onclick="startQuiz()">再試行</button>';
       }
+    }
+  }
+
+  // ===== 計算問題 =====
+  function showCalcQuiz() {
+    const card = document.getElementById('quiz-card');
+    const { expr, answer } = generateCalc();
+    currentAnswer = String(answer);
+
+    // 4択の選択肢を生成
+    const choices = new Set([answer]);
+    while (choices.size < 4) {
+      const offset = Math.floor(Math.random() * 20) - 10;
+      const v = answer + offset;
+      if (v !== answer) choices.add(v);
+    }
+    const shuffled = [...choices].sort(() => Math.random() - 0.5);
+
+    card.innerHTML = `
+      <div class="quiz-question" style="font-size:22px;letter-spacing:2px;">${expr} ＝ ？</div>
+      <div class="choices-grid" style="margin-top:20px;">
+        ${shuffled.map(c => `<button class="choice-btn" onclick="checkChoiceAnswer('${c}')">${c}</button>`).join('')}
+      </div>
+    `;
+  }
+
+  function generateCalc() {
+    const r = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    if (level === 1) {
+      // 足し算・引き算
+      const a = r(1, 50), b = r(1, 50);
+      if (Math.random() < 0.5) return { expr: `${a} ＋ ${b}`, answer: a + b };
+      const big = Math.max(a, b), small = Math.min(a, b);
+      return { expr: `${big} － ${small}`, answer: big - small };
+    } else if (level === 2) {
+      // 掛け算・割り算
+      if (Math.random() < 0.5) {
+        const a = r(2, 12), b = r(2, 12);
+        return { expr: `${a} × ${b}`, answer: a * b };
+      } else {
+        const b = r(2, 9), ans = r(2, 12);
+        return { expr: `${b * ans} ÷ ${b}`, answer: ans };
+      }
+    } else {
+      // 複合（2段階）
+      const a = r(2, 15), b = r(2, 9), c = r(1, 10);
+      const ops = [
+        { expr: `${a} × ${b} ＋ ${c}`, answer: a * b + c },
+        { expr: `${a} × ${b} － ${c}`, answer: a * b - c },
+        { expr: `${c} ＋ ${a} × ${b}`, answer: c + a * b },
+        { expr: `(${a} ＋ ${c}) × ${b}`, answer: (a + c) * b },
+      ];
+      return ops[r(0, ops.length - 1)];
     }
   }
 
