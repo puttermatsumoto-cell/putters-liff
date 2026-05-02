@@ -11,7 +11,6 @@
     h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 8px; font-weight: 700; }
     .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 24px; }
 
-    /* カレンダー */
     .calendar-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
     .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .cal-header button { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 0 8px; }
@@ -20,45 +19,44 @@
     .cal-day-label { font-size: 11px; color: #aaa; padding: 4px 0; }
     .cal-day { font-size: 13px; color: #555; padding: 6px 0; border-radius: 8px; }
     .cal-day.empty { color: transparent; }
-    .cal-day.done { background: #c8a97e; color: white; font-weight: bold; border-radius: 8px; }
-    .cal-day.today { border: 2px solid #1a1a2e; border-radius: 8px; }
+    .cal-day.done { background: #c8a97e; color: white; font-weight: bold; }
+    .cal-day.today { border: 2px solid #1a1a2e; }
 
-    /* 難易度選択 */
-    .level-section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-    .level-section h2 { font-size: 14px; color: #888; margin-bottom: 12px; }
-    .level-btns { display: flex; gap: 8px; }
-    .level-btn { flex: 1; padding: 12px 0; border: 2px solid #eee; border-radius: 12px; background: white; font-size: 13px; color: #555; cursor: pointer; font-weight: bold; }
-    .level-btn.selected { border-color: #1a1a2e; background: #1a1a2e; color: white; }
+    .section-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .section-card h2 { font-size: 14px; color: #888; margin-bottom: 12px; }
+    .btn-row { display: flex; gap: 8px; }
+    .sel-btn { flex: 1; padding: 12px 0; border: 2px solid #eee; border-radius: 12px; background: white; font-size: 13px; color: #555; cursor: pointer; font-weight: bold; text-align: center; }
+    .sel-btn.selected { border-color: #1a1a2e; background: #1a1a2e; color: white; }
 
-    /* 問題エリア */
-    .quiz-card { background: white; border-radius: 16px; padding: 24px 20px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .quiz-scene { font-size: 15px; color: #1a1a2e; line-height: 2; text-align: center; margin-bottom: 20px; }
-    .quiz-scene .highlight { color: #c8a97e; font-weight: bold; font-size: 17px; }
-    .quiz-scene .enter { color: #4caf50; font-weight: bold; }
-    .quiz-scene .exit { color: #e57373; font-weight: bold; }
-    .quiz-question { font-size: 18px; font-weight: bold; color: #1a1a2e; text-align: center; margin-bottom: 20px; }
-
-    /* 答え入力 */
-    .answer-area { display: flex; gap: 8px; width: 100%; max-width: 280px; }
-    .answer-area input { flex: 1; border: 2px solid #ddd; border-radius: 12px; padding: 12px; font-size: 18px; text-align: center; }
-    .answer-area input:focus { outline: none; border-color: #1a1a2e; }
-    .submit-btn { background: #1a1a2e; color: white; border: none; border-radius: 12px; padding: 12px 20px; font-size: 15px; font-weight: bold; cursor: pointer; }
-    .submit-btn:active { opacity: 0.8; }
-
-    /* 結果 */
-    .result { font-size: 20px; font-weight: bold; text-align: center; margin-top: 12px; }
-    .result.correct { color: #4caf50; }
-    .result.wrong { color: #e57373; }
-
-    .next-btn { background: #c8a97e; color: white; border: none; border-radius: 12px; padding: 14px 40px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 16px; }
-    .start-btn { background: #1a1a2e; color: white; border: none; border-radius: 16px; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; }
-    .start-btn:active { opacity: 0.8; }
-
-    /* スコア */
-    .score-row { display: flex; justify-content: center; gap: 24px; margin-bottom: 8px; }
+    .score-row { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; }
     .score-item { text-align: center; }
     .score-item .val { font-size: 24px; font-weight: bold; color: #1a1a2e; }
     .score-item .lbl { font-size: 11px; color: #aaa; }
+
+    .quiz-card { background: white; border-radius: 16px; padding: 24px 20px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .quiz-question { font-size: 28px; font-weight: bold; color: #1a1a2e; text-align: center; margin-bottom: 8px; letter-spacing: 4px; }
+    .quiz-hint { font-size: 12px; color: #aaa; text-align: center; margin-bottom: 20px; }
+    .quiz-scene { font-size: 15px; color: #1a1a2e; line-height: 2; text-align: center; margin-bottom: 20px; }
+    .quiz-scene .enter { color: #4caf50; font-weight: bold; }
+    .quiz-scene .exit { color: #e57373; font-weight: bold; }
+    .quiz-scene .highlight { color: #c8a97e; font-weight: bold; font-size: 17px; }
+
+    .answer-area { display: flex; gap: 8px; width: 100%; max-width: 280px; }
+    .answer-area input { flex: 1; border: 2px solid #ddd; border-radius: 12px; padding: 12px; font-size: 16px; text-align: center; }
+    .answer-area input:focus { outline: none; border-color: #1a1a2e; }
+    .submit-btn { background: #1a1a2e; color: white; border: none; border-radius: 12px; padding: 12px 20px; font-size: 15px; font-weight: bold; cursor: pointer; }
+
+    .result { font-size: 20px; font-weight: bold; text-align: center; margin-top: 12px; }
+    .result.correct { color: #4caf50; }
+    .result.wrong { color: #e57373; }
+    .answer-reveal { font-size: 16px; color: #555; text-align: center; margin-top: 6px; }
+
+    .map-wrap { width: 100%; height: 200px; border-radius: 12px; overflow: hidden; margin-top: 12px; }
+    .map-wrap iframe { width: 100%; height: 100%; border: none; }
+
+    .next-btn { background: #c8a97e; color: white; border: none; border-radius: 12px; padding: 14px 40px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 16px; }
+    .start-btn { background: #1a1a2e; color: white; border: none; border-radius: 16px; padding: 16px 40px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    .loading { color: #aaa; font-size: 14px; }
 
     #toast { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #c8a97e; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 999; }
   </style>
@@ -66,9 +64,8 @@
 <body>
   <a href="/" class="back">← 戻る</a>
   <h1>🧠 脳トレ</h1>
-  <p class="subtitle">人の出入りを数えよう</p>
+  <p class="subtitle">毎日続けよう</p>
 
-  <!-- カレンダー -->
   <div class="calendar-card">
     <div class="cal-header">
       <button onclick="changeMonth(-1)">‹</button>
@@ -78,23 +75,29 @@
     <div class="cal-grid" id="cal-grid"></div>
   </div>
 
-  <!-- 難易度 -->
-  <div class="level-section">
-    <h2>難易度</h2>
-    <div class="level-btns">
-      <button class="level-btn selected" onclick="setLevel(1, this)">かんたん</button>
-      <button class="level-btn" onclick="setLevel(2, this)">ふつう</button>
-      <button class="level-btn" onclick="setLevel(3, this)">むずかしい</button>
+  <div class="section-card">
+    <h2>カテゴリ</h2>
+    <div class="btn-row">
+      <button class="sel-btn selected" onclick="setCategory('count', this)">👥 人数</button>
+      <button class="sel-btn" onclick="setCategory('kanji', this)">漢字</button>
+      <button class="sel-btn" onclick="setCategory('place', this)">🗾 地名</button>
     </div>
   </div>
 
-  <!-- スコア -->
+  <div class="section-card">
+    <h2>難易度</h2>
+    <div class="btn-row">
+      <button class="sel-btn selected" onclick="setLevel(1, this)">かんたん</button>
+      <button class="sel-btn" onclick="setLevel(2, this)">ふつう</button>
+      <button class="sel-btn" onclick="setLevel(3, this)">むずかしい</button>
+    </div>
+  </div>
+
   <div class="score-row">
     <div class="score-item"><div class="val" id="score-correct">0</div><div class="lbl">正解</div></div>
     <div class="score-item"><div class="val" id="score-total">0</div><div class="lbl">問題数</div></div>
   </div>
 
-  <!-- 問題 -->
   <div class="quiz-card" id="quiz-card">
     <button class="start-btn" onclick="startQuiz()">スタート</button>
   </div>
@@ -107,34 +110,31 @@
   const userName = localStorage.getItem(NAME_KEY) || '';
   if (!ALLOWED.includes(userName)) {
     document.querySelector('.back').insertAdjacentHTML('afterend', '<div style="text-align:center;padding:40px;color:#aaa;font-size:15px;">このページは準備中です</div>');
-    document.querySelector('h1').style.display = 'none';
-    document.querySelector('.subtitle').style.display = 'none';
-    document.querySelectorAll('.calendar-card, .level-section, .score-row, .quiz-card').forEach(el => el.style.display = 'none');
+    ['h1','.subtitle','.calendar-card','.section-card','.score-row','.quiz-card'].forEach(s => {
+      document.querySelectorAll(s).forEach(el => el.style.display = 'none');
+    });
   }
 
   const CAL_KEY = 'putters_brain_done';
   let level = 1;
+  let category = 'count';
   let correct = 0;
   let total = 0;
-  let currentAnswer = 0;
+  let currentAnswer = '';
   let answered = false;
   let calYear, calMonth;
+  let currentPlace = '';
 
-  function getDoneDates() {
-    return JSON.parse(localStorage.getItem(CAL_KEY) || '[]');
+  function getDoneDates() { return JSON.parse(localStorage.getItem(CAL_KEY) || '[]'); }
+  function todayStr() {
+    const now = new Date(new Date().getTime() + 9*60*60*1000);
+    return now.toISOString().slice(0, 10);
   }
   function markToday() {
     const today = todayStr();
     const dates = getDoneDates();
-    if (!dates.includes(today)) {
-      dates.push(today);
-      localStorage.setItem(CAL_KEY, JSON.stringify(dates));
-    }
+    if (!dates.includes(today)) { dates.push(today); localStorage.setItem(CAL_KEY, JSON.stringify(dates)); }
     renderCalendar();
-  }
-  function todayStr() {
-    const now = new Date(new Date().getTime() + 9*60*60*1000);
-    return now.toISOString().slice(0, 10);
   }
 
   function renderCalendar() {
@@ -145,16 +145,13 @@
     const todayS = todayStr();
     const firstDay = new Date(calYear, calMonth, 1).getDay();
     const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-    const labels = ['日','月','火','水','木','金','土'];
-    let html = labels.map(l => `<div class="cal-day-label">${l}</div>`).join('');
+    let html = ['日','月','火','水','木','金','土'].map(l => `<div class="cal-day-label">${l}</div>`).join('');
     for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty">0</div>`;
     for (let d = 1; d <= daysInMonth; d++) {
       const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isDone = done.includes(ds);
-      const isToday = ds === todayS;
       let cls = 'cal-day';
-      if (isDone) cls += ' done';
-      if (isToday) cls += ' today';
+      if (done.includes(ds)) cls += ' done';
+      if (ds === todayS) cls += ' today';
       html += `<div class="${cls}">${d}</div>`;
     }
     document.getElementById('cal-grid').innerHTML = html;
@@ -168,76 +165,104 @@
 
   function setLevel(l, btn) {
     level = l;
-    document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.section-card')[1].querySelectorAll('.sel-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+  function setCategory(c, btn) {
+    category = c;
+    document.querySelectorAll('.section-card')[0].querySelectorAll('.sel-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
   }
 
-  function generateQuiz() {
-    // 難易度に応じてシーン数・人数を変える
+  async function startQuiz() {
+    answered = false;
+    currentPlace = '';
+    const card = document.getElementById('quiz-card');
+    card.innerHTML = '<div class="loading">問題を生成中...</div>';
+
+    if (category === 'count') {
+      showCountQuiz();
+    } else {
+      try {
+        const res = await fetch('/api/brain-quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category, level })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        currentAnswer = data.answer;
+        currentPlace = category === 'place' ? data.question : '';
+        card.innerHTML = `
+          <div class="quiz-question">${data.question}</div>
+          <div class="quiz-hint">${data.hint || ''}</div>
+          <div class="answer-area">
+            <input type="text" id="answer-input" placeholder="読み方">
+            <button class="submit-btn" onclick="checkAnswer()">答える</button>
+          </div>
+        `;
+        const inp = document.getElementById('answer-input');
+        inp.focus();
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+      } catch(e) {
+        card.innerHTML = '<div class="loading">エラーが発生しました。もう一度試してください。</div><br><button class="start-btn" onclick="startQuiz()">再試行</button>';
+      }
+    }
+  }
+
+  function showCountQuiz() {
     let scenes = [];
     let inside = 0;
     const maxIn = level === 1 ? 5 : level === 2 ? 10 : 15;
     const steps = level === 1 ? 3 : level === 2 ? 5 : 7;
-
     for (let i = 0; i < steps; i++) {
       const maxEnter = Math.min(maxIn - inside, level === 1 ? 3 : level === 2 ? 5 : 7);
       const maxExit = Math.min(inside, level === 1 ? 3 : level === 2 ? 4 : 6);
       const enter = Math.floor(Math.random() * (maxEnter + 1));
       inside += enter;
-      let exit = Math.floor(Math.random() * (maxExit + 1));
+      const exit = Math.floor(Math.random() * (maxExit + 1));
       inside -= exit;
       scenes.push({ enter, exit });
     }
-    currentAnswer = inside;
-    return scenes;
-  }
-
-  function startQuiz() {
-    answered = false;
-    const scenes = generateQuiz();
-    let html = `<div class="quiz-scene">`;
-    html += `最初、部屋には <span class="highlight">0人</span> います。<br>`;
-    scenes.forEach((s, i) => {
-      if (s.enter > 0 && s.exit > 0) {
-        html += `<span class="enter">${s.enter}人入り</span>、<span class="exit">${s.exit}人出ました。</span><br>`;
-      } else if (s.enter > 0) {
-        html += `<span class="enter">${s.enter}人入りました。</span><br>`;
-      } else if (s.exit > 0) {
-        html += `<span class="exit">${s.exit}人出ました。</span><br>`;
-      }
+    currentAnswer = String(inside);
+    let html = `<div class="quiz-scene">最初、部屋には <span class="highlight">0人</span> います。<br>`;
+    scenes.forEach(s => {
+      if (s.enter > 0 && s.exit > 0) html += `<span class="enter">${s.enter}人入り</span>、<span class="exit">${s.exit}人出ました。</span><br>`;
+      else if (s.enter > 0) html += `<span class="enter">${s.enter}人入りました。</span><br>`;
+      else if (s.exit > 0) html += `<span class="exit">${s.exit}人出ました。</span><br>`;
     });
-    html += `</div>`;
-    html += `<div class="quiz-question">今、部屋に何人いる？</div>`;
-    html += `<div class="answer-area">
-      <input type="number" id="answer-input" min="0" placeholder="？">
+    html += `</div><div style="font-size:18px;font-weight:bold;color:#1a1a2e;margin-bottom:20px;">今、部屋に何人いる？</div>
+    <div class="answer-area">
+      <input type="number" id="answer-input" placeholder="？" min="0">
       <button class="submit-btn" onclick="checkAnswer()">答える</button>
     </div>`;
     document.getElementById('quiz-card').innerHTML = html;
-    document.getElementById('answer-input').focus();
-    document.getElementById('answer-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter') checkAnswer();
-    });
+    const inp = document.getElementById('answer-input');
+    inp.focus();
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
   }
 
   function checkAnswer() {
     if (answered) return;
-    const val = parseInt(document.getElementById('answer-input').value);
-    if (isNaN(val)) return;
+    const val = document.getElementById('answer-input').value.trim();
+    if (!val) return;
     answered = true;
     total++;
     document.getElementById('score-total').textContent = total;
     const card = document.getElementById('quiz-card');
-    let resultHtml = card.innerHTML;
-    if (val === currentAnswer) {
+    const isCorrect = val === currentAnswer || (category === 'count' && parseInt(val) === parseInt(currentAnswer));
+    if (isCorrect) {
       correct++;
       document.getElementById('score-correct').textContent = correct;
-      resultHtml += `<div class="result correct">⭕ 正解！ ${currentAnswer}人</div>`;
+      card.innerHTML += `<div class="result correct">⭕ 正解！</div>`;
       if (total % 3 === 0) markToday();
     } else {
-      resultHtml += `<div class="result wrong">❌ 不正解… 正解は ${currentAnswer}人</div>`;
+      card.innerHTML += `<div class="result wrong">❌ 不正解…</div><div class="answer-reveal">正解：${currentAnswer}</div>`;
     }
-    resultHtml += `<button class="next-btn" onclick="startQuiz()">次の問題</button>`;
-    card.innerHTML = resultHtml;
+    if (currentPlace) {
+      card.innerHTML += `<div class="map-wrap"><iframe src="https://maps.google.com/maps?q=${encodeURIComponent(currentPlace)}&output=embed" allowfullscreen></iframe></div>`;
+    }
+    card.innerHTML += `<button class="next-btn" onclick="startQuiz()">次の問題</button>`;
   }
 
   renderCalendar();
