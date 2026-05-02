@@ -169,6 +169,7 @@
         <!-- <a href="/steps.html"><span class="menu-icon">🚶</span>歩数ランキング</a> -->
         <a href="/feedback.html"><span class="menu-icon">📮</span>意見箱</a>
         <a href="/recipe.html"><span class="menu-icon">🍳</span>食材からレシピ</a>
+        <a href="/brain.html" id="brain-menu-link" style="display:none;"><span class="menu-icon">🧠</span>脳トレ</a>
       </div>
       <div class="menu-label">PICKUP</div>
       <div class="menu-pickup">
@@ -1869,6 +1870,7 @@
     }
 
     if (_n !== '不明') checkSoreness(_n);
+    if (_n === '松本大樹') { const bl = document.getElementById('brain-menu-link'); if (bl) bl.style.display = ''; }
 
     // 下部固定バー（全員）
     document.getElementById('bottom-camera-btn').style.display = 'block';
