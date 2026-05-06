@@ -126,16 +126,39 @@
   let selectedDateLabel = null;
   let cart = []; // { date, dateLabel, time }
   let monthCache = {}; // 月一括取得キャッシュ
+  let isShiftSpecial = false;
 
-  const targetMonth = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
+  // シフト制特別：当月の2日後〜月末が予約対象
+  const nowFull = new Date();
+  const todayFull = new Date(nowFull.getFullYear(), nowFull.getMonth(), nowFull.getDate());
+  const twoDaysLater = new Date(todayFull);
+  twoDaysLater.setDate(twoDaysLater.getDate() + 2);
+
+  let targetMonth;
 
   async function init() {
     const name = localStorage.getItem(NAME_KEY);
     if (!name) { alert('名前が設定されていません'); return; }
 
-    if (!canBook) {
-      document.querySelector('h1').insertAdjacentHTML('afterend', '<div style="text-align:center;color:#e57373;font-size:14px;padding:12px;background:white;border-radius:12px;margin-bottom:16px;">予約は毎月15日以降から受け付けています</div>');
-      return;
+    // シフト制特別チェック
+    try {
+      const res = await fetch(`${GAS_URL}?action=check_shift&name=${encodeURIComponent(name)}`);
+      const data = await res.json();
+      isShiftSpecial = !!data.isShiftSpecial;
+    } catch (e) {}
+
+    if (isShiftSpecial) {
+      // シフト制特別：当月カレンダーを表示
+      targetMonth = `${nowFull.getFullYear()}-${String(nowFull.getMonth()+1).padStart(2,'0')}`;
+      currentYear = nowFull.getFullYear();
+      currentMonth = nowFull.getMonth();
+    } else {
+      // 通常シフト制：来月カレンダー
+      targetMonth = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
+      if (!canBook) {
+        document.querySelector('h1').insertAdjacentHTML('afterend', '<div style="text-align:center;color:#e57373;font-size:14px;padding:12px;background:white;border-radius:12px;margin-bottom:16px;">予約は毎月15日以降から受け付けています</div>');
+        return;
+      }
     }
 
     // localStorageに先読みキャッシュがあれば即使う
@@ -186,8 +209,11 @@
       let cls = 'cal-day';
 
       const dayData = monthCache[dateStr];
+      const dateObj = new Date(dateStr + 'T00:00:00');
+      const isBeforeTwoDays = isShiftSpecial && dateObj < twoDaysLater;
       if (dow === 4 || (dayData && dayData.closed)) cls += ' closed';
       else if (dayData && dayData.holiday) cls += ' holiday';
+      else if (isBeforeTwoDays) cls += ' closed';
       else {
         cls += ' available';
         el.onclick = () => selectDate(dateStr, d);
