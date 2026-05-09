@@ -1478,9 +1478,9 @@
         const data = JSON.parse(raw);
         const today = getEffectiveDate();
         if (!data.date || data.date === today) return; // 昨日以前のキャッシュのみ
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const dateStr = getLocalDateISO(yesterday);
+        // data.dateはtoDateString形式なので、そこから正確な日付を取得する
+        const cacheDate = new Date(data.date);
+        const dateStr = getLocalDateISO(cacheDate);
         const userName = getUserName();
         if (userName === '不明') return;
         // 食事内容を組み立て（写真解析＋手打ち両方）
@@ -1521,7 +1521,7 @@
         renderHWCalendar();
         document.getElementById('message').textContent = '✅ 昨日の記録を自動送信しました';
         setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
-      } catch (e) {}
+      } catch (e) { console.error('autoSubmitYesterday error:', e); }
     }
 
     async function submitData(dateStr) {
