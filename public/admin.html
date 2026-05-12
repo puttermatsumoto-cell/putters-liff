@@ -336,7 +336,7 @@
       if (names.length === 0) {
         content.innerHTML = '<p style="color:#888;">まだ履修データがありません</p>';
       } else {
-        const videoLabels = { '1': '①ダイアゴナル' };
+        const videoLabels = { 'diagonal': '①ダイアゴナル' };
         let html = '<table style="width:100%;border-collapse:collapse;font-size:14px;">';
         html += '<tr style="background:#f5f0eb;"><th style="padding:10px;text-align:left;">名前</th>';
         Object.values(videoLabels).forEach(v => { html += `<th style="padding:10px;text-align:center;">${v}</th>`; });
