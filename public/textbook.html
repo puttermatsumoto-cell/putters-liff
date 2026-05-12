@@ -10,12 +10,16 @@
     .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
     h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 700; }
     .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 24px; }
-    .card { background: white; border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 16px; text-decoration: none; color: inherit; }
+    .card { background: white; border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 16px; text-decoration: none; color: inherit; position: relative; }
     .card:active { opacity: 0.7; }
+    .card.watched { background: #f0f7f0; }
     .num { font-size: 22px; font-weight: 800; color: #c8a97e; min-width: 32px; text-align: center; }
     .card-body { flex: 1; }
     .card-title { font-size: 15px; font-weight: bold; color: #1a1a2e; line-height: 1.4; margin-bottom: 4px; }
+    .card.watched .card-title { color: #888; }
     .card-desc { font-size: 12px; color: #888; line-height: 1.6; }
+    .check-btn { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #ddd; background: white; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; flex-shrink: 0; }
+    .check-btn.checked { background: #4caf50; border-color: #4caf50; color: white; }
     .arrow { color: #ccc; font-size: 18px; }
   </style>
 </head>
@@ -24,14 +28,47 @@
   <h1>📺 トレーニング教科書</h1>
   <p class="subtitle">上から順番に見ていくのがおすすめです</p>
 
-  <a href="https://youtu.be/KPUMLl3wDQ0" target="_blank" class="card">
+  <div class="card" id="card-1">
     <div class="num">①</div>
-    <div class="card-body">
+    <a href="https://youtu.be/KPUMLl3wDQ0" target="_blank" style="flex:1; display:flex; flex-direction:column; text-decoration:none; color:inherit;">
       <div class="card-title">体幹が使えないと二の腕・背中に効かせられない理由【ダイアゴナル】</div>
       <div class="card-desc">四つん這いから対角線上の手足を動かす体幹種目</div>
-    </div>
-    <div class="arrow">›</div>
-  </a>
+    </a>
+    <button class="check-btn" id="check-1" onclick="toggleWatch(1)"></button>
+  </div>
 
+  <script>
+    const STORAGE_KEY = 'putters_textbook_watched';
+
+    function getWatched() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    }
+
+    function toggleWatch(id) {
+      const watched = getWatched();
+      watched[id] = !watched[id];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(watched));
+      updateUI();
+    }
+
+    function updateUI() {
+      const watched = getWatched();
+      document.querySelectorAll('[id^="card-"]').forEach(card => {
+        const id = card.id.replace('card-', '');
+        const btn = document.getElementById('check-' + id);
+        if (watched[id]) {
+          card.classList.add('watched');
+          btn.classList.add('checked');
+          btn.textContent = '✓';
+        } else {
+          card.classList.remove('watched');
+          btn.classList.remove('checked');
+          btn.textContent = '';
+        }
+      });
+    }
+
+    updateUI();
+  </script>
 </body>
 </html>
