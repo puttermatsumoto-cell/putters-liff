@@ -9,7 +9,12 @@
     body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
     .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
     h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 700; }
-    .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 24px; }
+    .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 16px; }
+    .progress-box { background: white; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .progress-label { font-size: 13px; color: #555; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .progress-label span { font-weight: 700; color: #4caf50; font-size: 15px; }
+    .progress-bar-bg { background: #eee; border-radius: 99px; height: 8px; overflow: hidden; }
+    .progress-bar-fill { background: linear-gradient(90deg, #4caf50, #81c784); height: 100%; border-radius: 99px; transition: width 0.4s ease; }
     .card { background: white; border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 16px; text-decoration: none; color: inherit; position: relative; }
     .card:active { opacity: 0.7; }
     .card.watched { background: #f0f7f0; }
@@ -18,6 +23,7 @@
     .card-title { font-size: 15px; font-weight: bold; color: #1a1a2e; line-height: 1.4; margin-bottom: 4px; }
     .card.watched .card-title { color: #888; }
     .card-desc { font-size: 12px; color: #888; line-height: 1.6; }
+    .badge { display: inline-block; font-size: 11px; color: #4caf50; font-weight: 700; margin-top: 5px; }
     .check-btn { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #ddd; background: white; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; flex-shrink: 0; }
     .check-btn.checked { background: #4caf50; border-color: #4caf50; color: white; }
   </style>
@@ -26,6 +32,16 @@
   <a href="javascript:history.back()" class="back">← 戻る</a>
   <h1>📺 トレーニング教科書</h1>
   <p class="subtitle">上から順番に見ていくのがおすすめです</p>
+
+  <div class="progress-box">
+    <div class="progress-label">
+      <span id="progress-text">履修率 0/0本（0%）</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+    </div>
+  </div>
+
   <p style="font-size:12px; color:#c8a97e; text-align:center; margin-bottom:20px;">※動画は順次追加していきます</p>
 
   <div class="card" id="card-diagonal">
@@ -33,6 +49,7 @@
     <a href="https://youtu.be/KPUMLl3wDQ0" target="_blank" style="flex:1; display:flex; flex-direction:column; text-decoration:none; color:inherit;">
       <div class="card-title">体幹が使えないと二の腕・背中に効かせられない理由【ダイアゴナル】</div>
       <div class="card-desc">四つん這いから対角線上の手足を動かす体幹種目</div>
+      <div class="badge" id="badge-diagonal" style="display:none;">✅ 履修済み</div>
     </a>
     <button class="check-btn" id="check-diagonal" onclick="toggleWatch('diagonal')"></button>
   </div>
@@ -59,19 +76,31 @@
 
     function updateUI() {
       const watched = getWatched();
-      document.querySelectorAll('[id^="card-"]').forEach(card => {
+      const cards = document.querySelectorAll('[id^="card-"]');
+      let watchedCount = 0;
+      const total = cards.length;
+
+      cards.forEach(card => {
         const slug = card.id.replace('card-', '');
         const btn = document.getElementById('check-' + slug);
+        const badge = document.getElementById('badge-' + slug);
         if (watched[slug]) {
           card.classList.add('watched');
           btn.classList.add('checked');
           btn.textContent = '✓';
+          if (badge) badge.style.display = 'inline-block';
+          watchedCount++;
         } else {
           card.classList.remove('watched');
           btn.classList.remove('checked');
           btn.textContent = '';
+          if (badge) badge.style.display = 'none';
         }
       });
+
+      const pct = total > 0 ? Math.round(watchedCount / total * 100) : 0;
+      document.getElementById('progress-text').textContent = `履修率 ${watchedCount}/${total}本（${pct}%）`;
+      document.getElementById('progress-bar').style.width = pct + '%';
     }
 
     updateUI();
