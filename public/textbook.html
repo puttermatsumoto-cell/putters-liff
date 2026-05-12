@@ -24,6 +24,7 @@
     .card.watched .card-title { color: #888; }
     .card-desc { font-size: 12px; color: #888; line-height: 1.6; }
     .badge { display: inline-block; font-size: 11px; color: #4caf50; font-weight: 700; margin-top: 5px; }
+    .yt-btn { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; background: #ff0000; color: white; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 6px; text-decoration: none; }
     .check-btn { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #ddd; background: white; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; flex-shrink: 0; }
     .check-btn.checked { background: #4caf50; border-color: #4caf50; color: white; }
   </style>
@@ -46,11 +47,12 @@
 
   <div class="card" id="card-diagonal">
     <div class="num">①</div>
-    <a href="https://youtu.be/KPUMLl3wDQ0" target="_blank" style="flex:1; display:flex; flex-direction:column; text-decoration:none; color:inherit;">
+    <div style="flex:1; display:flex; flex-direction:column;">
       <div class="card-title">体幹が使えないと二の腕・背中に効かせられない理由【ダイアゴナル】</div>
       <div class="card-desc">四つん這いから対角線上の手足を動かす体幹種目</div>
+      <a href="https://youtu.be/KPUMLl3wDQ0" target="_blank" class="yt-btn">▶ YouTubeで見る</a>
       <div class="badge" id="badge-diagonal" style="display:none;">✅ 履修済み</div>
-    </a>
+    </div>
     <button class="check-btn" id="check-diagonal" onclick="toggleWatch('diagonal')"></button>
   </div>
 
