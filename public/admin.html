@@ -72,6 +72,7 @@
   <div class="tab" onclick="switchTab('random-hw')">🎲 ランダム宿題</div>
   <div class="tab" onclick="switchTab('soreness')">💪 筋肉痛</div>
   <div class="tab" onclick="switchTab('graph')">📈 個人グラフ</div>
+  <div class="tab" onclick="switchTab('textbook')">📺 教科書履修</div>
 </div>
 
 <div class="content">
@@ -208,6 +209,14 @@
     </div>
   </div>
 
+  <div id="page-textbook" class="page">
+    <div class="card">
+      <h2>📺 教科書履修状況</h2>
+      <div id="textbook-loading" class="loading">読み込み中...</div>
+      <div id="textbook-content" style="display:none"></div>
+    </div>
+  </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
@@ -285,6 +294,7 @@
     if (tab === 'soreness') loadSoreness();
     if (tab === 'random-hw') loadRandomHw();
     if (tab === 'graph') document.getElementById('graph-name-input').focus();
+    if (tab === 'textbook') loadTextbookWatch();
   }
 
   async function loadRandomHw() {
@@ -313,6 +323,39 @@
     if (!confirm('削除しますか？')) return;
     await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteRandomTask', index }) });
     loadRandomHw();
+  }
+
+  async function loadTextbookWatch() {
+    document.getElementById('textbook-loading').style.display = 'block';
+    document.getElementById('textbook-content').style.display = 'none';
+    try {
+      const res = await fetch(GAS_URL + '?action=admin_textbook_watch');
+      const data = await res.json();
+      const content = document.getElementById('textbook-content');
+      const names = Object.keys(data);
+      if (names.length === 0) {
+        content.innerHTML = '<p style="color:#888;">まだ履修データがありません</p>';
+      } else {
+        const videoLabels = { '1': '①ダイアゴナル' };
+        let html = '<table style="width:100%;border-collapse:collapse;font-size:14px;">';
+        html += '<tr style="background:#f5f0eb;"><th style="padding:10px;text-align:left;">名前</th>';
+        Object.values(videoLabels).forEach(v => { html += `<th style="padding:10px;text-align:center;">${v}</th>`; });
+        html += '</tr>';
+        names.forEach(name => {
+          html += `<tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">${name}</td>`;
+          Object.keys(videoLabels).forEach(id => {
+            html += `<td style="padding:10px;text-align:center;">${data[name][id] ? '✅' : '－'}</td>`;
+          });
+          html += '</tr>';
+        });
+        html += '</table>';
+        content.innerHTML = html;
+      }
+      document.getElementById('textbook-loading').style.display = 'none';
+      content.style.display = 'block';
+    } catch(e) {
+      document.getElementById('textbook-loading').textContent = '読み込みエラー';
+    }
   }
 
   async function loadSoreness() {

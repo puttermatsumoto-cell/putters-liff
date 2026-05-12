@@ -40,6 +40,7 @@
 
   <script>
     const STORAGE_KEY = 'putters_textbook_watched';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
 
     function getWatched() {
       return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -50,6 +51,11 @@
       watched[id] = !watched[id];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(watched));
       updateUI();
+      const name = localStorage.getItem('putters_user_name') || '不明';
+      fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'saveTextbookWatch', name, videoId: id, watched: watched[id] })
+      }).catch(() => {});
     }
 
     function updateUI() {
