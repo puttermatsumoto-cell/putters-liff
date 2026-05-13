@@ -93,6 +93,7 @@
     .menu-drawer .menu-label { padding: 12px 4px 6px; font-size: 11px; color: #c8a97e; letter-spacing: 1px; }
     .menu-pickup { display: grid; grid-template-columns: 1fr; gap: 8px; }
     .menu-pickup a { font-size: 12px; padding: 12px 14px; flex-direction: row; justify-content: flex-start; gap: 8px; }
+    .yt-badge { position: absolute; top: -6px; right: -6px; background: #e53935; color: white; font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 99px; display: flex; align-items: center; justify-content: center; padding: 0 4px; line-height: 1; pointer-events: none; }
     .hamburger { position: absolute; top: 12px; left: 0; background: none; border: none; cursor: pointer; padding: 4px; display: flex; flex-direction: column; gap: 5px; }
     .hamburger span { display: block; width: 22px; height: 2px; background: #555; border-radius: 2px; }
     .name-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; }
@@ -173,7 +174,7 @@
       </div>
       <div class="menu-label">PICKUP</div>
       <div class="menu-pickup">
-        <a href="/textbook.html" style="color:#c8a97e;"><span class="menu-icon">📺</span>YouTube</a>
+        <a href="/textbook.html" id="yt-menu-link" style="color:#c8a97e; position:relative;"><span class="menu-icon">📺</span>YouTube</a>
         <a href="/protein.html" style="color:#c8a97e;"><span class="menu-icon">💪</span>おすすめのプロテイン</a>
         <a href="/goods.html" style="color:#c8a97e;"><span class="menu-icon">🏋️</span>おすすめグッズ</a>
         <a href="/supple.html" style="color:#c8a97e;"><span class="menu-icon">💊</span>必須サプリメント</a>
@@ -1910,6 +1911,23 @@
         cameraBtn.style.borderColor = '#333';
       }
     }
+
+    // YouTube未視聴バッジ
+    (function() {
+      const TOTAL_VIDEOS = 1; // 動画を追加したらここを増やす
+      const watched = JSON.parse(localStorage.getItem('putters_textbook_watched') || '{}');
+      const watchedCount = Object.values(watched).filter(Boolean).length;
+      const unread = Math.max(0, TOTAL_VIDEOS - watchedCount);
+      if (unread > 0) {
+        const link = document.getElementById('yt-menu-link');
+        if (link) {
+          const badge = document.createElement('span');
+          badge.className = 'yt-badge';
+          badge.textContent = unread;
+          link.appendChild(badge);
+        }
+      }
+    })();
   </script>
 </body>
 </html>
