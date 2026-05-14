@@ -1914,7 +1914,7 @@
 
     // YouTube未視聴バッジ
     (function() {
-      const TOTAL_VIDEOS = 1; // 動画を追加したらここを増やす
+      const TOTAL_VIDEOS = 2; // 動画を追加したらここを増やす
       const watched = JSON.parse(localStorage.getItem('putters_textbook_watched') || '{}');
       const watchedCount = Object.values(watched).filter(Boolean).length;
       const unread = Math.max(0, TOTAL_VIDEOS - watchedCount);
