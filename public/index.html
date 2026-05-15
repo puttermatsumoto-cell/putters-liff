@@ -112,9 +112,47 @@
     .soreness-none { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; text-align: center; font-size: 14px; cursor: pointer; background: white; margin-bottom: 12px; }
     .soreness-none.selected { border-color: #81c784; background: #e8f5e9; color: #388e3c; }
     .soreness-submit { width: 100%; padding: 14px; background: #1a1a2e; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; }
+    .welcome-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center; padding: 24px; }
+    .welcome-overlay.show { display: flex; }
+    .welcome-card { background: white; border-radius: 20px; padding: 28px 24px 20px; max-width: 360px; width: 100%; box-shadow: 0 8px 32px rgba(0,0,0,0.2); text-align: center; animation: welcomeFadeIn 0.3s ease-out; max-height: 90vh; overflow-y: auto; }
+    @keyframes welcomeFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .welcome-icon { font-size: 48px; margin-bottom: 12px; }
+    .welcome-title { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+    .welcome-text { font-size: 12px; color: #666; line-height: 1.6; margin-bottom: 18px; }
+    .welcome-text strong { color: #c8a97e; font-weight: 700; }
+    .welcome-steps { background: #f8f5f0; border-radius: 12px; padding: 14px 14px 12px; margin-bottom: 18px; text-align: left; }
+    .welcome-steps-title { font-size: 11px; font-weight: 700; color: #c8a97e; letter-spacing: 0.08em; margin-bottom: 10px; text-align: center; }
+    .welcome-step { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; font-size: 12px; color: #444; line-height: 1.5; }
+    .welcome-step:last-child { margin-bottom: 0; }
+    .welcome-step-num { flex-shrink: 0; width: 22px; height: 22px; background: #1a1a2e; color: #c8a97e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+    .welcome-step-num.dot-red { background: #e53935; color: white; }
+    .welcome-btn { display: block; width: 100%; padding: 13px; background: #1a1a2e; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; margin-bottom: 8px; }
+    .welcome-btn:active { opacity: 0.8; }
+    .welcome-dismiss { background: none; border: none; color: #999; font-size: 13px; cursor: pointer; padding: 6px; }
   </style>
 </head>
 <body>
+
+  <!-- 初回ウェルカムカード -->
+  <div id="welcome-overlay" class="welcome-overlay" onclick="if(event.target===this)closeWelcome()">
+    <div class="welcome-card">
+      <div class="welcome-icon">📺</div>
+      <div class="welcome-title">トレーニング教科書を追加しました</div>
+      <div class="welcome-text">
+        身体を物理現象として読み解く<br>
+        <strong>運動的IQ</strong>を発信しています
+      </div>
+      <div class="welcome-steps">
+        <div class="welcome-steps-title">使い方</div>
+        <div class="welcome-step"><span class="welcome-step-num">1</span><span>動画を見る</span></div>
+        <div class="welcome-step"><span class="welcome-step-num">2</span><span>理解したら ✓ を押す</span></div>
+        <div class="welcome-step"><span class="welcome-step-num">3</span><span>ゲージが溜まって100%になる</span></div>
+        <div class="welcome-step"><span class="welcome-step-num dot-red">!</span><span>新しい動画は赤バッジでお知らせ</span></div>
+      </div>
+      <a href="/textbook.html" class="welcome-btn" onclick="markWelcomeShown()">見てみる</a>
+      <button class="welcome-dismiss" onclick="closeWelcome()">あとで</button>
+    </div>
+  </div>
 
   <!-- 送信完了画面 -->
   <div id="complete-screen" style="display:none; position:fixed; inset:0; background:#1a1a2e; z-index:2000; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px 24px;">
@@ -1926,6 +1964,25 @@
           badge.textContent = unread;
           link.appendChild(badge);
         }
+      }
+    })();
+
+    // 初回ウェルカムカード（教科書未訪問者に1回だけ表示）
+    function markWelcomeShown() {
+      localStorage.setItem('putters_textbook_welcome_shown', '1');
+    }
+    function closeWelcome() {
+      markWelcomeShown();
+      document.getElementById('welcome-overlay').classList.remove('show');
+    }
+    (function() {
+      const shown = localStorage.getItem('putters_textbook_welcome_shown');
+      const watched = JSON.parse(localStorage.getItem('putters_textbook_watched') || '{}');
+      const hasWatched = Object.values(watched).some(Boolean);
+      if (!shown && !hasWatched) {
+        setTimeout(() => {
+          document.getElementById('welcome-overlay').classList.add('show');
+        }, 1500);
       }
     })();
   </script>
