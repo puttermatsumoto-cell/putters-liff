@@ -126,6 +126,8 @@
   let cart = []; // { date, dateLabel, time }
   let monthCache = {}; // 月一括取得キャッシュ
   let isShiftSpecial = false;
+  let allowedMonths = []; // シフト制特別が予約できる月の配列 [{year, month}]
+  let monthIndex = 0; // allowedMonthsのインデックス
 
   // シフト制特別：当月の2日後〜月末が予約対象
   const nowFull = new Date();
@@ -147,10 +149,19 @@
     } catch (e) {}
 
     if (isShiftSpecial) {
-      // シフト制特別：当月カレンダーを表示
-      targetMonth = `${nowFull.getFullYear()}-${String(nowFull.getMonth()+1).padStart(2,'0')}`;
-      currentYear = nowFull.getFullYear();
-      currentMonth = nowFull.getMonth();
+      // シフト制特別：当月を必ず表示、15日以降は来月も切り替え可能
+      const ty = nowFull.getFullYear();
+      const tm = nowFull.getMonth();
+      allowedMonths = [{ year: ty, month: tm }];
+      if (today >= 15) {
+        let ny = ty, nm = tm + 1;
+        if (nm > 11) { nm = 0; ny++; }
+        allowedMonths.push({ year: ny, month: nm });
+      }
+      monthIndex = 0;
+      currentYear = allowedMonths[0].year;
+      currentMonth = allowedMonths[0].month;
+      targetMonth = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
     } else {
       // 通常シフト制：来月カレンダー
       targetMonth = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
@@ -185,10 +196,49 @@
     }
   }
 
-  function changeMonth(delta) {}
+  async function changeMonth(delta) {
+    if (!isShiftSpecial) return;
+    const newIndex = monthIndex + delta;
+    if (newIndex < 0 || newIndex >= allowedMonths.length) return;
+    monthIndex = newIndex;
+    currentYear = allowedMonths[monthIndex].year;
+    currentMonth = allowedMonths[monthIndex].month;
+    targetMonth = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
+
+    const cacheKey = 'putters_month_cache_' + targetMonth;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      monthCache = JSON.parse(cached);
+      renderCalendar();
+      fetch(`${GAS_URL}?action=month_slots&month=${targetMonth}`)
+        .then(r => r.json())
+        .then(data => {
+          monthCache = data;
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+          renderCalendar();
+        }).catch(() => {});
+    } else {
+      try {
+        const res = await fetch(`${GAS_URL}?action=month_slots&month=${targetMonth}`);
+        monthCache = await res.json();
+        localStorage.setItem(cacheKey, JSON.stringify(monthCache));
+      } catch (e) {}
+      renderCalendar();
+    }
+  }
 
   function renderCalendar() {
     document.getElementById('cal-month-label').textContent = `${currentYear}年${MONTHS[currentMonth]}`;
+    // シフト制特別の月切替ボタンの表示制御
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    if (isShiftSpecial && allowedMonths.length > 1) {
+      btnPrev.style.visibility = monthIndex > 0 ? 'visible' : 'hidden';
+      btnNext.style.visibility = monthIndex < allowedMonths.length - 1 ? 'visible' : 'hidden';
+    } else {
+      btnPrev.style.visibility = 'hidden';
+      btnNext.style.visibility = 'hidden';
+    }
     const grid = document.getElementById('calendar-grid');
     grid.innerHTML = '';
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
