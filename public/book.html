@@ -112,7 +112,6 @@
   const NAME_KEY = 'putters_user_name';
   const WEEKDAYS = ['日','月','火','水','木','金','土'];
   const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-  const MAX_SELECT = 4;
 
   const now = new Date();
   const today = now.getDate();
@@ -271,10 +270,6 @@
   }
 
   function addToCart(date, dateLabel, time, btn) {
-    if (cart.length >= MAX_SELECT) {
-      alert(`予約は最大${MAX_SELECT}つまでです`);
-      return;
-    }
     if (cart.some(c => c.date === date && c.time === time)) return;
     cart.push({ date, dateLabel, time });
     btn.className = 'slot-btn selected';
@@ -299,7 +294,7 @@
     }
 
     section.style.display = 'block';
-    count.textContent = `${cart.length}/${MAX_SELECT}`;
+    count.textContent = `${cart.length}件`;
     list.innerHTML = '';
 
     const sorted = [...cart].sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
