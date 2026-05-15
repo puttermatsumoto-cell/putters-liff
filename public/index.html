@@ -1513,11 +1513,6 @@
       } else if (data.status === '退会') {
         mode = 'former'; // 退会
       }
-      // 松本大樹は常に在籍扱い（管理者）
-      try {
-        const name = localStorage.getItem('putters_user_name');
-        if (name === '松本大樹') mode = 'active';
-      } catch(e) {}
       document.body.classList.remove('mode-active', 'mode-former', 'mode-unknown');
       if (mode !== 'active') document.body.classList.add('mode-' + mode);
       try { localStorage.setItem('putters_user_mode', mode); } catch(e) {}
