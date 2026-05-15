@@ -622,6 +622,7 @@
 
     async function toggleNextDay() {
       const tomorrow = new Date();
+      if (tomorrow.getHours() < 2) tomorrow.setDate(tomorrow.getDate() - 1); // 26時切り替え対応
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dateStr = getLocalDateISO(tomorrow);
       const btn = document.getElementById('next-day-btn');
@@ -670,6 +671,7 @@
 
     async function loadPrevDayEdit() {
       const yesterday = new Date();
+      if (yesterday.getHours() < 2) yesterday.setDate(yesterday.getDate() - 1); // 26時切り替え対応
       yesterday.setDate(yesterday.getDate() - 1);
       const dateStr = getLocalDateISO(yesterday);
       const history = JSON.parse(localStorage.getItem(DETAIL_HISTORY_KEY) || '{}');
@@ -1133,7 +1135,9 @@
         text: el.querySelector('label').textContent,
         checked: el.querySelector('input[type="checkbox"]').checked
       }));
-      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrow = new Date();
+      if (tomorrow.getHours() < 2) tomorrow.setDate(tomorrow.getDate() - 1); // 26時切り替え対応
+      tomorrow.setDate(tomorrow.getDate() + 1);
       const tomorrowStr = getLocalDateISO(tomorrow);
       if (editingDate === tomorrowStr) {
         data._tomorrowDate = tomorrowStr;
