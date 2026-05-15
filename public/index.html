@@ -139,9 +139,25 @@
     .latest-video-meta { display: flex; gap: 8px; align-items: baseline; }
     .latest-video-num { font-size: 12px; color: #c8a97e; font-weight: 700; flex-shrink: 0; }
     .latest-video-title { font-size: 13px; color: #1a1a2e; font-weight: 600; line-height: 1.5; }
+    /* ユーザーモード制御（退会者・不明ユーザー向け） */
+    body.mode-former [data-active-only],
+    body.mode-unknown [data-active-only],
+    body.mode-unknown [data-former-ok] { display: none !important; }
   </style>
 </head>
 <body>
+
+  <script>
+    // ユーザーモードのキャッシュを即時適用（FOUC回避）
+    (function() {
+      try {
+        const cachedMode = localStorage.getItem('putters_user_mode');
+        if (cachedMode === 'former' || cachedMode === 'unknown') {
+          document.body.classList.add('mode-' + cachedMode);
+        }
+      } catch(e) {}
+    })();
+  </script>
 
   <!-- 初回ウェルカムカード -->
   <div id="welcome-overlay" class="welcome-overlay" onclick="if(event.target===this)closeWelcome()">
@@ -211,13 +227,13 @@
     <div class="menu-drawer" onclick="event.stopPropagation()">
       <div class="menu-label">MENU</div>
       <div class="menu-grid">
-        <a href="/goals.html"><span class="menu-icon">🎯</span>目標設定</a>
-        <a href="/chart-full.html"><span class="menu-icon">📈</span>グラフ</a>
-        <a href="/schedule.html"><span class="menu-icon">📅</span>今月の予約</a>
-        <a href="/myset.html"><span class="menu-icon">📦</span>マイセット</a>
+        <a href="/goals.html" data-former-ok><span class="menu-icon">🎯</span>目標設定</a>
+        <a href="/chart-full.html" data-former-ok><span class="menu-icon">📈</span>グラフ</a>
+        <a href="/schedule.html" data-active-only><span class="menu-icon">📅</span>今月の予約</a>
+        <a href="/myset.html" data-active-only><span class="menu-icon">📦</span>マイセット</a>
         <!-- <a href="/steps.html"><span class="menu-icon">🚶</span>歩数ランキング</a> -->
-        <a href="/feedback.html"><span class="menu-icon">📮</span>意見箱</a>
-        <a href="/recipe.html"><span class="menu-icon">🍳</span>食材からレシピ</a>
+        <a href="/feedback.html" data-former-ok><span class="menu-icon">📮</span>意見箱</a>
+        <a href="/recipe.html" data-active-only><span class="menu-icon">🍳</span>食材からレシピ</a>
         <a href="/brain.html" id="brain-menu-link" style="display:none;"><span class="menu-icon">🧠</span>脳トレ</a>
       </div>
       <div class="menu-label">PICKUP</div>
@@ -253,7 +269,7 @@
   <div id="save-toast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#1a1a2e; color:#c8a97e; padding:10px 20px; border-radius:20px; font-size:13px; z-index:999;">一時保存しました</div>
 
   <!-- 目標体重バー -->
-  <div class="goal-bar" id="goal-bar" style="display:none">
+  <div class="goal-bar" id="goal-bar" data-former-ok style="display:none">
     目標まであと <span id="goal-diff">-</span> kg
   </div>
 
@@ -269,7 +285,7 @@
   </div>
 
   <!-- 体重・体温 横並び -->
-  <div style="display:flex; gap:12px; margin-bottom:16px;">
+  <div data-former-ok style="display:flex; gap:12px; margin-bottom:16px;">
     <div class="section" style="flex:1; margin-bottom:0;">
       <h2>⚖️ 体重</h2>
       <div class="row">
@@ -294,7 +310,7 @@
   </div>
 
   <!-- 食事 -->
-  <div class="section" id="meal-section">
+  <div class="section" id="meal-section" data-active-only>
     <h2>🍽️ 今日食べたもの</h2>
 
     <!-- 食事指導ライトコース：画像解析UI -->
@@ -377,7 +393,7 @@
   </div>
 
   <!-- 有酸素 -->
-  <div class="section">
+  <div class="section" data-former-ok>
     <h2>🏃 有酸素運動</h2>
     <div class="row">
       <input type="number" id="cardio" placeholder="0" min="0" oninput="saveCache()">
@@ -386,7 +402,7 @@
   </div>
 
   <!-- 宿題チェックリスト -->
-  <div class="section">
+  <div class="section" data-former-ok>
     <h2>📋 今日の宿題</h2>
     <!-- タイマー表示 -->
     <div id="hw-timer-box" style="display:none; text-align:center; background:#1a1a2e; border-radius:16px; padding:20px 16px; margin-bottom:16px;">
@@ -449,7 +465,7 @@
   </div>
 
   <!-- 通常の送信ボタン（松本大樹以外） -->
-  <button class="submit-btn" id="normal-submit-btn" style="display:none;" onclick="submitData()">今日の記録を送る</button>
+  <button class="submit-btn" id="normal-submit-btn" data-former-ok style="display:none;" onclick="submitData()">今日の記録を送る</button>
 
 
   <script>
@@ -1490,6 +1506,24 @@
       renderPFCGoalCharts();
     }
 
+    function applyUserMode(data) {
+      let mode = 'active'; // 在籍（既存通り）
+      if (!data || !data.userExists) {
+        mode = 'unknown'; // 宿題タブに名前なし
+      } else if (data.status === '退会') {
+        mode = 'former'; // 退会
+      }
+      // 松本大樹は常に在籍扱い（管理者）
+      try {
+        const name = localStorage.getItem('putters_user_name');
+        if (name === '松本大樹') mode = 'active';
+      } catch(e) {}
+      document.body.classList.remove('mode-active', 'mode-former', 'mode-unknown');
+      if (mode !== 'active') document.body.classList.add('mode-' + mode);
+      try { localStorage.setItem('putters_user_mode', mode); } catch(e) {}
+      window._userMode = mode;
+    }
+
     async function initChecklist(userName) {
       const container = document.getElementById('checklist');
       let tasks = defaultTasks;
@@ -1499,7 +1533,11 @@
           const data = await res.json();
           if (data.tasks && data.tasks.length > 0) tasks = data.tasks;
           if (data.videoUrls) window._hwVideoUrls = data.videoUrls;
+          // ユーザーモード判定（在籍/退会/不明）
+          applyUserMode(data);
         } catch (e) {}
+      } else {
+        applyUserMode({ userExists: false, status: '' });
       }
       currentTasks = tasks;
       // 再描画前に現在のチェック状態を保持
