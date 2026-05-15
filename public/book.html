@@ -233,11 +233,17 @@
     const btnPrev = document.getElementById('btn-prev');
     const btnNext = document.getElementById('btn-next');
     if (isShiftSpecial && allowedMonths.length > 1) {
-      btnPrev.style.visibility = monthIndex > 0 ? 'visible' : 'hidden';
-      btnNext.style.visibility = monthIndex < allowedMonths.length - 1 ? 'visible' : 'hidden';
+      const canPrev = monthIndex > 0;
+      const canNext = monthIndex < allowedMonths.length - 1;
+      btnPrev.style.visibility = canPrev ? 'visible' : 'hidden';
+      btnNext.style.visibility = canNext ? 'visible' : 'hidden';
+      btnPrev.disabled = !canPrev;
+      btnNext.disabled = !canNext;
     } else {
       btnPrev.style.visibility = 'hidden';
       btnNext.style.visibility = 'hidden';
+      btnPrev.disabled = true;
+      btnNext.disabled = true;
     }
     const grid = document.getElementById('calendar-grid');
     grid.innerHTML = '';
