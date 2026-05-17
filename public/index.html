@@ -2013,7 +2013,7 @@
 
     // YouTube未視聴バッジ
     (function() {
-      const TOTAL_VIDEOS = 2; // 動画を追加したらここを増やす
+      const TOTAL_VIDEOS = 3; // 動画を追加したらここを増やす
       const watched = JSON.parse(localStorage.getItem('putters_textbook_watched') || '{}');
       const watchedCount = Object.values(watched).filter(Boolean).length;
       const unread = Math.max(0, TOTAL_VIDEOS - watchedCount);
@@ -2031,10 +2031,10 @@
     // 最新動画カード（未履修の人にだけ表示）
     (function() {
       const LATEST_VIDEO = {
-        slug: 'sidebend',
-        id: 'okCVByo9ENE',
-        number: '#02',
-        title: 'サイドベントは横腹ではなく胸椎で曲げる'
+        slug: 'crunch',
+        id: 'dA0pKrkvZUY',
+        number: '#03',
+        title: '腹筋に効かないクランチは、骨盤後傾で直る'
       };
       const watched = JSON.parse(localStorage.getItem('putters_textbook_watched') || '{}');
       if (!watched[LATEST_VIDEO.slug]) {
