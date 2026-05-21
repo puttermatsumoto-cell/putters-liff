@@ -435,6 +435,24 @@
     </div>
   </div>
 
+  <!-- NEWS: オンライン食事指導 5/22-5/24限定表示 -->
+  <div id="news-online-coaching" style="display:none; margin:0 0 16px; background:#fff; border-radius:14px; padding:18px 20px; box-shadow:0 2px 10px rgba(0,0,0,0.07); border-left:4px solid #c8a97e;">
+    <div style="font-size:11px; font-weight:700; color:#c8a97e; letter-spacing:0.1em; margin-bottom:8px;">📰 NEWS</div>
+    <div style="font-size:14px; font-weight:700; color:#1a1a2e; margin-bottom:6px;">オンライン食事指導、はじめます</div>
+    <div style="font-size:12px; color:#666; line-height:1.8; margin-bottom:14px;">栃木県外のご友人・遠方のご家族にも、食事指導が受けられるようになりました。月額12,000円。<br>・毎週1回のLINEフィードバック<br>・初回のPFC設定<br>・PUTTERSアプリでの食事記録</div>
+    <a href="https://lin.ee/xbGW2yf" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#06c755; color:white; font-size:12px; font-weight:700; padding:9px 16px; border-radius:8px; text-decoration:none;">📲 LINE公式へ</a>
+  </div>
+  <script>
+    (function() {
+      const now = new Date();
+      const d = now.getHours() < 2 ? new Date(now - 86400000) : now;
+      const ymd = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+      if (ymd >= 20260522 && ymd <= 20260524) {
+        document.getElementById('news-online-coaching').style.display = 'block';
+      }
+    })();
+  </script>
+
   <!-- 最新動画カード（未履修の人にだけ表示） -->
   <a href="/textbook.html" id="latest-video" class="latest-video" style="display:none;">
     <div class="latest-video-header">
@@ -466,25 +484,6 @@
 
   <!-- 通常の送信ボタン（松本大樹以外） -->
   <button class="submit-btn" id="normal-submit-btn" data-former-ok style="display:none;" onclick="submitData()">今日の記録を送る</button>
-
-  <!-- NEWS: オンライン食事指導 5/22-5/24限定表示 -->
-  <div id="news-online-coaching" style="display:none; margin:24px 0 80px; background:#fff; border-radius:14px; padding:18px 20px; box-shadow:0 2px 10px rgba(0,0,0,0.07); border-left:4px solid #c8a97e;">
-    <div style="font-size:11px; font-weight:700; color:#c8a97e; letter-spacing:0.1em; margin-bottom:8px;">📰 NEWS</div>
-    <div style="font-size:14px; font-weight:700; color:#1a1a2e; margin-bottom:6px;">オンライン食事指導、はじめます</div>
-    <div style="font-size:12px; color:#666; line-height:1.8; margin-bottom:14px;">栃木県外のご友人・遠方のご家族にも、食事指導が受けられるようになりました。月額12,000円。<br>・毎週1回のLINEフィードバック<br>・初回のPFC設定<br>・PUTTERSアプリでの食事記録</div>
-    <a href="https://lin.ee/xbGW2yf" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#06c755; color:white; font-size:12px; font-weight:700; padding:9px 16px; border-radius:8px; text-decoration:none;">📲 LINE公式へ</a>
-  </div>
-  <script>
-    (function() {
-      const now = new Date();
-      const d = now.getHours() < 2 ? new Date(now - 86400000) : now;
-      const ymd = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-      if (ymd >= 20260522 && ymd <= 20260524) {
-        document.getElementById('news-online-coaching').style.display = 'block';
-      }
-    })();
-  </script>
-
 
   <script>
     function toggleCustomInput() {
