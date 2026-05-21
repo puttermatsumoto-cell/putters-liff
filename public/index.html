@@ -1573,7 +1573,15 @@
     }
 
     async function autoSubmitYesterday() {
-      const raw = localStorage.getItem(CACHE_KEY);
+      // CACHE_KEY と PREVDAY_CACHE_KEY の両方を確認する
+      const keysToCheck = [CACHE_KEY, PREVDAY_CACHE_KEY];
+      for (const cacheKey of keysToCheck) {
+        await _autoSubmitFromKey(cacheKey);
+      }
+    }
+
+    async function _autoSubmitFromKey(cacheKey) {
+      const raw = localStorage.getItem(cacheKey);
       if (!raw) return;
       try {
         const data = JSON.parse(raw);
@@ -1612,7 +1620,7 @@
           body: JSON.stringify({ name: userName, date: dateStr, weight: data.weight || '', goalWeight: data.goalWeight || '', temperature: data.temperature || '', foods: foods.join(', '), p: autoP.toFixed(1), f: autoF.toFixed(1), c: autoC.toFixed(1), kcal: Math.round(autoKcal), cardio: data.cardio || 0, checkedTasks: checkedTasks.join('、'), uncheckedTasks: uncheckedTasks.join('、') })
         });
         saveDetailHistory(dateStr, data);
-        localStorage.removeItem(CACHE_KEY);
+        localStorage.removeItem(cacheKey);
         saveHistory(data.weight || '', autoP.toFixed(1), autoF.toFixed(1), autoC.toFixed(1), Math.round(autoKcal), data.temperature || '', data.cardio || 0);
         const hwChecked = [...(data.checkedTaskTexts || []), ...(data.customTasks || []).filter(t => t.checked).map(t => t.text)];
         const hwTotal = [...(data.checkedTaskTexts || []), ...(data.uncheckedTaskTexts || []), ...(data.customTasks || [])].length;
@@ -1624,6 +1632,7 @@
         setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
       } catch (e) { console.error('autoSubmitYesterday error:', e); }
     }
+
 
     async function submitData(dateStr) {
       const weight = document.getElementById('weight').value;
