@@ -1615,10 +1615,11 @@
           if (t.checked) checkedTasks.push(t.text);
           else uncheckedTasks.push(t.text);
         });
-        await fetch(GAS_URL, {
+        const res = await fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify({ name: userName, date: dateStr, weight: data.weight || '', goalWeight: data.goalWeight || '', temperature: data.temperature || '', foods: foods.join(', '), p: autoP.toFixed(1), f: autoF.toFixed(1), c: autoC.toFixed(1), kcal: Math.round(autoKcal), cardio: data.cardio || 0, checkedTasks: checkedTasks.join('、'), uncheckedTasks: uncheckedTasks.join('、') })
         });
+        if (!res.ok) throw new Error('GAS error: ' + res.status);
         saveDetailHistory(dateStr, data);
         localStorage.removeItem(cacheKey);
         saveHistory(data.weight || '', autoP.toFixed(1), autoF.toFixed(1), autoC.toFixed(1), Math.round(autoKcal), data.temperature || '', data.cardio || 0);
