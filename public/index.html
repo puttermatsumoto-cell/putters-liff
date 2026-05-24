@@ -1545,7 +1545,6 @@
         const d = new Date(base);
         d.setDate(base.getDate() + i);
         const dow = d.getDay();
-        if (dow === 4) continue; // 木曜はスキップ
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         const dd = String(d.getDate()).padStart(2, '0');
