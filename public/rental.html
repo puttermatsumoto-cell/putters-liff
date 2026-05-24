@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUTTERS レンタルジム予約</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 16px; }
+    h1 { font-size: 20px; color: #222; text-align: center; margin-bottom: 20px; padding-top: 12px; }
+    .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .label { font-size: 13px; color: #888; margin-bottom: 12px; }
+    .date-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .date-btn { padding: 8px 14px; border: 1px solid #ddd; border-radius: 20px; background: #fff; font-size: 13px; cursor: pointer; color: #1a1a2e; }
+    .date-btn.selected { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+    .slot-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .slot-btn { padding: 10px 16px; border: 1px solid #c8a97e; border-radius: 10px; background: #fff; font-size: 14px; font-weight: bold; cursor: pointer; color: #1a1a2e; }
+    .slot-btn.selected { background: #c8a97e; color: #fff; }
+    .slot-btn:disabled { border-color: #eee; background: #f5f5f5; color: #bbb; cursor: not-allowed; font-weight: normal; }
+    .book-btn { display: block; width: 100%; margin-top: 16px; padding: 14px; background: #1a1a2e; color: #c8a97e; font-size: 15px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; letter-spacing: 0.05em; }
+    .book-btn:disabled { background: #ccc; color: #fff; cursor: not-allowed; }
+    .msg { font-size: 13px; margin-top: 12px; text-align: center; }
+  </style>
+</head>
+<body>
+  <a href="/schedule.html" class="back">← 戻る</a>
+  <h1>🏋️ レンタルジム予約</h1>
+
+  <div class="section">
+    <div class="label">日付を選んでください</div>
+    <div class="date-list" id="date-list"><span style="color:#aaa;font-size:13px;">読み込み中...</span></div>
+  </div>
+
+  <div class="section" id="slots-section" style="display:none;">
+    <div class="label" id="slots-label"></div>
+    <div class="slot-list" id="slot-list"></div>
+    <button class="book-btn" id="book-btn" disabled onclick="doBook()">予約する</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+  const DAY_NAMES = ['日','月','火','水','木','金','土'];
+  let selected = null; // { dateStr, time, dateLabel }
+
+  function buildDateList() {
+    const container = document.getElementById('date-list');
+    container.innerHTML = '';
+    const now = new Date();
+    const base = now.getHours() < 2 ? new Date(now - 86400000) : now;
+    for (let i = 1; i <= 14; i++) {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      const dow = d.getDay();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+      const label = `${d.getMonth()+1}/${d.getDate()}(${DAY_NAMES[dow]})`;
+      const btn = document.createElement('button');
+      btn.className = 'date-btn';
+      btn.textContent = label;
+      btn.onclick = () => selectDate(dateStr, label, btn);
+      container.appendChild(btn);
+    }
+  }
+
+  async function selectDate(dateStr, label, clickedBtn) {
+    document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('selected'));
+    clickedBtn.classList.add('selected');
+    selected = null;
+    document.getElementById('book-btn').disabled = true;
+    document.getElementById('msg').textContent = '';
+
+    const section = document.getElementById('slots-section');
+    const slotList = document.getElementById('slot-list');
+    document.getElementById('slots-label').textContent = label + ' の空き時間';
+    section.style.display = 'block';
+    slotList.innerHTML = '<span style="color:#aaa;font-size:13px;">読み込み中...</span>';
+
+    try {
+      const res = await fetch(`${GAS_URL}?action=rental_slots&date=${dateStr}`);
+      const data = await res.json();
+      slotList.innerHTML = '';
+      if (data.closed) {
+        slotList.innerHTML = '<span style="color:#aaa;font-size:13px;">本日はお休みです</span>';
+        return;
+      }
+      if (!data.slots || data.slots.length === 0) {
+        slotList.innerHTML = '<span style="color:#aaa;font-size:13px;">空きがありません</span>';
+        return;
+      }
+      data.slots.forEach(slot => {
+        const btn = document.createElement('button');
+        btn.className = 'slot-btn';
+        if (slot.available) {
+          btn.textContent = slot.time + '〜';
+          btn.onclick = () => {
+            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selected = { dateStr, time: slot.time, dateLabel: label };
+            document.getElementById('book-btn').disabled = false;
+          };
+        } else {
+          btn.textContent = slot.time + '〜 ×';
+          btn.disabled = true;
+        }
+        slotList.appendChild(btn);
+      });
+    } catch (e) {
+      slotList.innerHTML = '<span style="color:#e74c3c;font-size:13px;">通信エラー</span>';
+    }
+  }
+
+  async function doBook() {
+    if (!selected) return;
+    const name = localStorage.getItem('putters_user_name');
+    if (!name) { alert('名前が設定されていません'); return; }
+    if (!confirm(`${selected.dateLabel} ${selected.time}〜 で予約しますか？`)) return;
+
+    const btn = document.getElementById('book-btn');
+    const msg = document.getElementById('msg');
+    btn.disabled = true;
+    msg.style.color = '#888';
+    msg.textContent = '予約中...';
+
+    try {
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'book_rental', name, date: selected.dateStr, time: selected.time })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        msg.style.color = '#27ae60';
+        msg.textContent = `✅ ${selected.dateLabel} ${selected.time}〜 の予約が完了しました！`;
+        selected = null;
+        // スロットを再ロード
+        const activeDateBtn = document.querySelector('.date-btn.selected');
+        if (activeDateBtn) activeDateBtn.click();
+      } else {
+        msg.style.color = '#e74c3c';
+        msg.textContent = '❌ ' + (data.error || '予約できませんでした');
+        btn.disabled = false;
+      }
+    } catch (e) {
+      msg.style.color = '#e74c3c';
+      msg.textContent = '❌ 通信エラーが発生しました';
+      btn.disabled = false;
+    }
+  }
+
+  buildDateList();
+</script>
+</body>
+</html>

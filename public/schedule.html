@@ -32,6 +32,7 @@
   <h1>📅 予約確認</h1>
 
   <a href="/book.html" class="book-link" id="book-link" style="display:none">📅 予約する</a>
+  <a href="/rental.html" class="book-link" id="rental-link" style="display:none; background:#c8a97e;">🏋️ レンタルジム予約</a>
 
   <div class="month-nav">
     <button id="btn-prev" onclick="changeMonth(-1)">‹</button>
@@ -122,6 +123,11 @@
       const data = await res.json();
       if (data.isShift) {
         document.getElementById('book-link').style.display = 'block';
+      }
+      if (data.isRental) {
+        document.getElementById('rental-link').style.display = 'block';
+      }
+      if (data.isShift) {
         // 翌月スロットをバックグラウンドで先読みしてlocalStorageに保存
         const nextDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
         const nextMonth = `${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}`;
