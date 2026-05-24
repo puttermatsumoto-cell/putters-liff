@@ -104,7 +104,7 @@
             <div class="weekday">${WEEKDAYS[d.getDay()]}</div>
           </div>
           <div>
-            <div class="schedule-time">${item.time}〜${isToday ? '<span class="today-badge">今日</span>' : ''}</div>
+            <div class="schedule-time">${item.time}〜${isToday ? '<span class="today-badge">今日</span>' : ''}${item.type === 'rental' ? '<span style="font-size:11px;color:#c8a97e;margin-left:6px;">🏋️ レンタルジム</span>' : ''}</div>
           </div>
         `;
         list.appendChild(div);
