@@ -83,13 +83,13 @@
     }
 
     /* Section */
-    .section { margin-bottom: 7mm; }
+    .section { margin-bottom: 8mm; }
     .section-title {
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 900;
       color: #04384c;
-      border-left: 4px solid #04384c;
-      padding-left: 8px;
+      border-left: 5px solid #04384c;
+      padding-left: 10px;
       margin-bottom: 4mm;
       letter-spacing: 0.05em;
     }
@@ -101,10 +101,12 @@
       overflow: hidden;
     }
     .card-header {
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 700;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-weight: 900;
       color: white;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .card-header.blue { background: #2f7abf; }
     .card-header.navy { background: #04384c; }
@@ -115,19 +117,20 @@
     .card-row {
       display: flex;
       align-items: center;
-      padding: 10px 14px;
+      padding: 14px 16px;
       border-bottom: 1px solid #f0f0f0;
       gap: 12px;
     }
     .card-row:last-child { border-bottom: none; }
     .row-label {
-      font-size: 12px;
-      color: #555;
+      font-size: 14px;
+      color: #333;
+      font-weight: 600;
       min-width: 80px;
       flex-shrink: 0;
     }
     .row-price {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 900;
       color: #e07b20;
     }
@@ -334,18 +337,7 @@
 
   </div>
 
-  <!-- Footer -->
-  <div class="footer">
-    <div class="footer-left">
-      〒323-0808 栃木県小山市大行寺<br>
-      TEL / LINE にてお問い合わせください<br>
-      ※表示価格はすべて税込みです
-    </div>
-    <div class="footer-right">
-      <div class="gym-logo">PUTTERS</div>
-      <div class="gym-sub">パーソナルジム／栃木県小山市</div>
-    </div>
-  </div>
+  <div style="margin-top:6mm;text-align:right;font-size:11px;color:#aaa;">※表示価格はすべて税込みです</div>
 
 </body>
 </html>
