@@ -996,14 +996,19 @@
       if (isMatsumoto && protein === null) protein = 120;
       if (isMatsumoto && tempState === null) tempState = 'cheatday';
 
+      // TDEEは常に表示
+      const userName = localStorage.getItem('putters_user_name') || '';
+      document.getElementById('insight-tdee-label').textContent = userName + 'の1日の代謝';
       if (tdee !== null && tdee > 400) {
-        const userName = localStorage.getItem('putters_user_name') || '';
-        document.getElementById('insight-tdee-label').textContent = userName + 'の1日の代謝';
         document.getElementById('insight-tdee-val').textContent = tdee.toLocaleString();
         document.getElementById('insight-tdee-note').textContent = '過去30日 ' + validDays.length + '日分のデータより';
-        document.getElementById('insight-tdee').style.display = 'block';
-        hasContent = true;
+      } else {
+        document.getElementById('insight-tdee-val').textContent = '-';
+        document.getElementById('insight-tdee-note').textContent = '記録が足りません。タップで詳細';
       }
+      document.getElementById('insight-tdee').style.display = 'flex';
+      document.getElementById('insight-tdee').style.flexDirection = 'column';
+      hasContent = true;
 
       // タンパク質は体温下がってる時のみ表示
       if (protein !== null && (tempState === 'cheatday' || tempState === 'low')) {
