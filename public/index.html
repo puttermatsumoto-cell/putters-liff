@@ -993,7 +993,7 @@
       // TDEEは常に表示
       const userName = localStorage.getItem('putters_user_name') || '';
       document.getElementById('insight-tdee-label').textContent = userName + 'の1日の代謝';
-      if (tdee !== null && tdee > 400) {
+      if (tdee !== null && tdee > 0) {
         document.getElementById('insight-tdee-val').textContent = tdee.toLocaleString();
         document.getElementById('insight-tdee-note').textContent = '過去30日 ' + validDays.length + '日分のデータより';
       } else {
