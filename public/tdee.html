@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUTTERS 代謝</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 16px; }
+    h1 { font-size: 20px; color: #222; text-align: center; margin-bottom: 20px; padding-top: 12px; }
+    .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .section h2 { font-size: 14px; color: #555; margin-bottom: 12px; }
+    .period-btns { display: flex; gap: 6px; margin-bottom: 16px; }
+    .period-btn { flex: 1; padding: 10px 4px; border: 1px solid #ddd; border-radius: 8px; background: white; font-size: 13px; cursor: pointer; color: #888; text-align: center; }
+    .period-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+    .tdee-display { text-align: center; padding: 12px 0; }
+    .tdee-val { font-size: 42px; font-weight: 900; color: #1a1a2e; line-height: 1; }
+    .tdee-unit { font-size: 14px; color: #888; margin-left: 4px; }
+    .tdee-note { font-size: 12px; color: #aaa; margin-top: 8px; }
+    .stat-row { display: flex; gap: 8px; margin-top: 16px; }
+    .stat { flex: 1; background: #f5f0eb; border-radius: 10px; padding: 12px; text-align: center; }
+    .stat-val { font-size: 16px; font-weight: bold; color: #1a1a2e; }
+    .stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+    .compare-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+    .compare-label { font-size: 13px; color: #555; flex-shrink: 0; min-width: 80px; }
+    .compare-bar { flex: 1; height: 12px; background: #f0e8de; border-radius: 6px; position: relative; overflow: hidden; }
+    .compare-fill { height: 100%; background: #c8a97e; border-radius: 6px; transition: width 0.5s; }
+    .compare-val { font-size: 13px; font-weight: 700; color: #1a1a2e; min-width: 70px; text-align: right; }
+    .comment { background: #fff8e8; border-left: 4px solid #c8a97e; padding: 12px 14px; border-radius: 6px; margin-top: 12px; font-size: 13px; color: #1a1a2e; line-height: 1.6; }
+    .formula { background: #f5f0eb; border-radius: 10px; padding: 14px; font-size: 13px; color: #555; line-height: 1.8; }
+    .formula code { font-family: 'Courier New', monospace; font-size: 12px; color: #1a1a2e; }
+    .empty { text-align: center; color: #aaa; font-size: 13px; padding: 20px 0; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← 戻る</a>
+  <h1>🔥 1日の代謝</h1>
+
+  <!-- TDEE表示 -->
+  <div class="section">
+    <div class="period-btns">
+      <button class="period-btn" onclick="setPeriod(14, this)">2週間</button>
+      <button class="period-btn active" onclick="setPeriod(30, this)">1ヶ月</button>
+      <button class="period-btn" onclick="setPeriod(90, this)">3ヶ月</button>
+    </div>
+    <div class="tdee-display" id="tdee-display">
+      <span class="tdee-val" id="tdee-val">-</span>
+      <span class="tdee-unit">kcal / 日</span>
+      <div class="tdee-note" id="tdee-note"></div>
+    </div>
+    <div id="tdee-empty" class="empty" style="display:none;">データが不足しています（最低7日分必要）</div>
+    <div class="stat-row" id="tdee-stats" style="display:none;">
+      <div class="stat"><div class="stat-val" id="stat-intake">-</div><div class="stat-label">摂取合計</div></div>
+      <div class="stat"><div class="stat-val" id="stat-change">-</div><div class="stat-label">体重変化</div></div>
+      <div class="stat"><div class="stat-val" id="stat-days">-</div><div class="stat-label">有効日数</div></div>
+    </div>
+  </div>
+
+  <!-- 平均との比較 -->
+  <div class="section" id="compare-section" style="display:none;">
+    <h2>📊 一般平均との比較</h2>
+    <div class="compare-row">
+      <div class="compare-label">あなた</div>
+      <div class="compare-bar"><div class="compare-fill" id="compare-you" style="width:0%;"></div></div>
+      <div class="compare-val" id="compare-you-val">-</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">男性平均</div>
+      <div class="compare-bar"><div class="compare-fill" style="width:80%; background:#aaa;"></div></div>
+      <div class="compare-val">2,500</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-label">女性平均</div>
+      <div class="compare-bar"><div class="compare-fill" style="width:64%; background:#aaa;"></div></div>
+      <div class="compare-val">2,000</div>
+    </div>
+    <div class="comment" id="compare-comment"></div>
+  </div>
+
+  <!-- 月別TDEE推移 -->
+  <div class="section">
+    <h2>📈 月別の代謝推移</h2>
+    <div id="trend-empty" class="empty">過去2ヶ月以上のデータが必要です</div>
+    <canvas id="chart-trend" style="display:none; max-height:240px;"></canvas>
+  </div>
+
+  <!-- 計算根拠 -->
+  <div class="section">
+    <h2>📐 計算式</h2>
+    <div class="formula">
+      <code>1日の代謝 = (摂取kcal合計 − 体重変化 × 7,700) ÷ 有効日数</code>
+      <div style="margin-top:10px; color:#777; font-size:12px;">
+        ・摂取kcal合計：1日の摂取が400kcal超えた日のみ集計<br>
+        ・体重変化：期末 − 期首（kg）<br>
+        ・7,700：体脂肪1kgあたりのカロリー<br>
+        ・体重減 → 加算（消費した分）<br>
+        ・体重増 → 減算（消費足りなかった分）
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const HISTORY_KEY = 'putters_history';
+    let currentPeriod = 30;
+    let trendChart = null;
+
+    function setPeriod(days, btn) {
+      currentPeriod = days;
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTDEE();
+    }
+
+    function calculateTDEE(history, days) {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+      const validDays = history.filter(d => d.date >= cutoffStr && d.kcal > 400);
+      if (validDays.length < 7) return null;
+
+      const totalIntake = validDays.reduce((s, d) => s + d.kcal, 0);
+      const wDays = history.filter(d => d.date >= cutoffStr && d.weight != null);
+      if (wDays.length < 2) return null;
+
+      const wChange = wDays[wDays.length - 1].weight - wDays[0].weight;
+      const tdee = Math.round((totalIntake - wChange * 7700) / validDays.length);
+      return { tdee, totalIntake, wChange, validDays: validDays.length };
+    }
+
+    function renderTDEE() {
+      const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      const result = calculateTDEE(history, currentPeriod);
+
+      if (!result) {
+        document.getElementById('tdee-display').style.display = 'none';
+        document.getElementById('tdee-empty').style.display = 'block';
+        document.getElementById('tdee-stats').style.display = 'none';
+        document.getElementById('compare-section').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('tdee-display').style.display = 'block';
+      document.getElementById('tdee-empty').style.display = 'none';
+      document.getElementById('tdee-val').textContent = result.tdee.toLocaleString();
+      document.getElementById('tdee-note').textContent = '過去' + currentPeriod + '日のうち' + result.validDays + '日分のデータ';
+
+      document.getElementById('stat-intake').textContent = result.totalIntake.toLocaleString() + ' kcal';
+      const changeText = result.wChange >= 0 ? '+' + result.wChange.toFixed(1) : result.wChange.toFixed(1);
+      document.getElementById('stat-change').textContent = changeText + ' kg';
+      document.getElementById('stat-days').textContent = result.validDays + ' 日';
+      document.getElementById('tdee-stats').style.display = 'flex';
+
+      // 平均との比較
+      const maxVal = 3500;
+      const youPercent = Math.min(100, (result.tdee / maxVal) * 100);
+      document.getElementById('compare-you').style.width = youPercent + '%';
+      document.getElementById('compare-you-val').textContent = result.tdee.toLocaleString();
+      document.getElementById('compare-section').style.display = 'block';
+
+      // コメント
+      let comment;
+      if (result.tdee < 1500) {
+        comment = '代謝がかなり低い数字です。<br>記録が不完全な可能性が高いです。食事の入力をしっかりすると、本当の数字が見えてきます。';
+      } else if (result.tdee < 2000) {
+        comment = '代謝はやや低めです。<br>タンパク質を多めに摂って、筋肉を維持しましょう。';
+      } else if (result.tdee < 2400) {
+        comment = '代謝はほぼ平均です。';
+      } else if (result.tdee < 2800) {
+        comment = '代謝は平均より高めです。<br>活動量が多いか、筋肉量が多い証拠です。';
+      } else {
+        comment = '代謝はかなり高めです。<br>食事をしっかり摂らないと筋肉が減る可能性があります。';
+      }
+      document.getElementById('compare-comment').innerHTML = comment;
+    }
+
+    function renderTrend() {
+      const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      if (history.length < 60) {
+        document.getElementById('trend-empty').style.display = 'block';
+        document.getElementById('chart-trend').style.display = 'none';
+        return;
+      }
+
+      // 月別に計算
+      const months = {};
+      history.forEach(d => {
+        const ym = d.date.slice(0, 7);
+        if (!months[ym]) months[ym] = [];
+        months[ym].push(d);
+      });
+
+      const labels = [];
+      const values = [];
+      Object.keys(months).sort().forEach(ym => {
+        const daysInMonth = months[ym];
+        const validDays = daysInMonth.filter(d => d.kcal > 400);
+        if (validDays.length < 7) return;
+        const wDays = daysInMonth.filter(d => d.weight != null);
+        if (wDays.length < 2) return;
+        const totalIntake = validDays.reduce((s, d) => s + d.kcal, 0);
+        const wChange = wDays[wDays.length - 1].weight - wDays[0].weight;
+        const tdee = Math.round((totalIntake - wChange * 7700) / validDays.length);
+        labels.push(ym);
+        values.push(tdee);
+      });
+
+      if (labels.length < 2) {
+        document.getElementById('trend-empty').style.display = 'block';
+        document.getElementById('chart-trend').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('trend-empty').style.display = 'none';
+      document.getElementById('chart-trend').style.display = 'block';
+
+      const ctx = document.getElementById('chart-trend').getContext('2d');
+      if (trendChart) trendChart.destroy();
+      trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '1日の代謝',
+            data: values,
+            borderColor: '#c8a97e',
+            backgroundColor: 'rgba(200, 169, 126, 0.1)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: false } }
+        }
+      });
+    }
+
+    renderTDEE();
+    renderTrend();
+  </script>
+</body>
+</html>
