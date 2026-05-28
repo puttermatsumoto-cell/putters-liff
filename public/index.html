@@ -987,14 +987,8 @@
       }
 
       // 表示
-      const isMatsumoto = (localStorage.getItem('putters_user_name') || '') === '松本大樹';
       const sec = document.getElementById('insight-section');
       let hasContent = false;
-
-      // 松本大樹はデータ不足でもデモ表示
-      if (isMatsumoto && tdee === null) tdee = 2400;
-      if (isMatsumoto && protein === null) protein = 120;
-      if (isMatsumoto && tempState === null) tempState = 'cheatday';
 
       // TDEEは常に表示
       const userName = localStorage.getItem('putters_user_name') || '';
