@@ -998,6 +998,7 @@
       // 松本大樹はデータ不足でもデモ表示
       if (isMatsumoto && tdee === null) tdee = 2400;
       if (isMatsumoto && protein === null) protein = 120;
+      if (isMatsumoto && tempState === null) tempState = 'low';
 
       if (tdee !== null && tdee > 400) {
         document.getElementById('insight-tdee-val').textContent = tdee.toLocaleString();
