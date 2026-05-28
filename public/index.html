@@ -309,28 +309,23 @@
     </div>
   </div>
 
-  <!-- インサイト（TDEE・タンパク質・チートデイ） -->
-  <div id="insight-section" data-former-ok style="display:none; background:white; border-radius:16px; padding:16px 18px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-    <div id="insight-tdee" style="display:none; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #f0f0f0;">
-      <div style="font-size:11px; color:#aaa; letter-spacing:0.05em; margin-bottom:4px;">実測 TDEE</div>
+  <!-- インサイト（TDEE・タンパク質） -->
+  <div id="insight-section" data-former-ok style="display:none; background:white; border-radius:16px; padding:14px 16px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+    <div id="insight-tdee" style="display:none;">
+      <div style="font-size:11px; color:#aaa; letter-spacing:0.05em; margin-bottom:2px;">実測 TDEE</div>
       <div style="display:flex; align-items:baseline; gap:4px;">
-        <span id="insight-tdee-val" style="font-size:28px; font-weight:900; color:#1a1a2e;">-</span>
-        <span style="font-size:13px; color:#888;">kcal / 日</span>
+        <span id="insight-tdee-val" style="font-size:22px; font-weight:800; color:#1a1a2e;">-</span>
+        <span style="font-size:12px; color:#888;">kcal / 日</span>
       </div>
       <div id="insight-tdee-note" style="font-size:11px; color:#bbb; margin-top:2px;"></div>
     </div>
-    <div id="insight-protein" style="display:none; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #f0f0f0;">
-      <div style="font-size:11px; color:#aaa; letter-spacing:0.05em; margin-bottom:4px;">本日のタンパク質目標</div>
-      <div style="display:flex; align-items:baseline; gap:4px;">
-        <span id="insight-protein-val" style="font-size:28px; font-weight:900; color:#1a1a2e;">-</span>
-        <span style="font-size:13px; color:#888;">g</span>
-        <span id="insight-protein-plus" style="font-size:13px; color:#c8a97e; font-weight:700; display:none;">以上</span>
+    <div id="insight-protein" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid #f0f0f0;">
+      <div style="font-size:12px; color:#c0392b; margin-bottom:4px;">体温が下がってます</div>
+      <div style="display:flex; align-items:baseline; gap:4px; flex-wrap:wrap;">
+        <span style="font-size:12px; color:#888;">タンパク質</span>
+        <span id="insight-protein-val" style="font-size:22px; font-weight:800; color:#1a1a2e;">-</span>
+        <span style="font-size:12px; color:#888;">g 摂りましょう</span>
       </div>
-      <div id="insight-protein-note" style="font-size:11px; color:#bbb; margin-top:2px;"></div>
-    </div>
-    <div id="insight-cheatday" style="display:none;">
-      <div style="font-size:13px; font-weight:700; color:#c0392b;">チートデイ検討の時期</div>
-      <div style="font-size:11px; color:#bbb; margin-top:2px;">体温が下がり続けています</div>
     </div>
   </div>
 
@@ -1007,23 +1002,10 @@
         hasContent = true;
       }
 
-      if (protein !== null) {
+      // タンパク質は体温下がってる時のみ表示
+      if (protein !== null && (tempState === 'cheatday' || tempState === 'low')) {
         document.getElementById('insight-protein-val').textContent = protein;
-        const plus = document.getElementById('insight-protein-plus');
-        const note = document.getElementById('insight-protein-note');
-        if (tempState === 'cheatday' || tempState === 'low') {
-          plus.style.display = 'inline';
-          note.textContent = '体温が下がり気味。タンパク質多めで代謝アップ';
-          note.style.color = '#c8a97e';
-        } else {
-          note.textContent = '14日平均体重 × 2g';
-        }
         document.getElementById('insight-protein').style.display = 'block';
-        hasContent = true;
-      }
-
-      if (tempState === 'cheatday') {
-        document.getElementById('insight-cheatday').style.display = 'block';
         hasContent = true;
       }
 
