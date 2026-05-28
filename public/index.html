@@ -312,7 +312,7 @@
   <!-- インサイト（TDEE・タンパク質） -->
   <div id="insight-section" data-former-ok style="display:none; background:white; border-radius:16px; padding:14px 16px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
     <div id="insight-tdee" style="display:none;">
-      <div style="font-size:11px; color:#aaa; letter-spacing:0.05em; margin-bottom:2px;">実測 TDEE</div>
+      <div id="insight-tdee-label" style="font-size:11px; color:#aaa; letter-spacing:0.05em; margin-bottom:2px;">1日の代謝</div>
       <div style="display:flex; align-items:baseline; gap:4px;">
         <span id="insight-tdee-val" style="font-size:22px; font-weight:800; color:#1a1a2e;">-</span>
         <span style="font-size:12px; color:#888;">kcal / 日</span>
@@ -996,6 +996,8 @@
       if (isMatsumoto && tempState === null) tempState = 'cheatday';
 
       if (tdee !== null && tdee > 400) {
+        const userName = localStorage.getItem('putters_user_name') || '';
+        document.getElementById('insight-tdee-label').textContent = userName + 'の1日の代謝';
         document.getElementById('insight-tdee-val').textContent = tdee.toLocaleString();
         document.getElementById('insight-tdee-note').textContent = '過去30日 ' + validDays.length + '日分のデータより';
         document.getElementById('insight-tdee').style.display = 'block';
