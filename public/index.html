@@ -1193,8 +1193,16 @@
     }
 
     function saveCache() {
+      // 編集モード時は編集対象日を使う（自動送信が正しく動くため重要）
+      let dateForCache;
+      if (editingDate) {
+        const d = new Date(editingDate);
+        dateForCache = d.toDateString();
+      } else {
+        dateForCache = getEffectiveDate();
+      }
       const data = {
-        date: getEffectiveDate(),
+        date: dateForCache,
         weight: document.getElementById('weight').value,
         goalWeight: document.getElementById('goal-weight').value,
         temperature: document.getElementById('temperature').value,
@@ -1690,10 +1698,11 @@
       if (!raw) return;
       try {
         const data = JSON.parse(raw);
-        const today = getEffectiveDate();
-        if (!data.date || data.date === today) return; // 昨日以前のキャッシュのみ
-        // data.dateはtoDateString形式なので、そこから正確な日付を取得する
+        if (!data.date) return;
+        // 過去日付のキャッシュのみ送信（今日・未来は除外）
         const cacheDate = new Date(data.date);
+        const todayDate = new Date(getEffectiveDate());
+        if (cacheDate >= todayDate) return;
         const dateStr = getLocalDateISO(cacheDate);
         const userName = getUserName();
         if (userName === '不明') return;
