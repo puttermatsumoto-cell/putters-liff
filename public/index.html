@@ -423,16 +423,6 @@
       <button onclick="addCustomTask()" style="background:#1a1a2e; color:white; border:none; border-radius:8px; padding:10px 16px; font-size:14px; cursor:pointer;">追加</button>
     </div>
     <button onclick="toggleCustomInput()" id="custom-task-btn" class="add-btn" style="margin-top:8px;">＋ 自分で追加</button>
-    <!-- レンタルジム予約（B列=レンタルジムの人のみ表示） -->
-    <div id="rental-gym-section" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid #eee;">
-      <div style="font-size:13px; font-weight:bold; color:#1a1a2e; margin-bottom:12px;">🏋️ レンタルジム予約</div>
-      <div id="rental-date-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;"></div>
-      <div id="rental-slots-wrap" style="display:none;">
-        <div style="font-size:12px; color:#888; margin-bottom:8px;" id="rental-selected-label"></div>
-        <div id="rental-slot-list" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
-      </div>
-      <div id="rental-msg" style="font-size:13px; color:#888; margin-top:10px;"></div>
-    </div>
     <!-- カレンダー -->
     <div style="margin-top:16px; padding-top:16px; border-top:1px solid #eee;">
       <div style="font-size:13px; color:#888; margin-bottom:10px;">達成カレンダー</div>
@@ -1533,107 +1523,6 @@
       renderPFCGoalCharts();
     }
 
-    function initRentalGym() {
-      document.getElementById('rental-gym-section').style.display = 'block';
-      const container = document.getElementById('rental-date-list');
-      container.innerHTML = '';
-      const DAY_NAMES = ['日','月','火','水','木','金','土'];
-      const now = new Date();
-      // 深夜2時前は前日扱い
-      const base = now.getHours() < 2 ? new Date(now - 86400000) : now;
-      for (let i = 1; i <= 14; i++) {
-        const d = new Date(base);
-        d.setDate(base.getDate() + i);
-        const dow = d.getDay();
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        const dateStr = yyyy + '-' + mm + '-' + dd;
-        const label = (d.getMonth() + 1) + '/' + d.getDate() + '(' + DAY_NAMES[dow] + ')';
-        const btn = document.createElement('button');
-        btn.textContent = label;
-        btn.dataset.date = dateStr;
-        btn.style.cssText = 'padding:8px 14px; border:1px solid #ddd; border-radius:20px; background:#fff; font-size:13px; cursor:pointer; color:#1a1a2e;';
-        btn.onclick = () => selectRentalDate(dateStr, label, btn);
-        container.appendChild(btn);
-      }
-    }
-
-    async function selectRentalDate(dateStr, label, clickedBtn) {
-      document.querySelectorAll('#rental-date-list button').forEach(b => {
-        b.style.background = '#fff'; b.style.color = '#1a1a2e'; b.style.borderColor = '#ddd';
-      });
-      clickedBtn.style.background = '#1a1a2e'; clickedBtn.style.color = '#fff'; clickedBtn.style.borderColor = '#1a1a2e';
-
-      const wrap = document.getElementById('rental-slots-wrap');
-      const slotList = document.getElementById('rental-slot-list');
-      const msg = document.getElementById('rental-msg');
-      document.getElementById('rental-selected-label').textContent = label + ' の空き時間';
-      wrap.style.display = 'block';
-      slotList.innerHTML = '<span style="color:#aaa;font-size:13px;">読み込み中...</span>';
-      msg.textContent = '';
-
-      try {
-        const res = await fetch(GAS_URL + '?action=rental_slots&date=' + dateStr);
-        const data = await res.json();
-        slotList.innerHTML = '';
-        if (data.closed) {
-          slotList.innerHTML = '<span style="color:#aaa;font-size:13px;">本日はお休みです</span>';
-          return;
-        }
-        if (!data.slots || data.slots.length === 0) {
-          slotList.innerHTML = '<span style="color:#aaa;font-size:13px;">空きがありません</span>';
-          return;
-        }
-        data.slots.forEach(slot => {
-          const btn = document.createElement('button');
-          btn.textContent = slot.time + '〜';
-          if (slot.available) {
-            btn.style.cssText = 'padding:9px 16px; border:1px solid #c8a97e; border-radius:10px; background:#fff; font-size:14px; font-weight:bold; cursor:pointer; color:#1a1a2e;';
-            btn.onclick = () => confirmRentalBooking(dateStr, slot.time, label);
-          } else {
-            btn.textContent += ' ×';
-            btn.style.cssText = 'padding:9px 16px; border:1px solid #eee; border-radius:10px; background:#f5f5f5; font-size:14px; color:#bbb; cursor:not-allowed;';
-            btn.disabled = true;
-          }
-          slotList.appendChild(btn);
-        });
-      } catch (e) {
-        slotList.innerHTML = '<span style="color:#e74c3c;font-size:13px;">通信エラー</span>';
-      }
-    }
-
-    async function confirmRentalBooking(dateStr, time, dateLabel) {
-      const userName = getUserName();
-      if (!userName || userName === '不明') { alert('名前が設定されていません'); return; }
-      if (!confirm(dateLabel + ' ' + time + '〜 で予約しますか？')) return;
-
-      const msg = document.getElementById('rental-msg');
-      msg.textContent = '予約中...';
-      try {
-        const res = await fetch(GAS_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'book_rental', name: userName, date: dateStr, time })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          msg.style.color = '#27ae60';
-          msg.textContent = '✅ ' + dateLabel + ' ' + time + '〜 の予約が完了しました！';
-          // 選択した日を再ロードして埋まった状態を反映
-          document.querySelectorAll('#rental-date-list button').forEach(b => {
-            if (b.dataset.date === dateStr) selectRentalDate(dateStr, dateLabel, b);
-          });
-        } else {
-          msg.style.color = '#e74c3c';
-          msg.textContent = '❌ ' + (data.error || '予約できませんでした');
-        }
-      } catch (e) {
-        msg.style.color = '#e74c3c';
-        msg.textContent = '❌ 通信エラーが発生しました';
-      }
-    }
-
     function applyUserMode(data) {
       let mode = 'active'; // 在籍（既存通り）
       if (!data || !data.userExists) {
@@ -1658,8 +1547,6 @@
           if (data.videoUrls) window._hwVideoUrls = data.videoUrls;
           // ユーザーモード判定（在籍/退会/不明）
           applyUserMode(data);
-          // レンタルジム
-          if (data.status === 'レンタルジム') initRentalGym();
         } catch (e) {}
       } else {
         applyUserMode({ userExists: false, status: '' });
