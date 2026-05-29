@@ -183,14 +183,14 @@
       const el = document.createElement('div');
       let cls = 'cal-day';
       if (isChecked) cls += ' checked';
-      else if (isFuture) cls += ' future';
       else if (isToday) cls += ' today-unmarked';
+      else if (isFuture) cls += ' today-unmarked';
       else cls += ' past-unmarked';
       el.className = cls;
 
       el.innerHTML = `<span class="day-num">${d}</span>${isChecked ? '<span class="check-mark">✓</span>' : ''}`;
 
-      if (!isFuture) el.onclick = () => toggle(ds);
+      el.onclick = () => toggle(ds);
       grid.appendChild(el);
     }
 
