@@ -78,6 +78,7 @@
     .day-btn.on { color: white; }
     .day-btn.coffee.on { background: #795548; }
     .day-btn.bento.on { background: #2e7d32; }
+    .day-btn.bike.on { background: #1565c0; }
     .day-btn:active { transform: scale(0.92); }
 
     .legend {
@@ -97,6 +98,7 @@
     <div class="total-sub">
       <div class="total-sub-item">☕ <span id="sub-coffee">0</span>円</div>
       <div class="total-sub-item">🍱 <span id="sub-bento">0</span>円</div>
+      <div class="total-sub-item">🚲 <span id="sub-bike">0</span>円</div>
     </div>
   </div>
 
@@ -116,12 +118,14 @@
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:#795548"></div>コーヒー +300円</div>
     <div class="legend-item"><div class="legend-dot" style="background:#2e7d32"></div>弁当 +430円</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1565c0"></div>自転車 +35円/往復（長押しでリセット）</div>
   </div>
 
 <script>
   const ITEMS = {
     coffee: { label: '☕', save: 300, cls: 'coffee' },
-    bento:  { label: '🍱', save: 430, cls: 'bento'  }
+    bento:  { label: '🍱', save: 430, cls: 'bento'  },
+    bike:   { label: '🚲', save: 35,  cls: 'bike'   }
   };
   const STORE_KEY = 'savings_data2';
 
@@ -136,9 +140,21 @@
   function toggle(dateStr, type) {
     const d = getData();
     if (!d[dateStr]) d[dateStr] = {};
-    if (d[dateStr][type]) delete d[dateStr][type];
-    else d[dateStr][type] = true;
+    if (type === 'bike') {
+      // 自転車は回数カウント（タップで+1、長押しでリセット）
+      d[dateStr][type] = (d[dateStr][type] || 0) + 1;
+    } else {
+      if (d[dateStr][type]) delete d[dateStr][type];
+      else d[dateStr][type] = true;
+    }
     if (Object.keys(d[dateStr]).length === 0) delete d[dateStr];
+    setData(d);
+    render();
+  }
+
+  function resetBike(dateStr) {
+    const d = getData();
+    if (d[dateStr]) { delete d[dateStr]['bike']; if (Object.keys(d[dateStr]).length === 0) delete d[dateStr]; }
     setData(d);
     render();
   }
@@ -175,7 +191,7 @@
       grid.appendChild(el);
     }
 
-    let coffeeTotal = 0, bentoTotal = 0;
+    let coffeeTotal = 0, bentoTotal = 0, bikeTotal = 0;
 
     for (let d = 1; d <= days; d++) {
       const dateStr = ds(year, month, d);
@@ -198,15 +214,18 @@
       btns.className = 'day-btns';
 
       for (const [type, item] of Object.entries(ITEMS)) {
-        const isOn = !!rec[type];
+        const val = rec[type];
+        const isOn = type === 'bike' ? (val > 0) : !!val;
         if (isOn) {
           if (type === 'coffee') coffeeTotal += item.save;
-          else bentoTotal += item.save;
+          else if (type === 'bento') bentoTotal += item.save;
+          else if (type === 'bike') bikeTotal += item.save * val;
         }
         const btn = document.createElement('button');
         btn.className = 'day-btn ' + item.cls + (isOn ? ' on' : '');
-        btn.textContent = item.label;
+        btn.textContent = type === 'bike' && val > 0 ? `🚲×${val}` : item.label;
         btn.onclick = () => toggle(dateStr, type);
+        if (type === 'bike') btn.oncontextmenu = (e) => { e.preventDefault(); resetBike(dateStr); };
         btns.appendChild(btn);
       }
 
@@ -214,9 +233,10 @@
       grid.appendChild(el);
     }
 
-    document.getElementById('total-yen').textContent = (coffeeTotal + bentoTotal).toLocaleString();
+    document.getElementById('total-yen').textContent = (coffeeTotal + bentoTotal + bikeTotal).toLocaleString();
     document.getElementById('sub-coffee').textContent = coffeeTotal.toLocaleString();
     document.getElementById('sub-bento').textContent = bentoTotal.toLocaleString();
+    document.getElementById('sub-bike').textContent = bikeTotal.toLocaleString();
   }
 
   updateNavBtns();
