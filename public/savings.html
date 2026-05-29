@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>節約メモ</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f7f4f0; min-height: 100vh; padding: 24px 20px 40px; }
+
+    .total-card {
+      background: #1a1a2e;
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: center;
+      margin-bottom: 24px;
+      box-shadow: 0 6px 20px rgba(26,26,46,0.2);
+    }
+    .total-label { font-size: 12px; color: #888; letter-spacing: 0.12em; margin-bottom: 8px; }
+    .total-amount {
+      font-size: 52px;
+      font-weight: 900;
+      color: white;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .total-unit { font-size: 20px; color: #aaa; font-weight: 400; }
+    .total-days { font-size: 12px; color: #666; margin-top: 10px; }
+
+    .month-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .month-nav button {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #1a1a2e;
+      cursor: pointer;
+      padding: 4px 12px;
+      opacity: 0.4;
+    }
+    .month-nav button:disabled { opacity: 0.15; cursor: default; }
+    .month-nav span { font-size: 17px; font-weight: 700; color: #1a1a2e; }
+
+    .cal-wrap { background: white; border-radius: 18px; padding: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .cal-headers { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 6px; }
+    .cal-headers span { text-align: center; font-size: 11px; color: #bbb; font-weight: 600; padding: 4px 0; }
+    .cal-headers span:first-child { color: #e57373; }
+    .cal-headers span:last-child { color: #5b8fe8; }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.12s;
+      position: relative;
+    }
+    .cal-day.empty { cursor: default; }
+    .cal-day.future { color: #ddd; cursor: default; }
+    .cal-day.today-unmarked { color: #1a1a2e; }
+    .cal-day.past-unmarked { color: #ccc; }
+    .cal-day.checked {
+      background: #1a1a2e;
+      box-shadow: 0 2px 8px rgba(26,26,46,0.25);
+    }
+    .day-num {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .cal-day.checked .day-num { color: white; }
+    .check-mark {
+      font-size: 9px;
+      color: #c8a97e;
+      margin-top: 1px;
+      font-weight: 700;
+    }
+    .cal-day:active:not(.empty):not(.future) { transform: scale(0.9); }
+
+    .savings-per { font-size: 11px; color: #aaa; text-align: center; margin-top: 14px; }
+    .savings-per span { color: #1a1a2e; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <div class="total-card">
+    <div class="total-label">今月の節約合計</div>
+    <div class="total-amount"><span id="total-yen">0</span><span class="total-unit"> 円</span></div>
+    <div class="total-days" id="total-days">0日チェック済み</div>
+  </div>
+
+  <div class="month-nav">
+    <button id="btn-prev" onclick="changeMonth(-1)">‹</button>
+    <span id="month-label"></span>
+    <button id="btn-next" onclick="changeMonth(1)">›</button>
+  </div>
+
+  <div class="cal-wrap">
+    <div class="cal-headers">
+      <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <div class="savings-per">1チェック = <span id="savings-val">300</span>円</div>
+
+<script>
+  const SAVINGS = 300;
+  const STORE_KEY = 'savings_data';
+
+  const today = new Date();
+  let year = today.getFullYear();
+  let month = today.getMonth();
+
+  function getData() {
+    return JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+  }
+  function setData(d) {
+    localStorage.setItem(STORE_KEY, JSON.stringify(d));
+  }
+
+  function dateStr(y, m, d) {
+    return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+
+  function toggle(ds) {
+    const d = getData();
+    if (d[ds]) delete d[ds];
+    else d[ds] = true;
+    setData(d);
+    render();
+  }
+
+  function changeMonth(delta) {
+    month += delta;
+    if (month > 11) { month = 0; year++; }
+    if (month < 0) { month = 11; year--; }
+    updateNavBtns();
+    render();
+  }
+
+  function updateNavBtns() {
+    const isNow = year === today.getFullYear() && month === today.getMonth();
+    document.getElementById('btn-prev').disabled = (year < today.getFullYear()) || (year === today.getFullYear() && month <= today.getMonth() - 3);
+    document.getElementById('btn-next').disabled = isNow;
+  }
+
+  function render() {
+    document.getElementById('month-label').textContent = `${year}年${month+1}月`;
+    const data = getData();
+    const todayStr = dateStr(today.getFullYear(), today.getMonth(), today.getDate());
+
+    // カレンダー
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+    const firstDow = new Date(year, month, 1).getDay();
+    const days = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDow; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day empty';
+      grid.appendChild(el);
+    }
+
+    let checkedCount = 0;
+    for (let d = 1; d <= days; d++) {
+      const ds = dateStr(year, month, d);
+      const isChecked = !!data[ds];
+      const isFuture = ds > todayStr;
+      const isToday = ds === todayStr;
+      if (isChecked) checkedCount++;
+
+      const el = document.createElement('div');
+      let cls = 'cal-day';
+      if (isChecked) cls += ' checked';
+      else if (isFuture) cls += ' future';
+      else if (isToday) cls += ' today-unmarked';
+      else cls += ' past-unmarked';
+      el.className = cls;
+
+      el.innerHTML = `<span class="day-num">${d}</span>${isChecked ? '<span class="check-mark">✓</span>' : ''}`;
+
+      if (!isFuture) el.onclick = () => toggle(ds);
+      grid.appendChild(el);
+    }
+
+    // 合計
+    document.getElementById('total-yen').textContent = (checkedCount * SAVINGS).toLocaleString();
+    document.getElementById('total-days').textContent = `${checkedCount}日チェック済み`;
+    document.getElementById('savings-val').textContent = SAVINGS;
+  }
+
+  updateNavBtns();
+  render();
+</script>
+</body>
+</html>
