@@ -59,7 +59,7 @@
       color: #1a1a2e;
       line-height: 1;
     }
-    .day-num.dim { color: #ddd; }
+    .day-num.dim { color: #aaa; font-weight: 400; }
     .day-btns { display: flex; flex-direction: column; gap: 3px; width: 100%; }
     .day-btn {
       border: none;
@@ -189,7 +189,8 @@
       el.className = 'cal-day';
 
       const numEl = document.createElement('div');
-      numEl.className = 'day-num' + (isFuture && isCurrentMonth ? ' dim' : '');
+      const isToday = dateStr === todayDs;
+      numEl.className = 'day-num' + (isToday ? '' : ' dim');
       numEl.textContent = d;
       el.appendChild(numEl);
 
