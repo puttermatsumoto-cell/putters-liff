@@ -2171,7 +2171,7 @@
       const watched = JSON.parse(localStorage.getItem('putters_textbook_watched') || '{}');
       // 未履修リストと残り本数
       const remaining = VIDEOS.filter(v => !watched[v.slug]);
-      const next = remaining[0]; // 次に見る1本（一番若い番号）
+      const next = remaining[remaining.length - 1]; // 表示するのは未履修の中で一番新しい動画
       if (next) {
         // 残り本数を丸数字で（1〜20は①〜⑳、それ以上は「残りN本」）
         const cnt = remaining.length;
