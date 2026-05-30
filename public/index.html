@@ -2158,20 +2158,24 @@
       }
     })();
 
-    // 最新動画カード（未履修の人にだけ表示）
+    // 最新動画カード：未履修の中で一番若い番号の動画を出す（順番に履修誘導）
     (function() {
-      const LATEST_VIDEO = {
-        slug: 'plank',
-        id: 'gUjJXSq-j7Y',
-        number: '#05',
-        title: 'プランクは全身種目じゃない、腹横筋のトレーニング'
-      };
+      // textbook.html のカード順と揃える
+      const VIDEOS = [
+        { slug: 'diagonal',    id: 'KPUMLl3wDQ0', number: '①', title: '鍛える前に、自分の偏りを知る ダイアゴナル' },
+        { slug: 'sidebend',    id: 'okCVByo9ENE', number: '②', title: 'サイドベントは横腹ではなく胸椎で曲げる' },
+        { slug: 'crunch',      id: 'dA0pKrkvZUY', number: '③', title: '腹筋に効かないクランチは、骨盤後傾で直る' },
+        { slug: 'balanceball', id: 'p6Z4qYLS8kw', number: '④', title: 'バランスボールクランチは骨盤10%、胸椎90%' },
+        { slug: 'plank',       id: 'gUjJXSq-j7Y', number: '⑤', title: 'プランクは全身種目じゃない、腹横筋のトレーニング' }
+      ];
       const watched = JSON.parse(localStorage.getItem('putters_textbook_watched') || '{}');
-      if (!watched[LATEST_VIDEO.slug]) {
+      // 未履修の中で一番若い番号
+      const next = VIDEOS.find(v => !watched[v.slug]);
+      if (next) {
         const card = document.getElementById('latest-video');
-        document.getElementById('latest-video-thumb-img').src = `https://img.youtube.com/vi/${LATEST_VIDEO.id}/maxresdefault.jpg`;
-        document.getElementById('latest-video-num').textContent = LATEST_VIDEO.number;
-        document.getElementById('latest-video-title').textContent = LATEST_VIDEO.title;
+        document.getElementById('latest-video-thumb-img').src = `https://img.youtube.com/vi/${next.id}/maxresdefault.jpg`;
+        document.getElementById('latest-video-num').textContent = next.number;
+        document.getElementById('latest-video-title').textContent = next.title;
         card.style.display = 'block';
       }
     })();
