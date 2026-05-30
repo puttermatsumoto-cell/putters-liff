@@ -2169,12 +2169,16 @@
         { slug: 'plank',       id: 'gUjJXSq-j7Y', number: '⑤', title: 'プランクは全身種目じゃない、腹横筋のトレーニング' }
       ];
       const watched = JSON.parse(localStorage.getItem('putters_textbook_watched') || '{}');
-      // 未履修の中で一番若い番号
-      const next = VIDEOS.find(v => !watched[v.slug]);
+      // 未履修リストと残り本数
+      const remaining = VIDEOS.filter(v => !watched[v.slug]);
+      const next = remaining[0]; // 次に見る1本（一番若い番号）
       if (next) {
+        // 残り本数を丸数字で（1〜20は①〜⑳、それ以上は「残りN本」）
+        const cnt = remaining.length;
+        const circled = cnt >= 1 && cnt <= 20 ? String.fromCharCode(0x2460 + cnt - 1) : `残り${cnt}本`;
         const card = document.getElementById('latest-video');
         document.getElementById('latest-video-thumb-img').src = `https://img.youtube.com/vi/${next.id}/maxresdefault.jpg`;
-        document.getElementById('latest-video-num').textContent = next.number;
+        document.getElementById('latest-video-num').textContent = circled;
         document.getElementById('latest-video-title').textContent = next.title;
         card.style.display = 'block';
       }
