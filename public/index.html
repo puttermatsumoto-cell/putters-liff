@@ -2141,12 +2141,20 @@
       }
     }
 
-    // YouTube未視聴バッジ
+    // ===== 動画リスト（★動画を追加したらここに1行足すだけ。バッジ等は全部自動連動）=====
+    // textbook.html のカード順と揃えること
+    const PUTTERS_VIDEOS = [
+      { slug: 'diagonal',    id: 'KPUMLl3wDQ0', title: '鍛える前に、自分の偏りを知る ダイアゴナル' },
+      { slug: 'sidebend',    id: 'okCVByo9ENE', title: 'サイドベントは横腹ではなく胸椎で曲げる' },
+      { slug: 'crunch',      id: 'dA0pKrkvZUY', title: '腹筋に効かないクランチは、骨盤後傾で直る' },
+      { slug: 'balanceball', id: 'p6Z4qYLS8kw', title: 'バランスボールクランチは骨盤10%、胸椎90%' },
+      { slug: 'plank',       id: 'gUjJXSq-j7Y', title: 'プランクは全身種目じゃない、腹横筋のトレーニング' }
+    ];
+
+    // YouTube未視聴バッジ（メニュー）— 本数はリストから自動計算
     (function() {
-      const TOTAL_VIDEOS = 5; // 動画を追加したらここを増やす
       const watched = JSON.parse(localStorage.getItem('putters_textbook_watched') || '{}');
-      const watchedCount = Object.values(watched).filter(Boolean).length;
-      const unread = Math.max(0, TOTAL_VIDEOS - watchedCount);
+      const unread = PUTTERS_VIDEOS.filter(v => !watched[v.slug]).length;
       if (unread > 0) {
         const link = document.getElementById('yt-menu-link');
         if (link) {
@@ -2158,20 +2166,11 @@
       }
     })();
 
-    // 最新動画カード：未履修の中で一番若い番号の動画を出す（順番に履修誘導）
+    // 最新動画カード：未履修の中で一番新しい動画を出す。バッジは残り本数
     (function() {
-      // textbook.html のカード順と揃える
-      const VIDEOS = [
-        { slug: 'diagonal',    id: 'KPUMLl3wDQ0', number: '①', title: '鍛える前に、自分の偏りを知る ダイアゴナル' },
-        { slug: 'sidebend',    id: 'okCVByo9ENE', number: '②', title: 'サイドベントは横腹ではなく胸椎で曲げる' },
-        { slug: 'crunch',      id: 'dA0pKrkvZUY', number: '③', title: '腹筋に効かないクランチは、骨盤後傾で直る' },
-        { slug: 'balanceball', id: 'p6Z4qYLS8kw', number: '④', title: 'バランスボールクランチは骨盤10%、胸椎90%' },
-        { slug: 'plank',       id: 'gUjJXSq-j7Y', number: '⑤', title: 'プランクは全身種目じゃない、腹横筋のトレーニング' }
-      ];
       const watched = JSON.parse(localStorage.getItem('putters_textbook_watched') || '{}');
-      // 未履修リストと残り本数
-      const remaining = VIDEOS.filter(v => !watched[v.slug]);
-      const next = remaining[remaining.length - 1]; // 表示するのは未履修の中で一番新しい動画
+      const remaining = PUTTERS_VIDEOS.filter(v => !watched[v.slug]);
+      const next = remaining[remaining.length - 1]; // 未履修の中で一番新しい動画
       if (next) {
         // 残り本数を丸数字で（1〜20は①〜⑳、それ以上は「残りN本」）
         const cnt = remaining.length;
