@@ -235,6 +235,7 @@
         <a href="/feedback.html" data-former-ok><span class="menu-icon">📮</span>意見箱</a>
         <a href="/recipe.html" data-active-only><span class="menu-icon">🍳</span>食材からレシピ</a>
         <a href="/brain.html" id="brain-menu-link" style="display:none;"><span class="menu-icon">🧠</span>脳トレ</a>
+        <a href="/ideas.html" id="ideas-menu-link" style="display:none;"><span class="menu-icon">💡</span>アイデアメモ</a>
       </div>
       <div class="menu-label">PICKUP</div>
       <div class="menu-pickup">
@@ -2096,6 +2097,10 @@
     }
 
     if (_n !== '不明') checkSoreness(_n);
+    // 松本大樹のみ表示
+    if (_n === '松本大樹') {
+      document.getElementById('ideas-menu-link').style.display = 'flex';
+    }
     // brain-menu-link: 非表示
 
     // 下部固定バー（全員）
