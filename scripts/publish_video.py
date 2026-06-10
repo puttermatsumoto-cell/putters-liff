@@ -26,8 +26,10 @@ import sys
 import subprocess
 from pathlib import Path
 
-LIFF_APP = Path("/home/poritan/secretary/liff-app")
-MEMORY = Path("/home/poritan/.claude/projects/-home-poritan-secretary/memory")
+LIFF_APP = Path(__file__).resolve().parent.parent
+_mac_mem = Path.home() / ".claude/projects/-Users-matsumoto-secretary/memory"
+_cros_mem = Path("/home/poritan/.claude/projects/-home-poritan-secretary/memory")
+MEMORY = _mac_mem if _mac_mem.exists() else _cros_mem
 
 NUM_SYMBOLS = {
     "01": "①", "02": "②", "03": "③", "04": "④", "05": "⑤",
