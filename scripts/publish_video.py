@@ -27,9 +27,10 @@ import subprocess
 from pathlib import Path
 
 LIFF_APP = Path(__file__).resolve().parent.parent
+_putters_mem = Path.home() / "putters" / "memory"
 _mac_mem = Path.home() / ".claude/projects/-Users-matsumoto-secretary/memory"
 _cros_mem = Path("/home/poritan/.claude/projects/-home-poritan-secretary/memory")
-MEMORY = _mac_mem if _mac_mem.exists() else _cros_mem
+MEMORY = next((p for p in [_putters_mem, _mac_mem, _cros_mem] if p.exists()), _cros_mem)
 
 NUM_SYMBOLS = {
     "01": "①", "02": "②", "03": "③", "04": "④", "05": "⑤",
