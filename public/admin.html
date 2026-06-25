@@ -336,7 +336,7 @@
   }
 
   const TEXTBOOK_LABELS = { diagonal:'①ダイアゴナル', sidebend:'②サイドベンド', crunch:'③クランチ', balanceball:'④バランスボール', plank:'⑤プランク', cobra:'⑥コブラ', cobrapro:'⑦コブラプロ', zuribai:'⑧ズリバイ', chuudenkin:'⑨中臀筋' };
-  const ARTICLE_LABELS = { 'reason-bone':'①骨サプリ', 'reason-magnesium':'②頭痛/マグネ' };
+  const ARTICLE_LABELS = { 'bone':'①骨サプリ', 'magnesium':'②頭痛/マグネ' };
 
   function renderWatchTable(data, predicate, labelMap, contentId, loadingId, emptyMsg) {
     const content = document.getElementById(contentId);
@@ -380,9 +380,9 @@
     document.getElementById('articles-loading').style.display = 'block';
     document.getElementById('articles-content').style.display = 'none';
     try {
-      const res = await fetch(GAS_URL + '?action=admin_textbook_watch');
+      const res = await fetch(GAS_URL + '?action=admin_reason_read');
       const data = await res.json();
-      renderWatchTable(data, id => id.startsWith('reason-'), ARTICLE_LABELS, 'articles-content', 'articles-loading', 'まだ既読データがありません');
+      renderWatchTable(data, id => true, ARTICLE_LABELS, 'articles-content', 'articles-loading', 'まだ既読データがありません');
     } catch(e) {
       document.getElementById('articles-loading').textContent = '読み込みエラー';
     }
