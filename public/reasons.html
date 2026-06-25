@@ -15,7 +15,9 @@
     .card.read { background: #f0f7f0; }
     .card.read .card-title { color: #888; }
     .num { font-size: 30px; line-height: 1; color: #c8a97e; font-weight: 700; flex-shrink: 0; width: 34px; text-align: center; }
-    .card.read .num { color: #4caf50; }
+    .check-num { display: none; width: 34px; text-align: center; flex-shrink: 0; font-size: 26px; line-height: 1; color: #4caf50; font-weight: 800; }
+    .card.read .num { display: none; }
+    .card.read .check-num { display: block; }
     .card-body { flex: 1; }
     .card-cat { font-size: 11px; color: #c8a97e; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 3px; }
     .card-title { font-size: 15px; font-weight: bold; color: #1a1a2e; line-height: 1.4; margin-bottom: 4px; }
@@ -36,24 +38,24 @@
 
   <a href="/bone.html" class="card" data-slug="bone" onclick="markRead('bone')">
     <div class="num">①</div>
+    <div class="check-num">✓</div>
     <div class="card-body">
       <div class="card-cat">サプリ・健康</div>
       <div class="card-title">骨を強くするサプリの選び方</div>
       <div class="card-desc">「カルシウムだけ」が一番あぶない。元・骨折予防研究者の目利き</div>
     </div>
     <div class="arrow">→</div>
-    <div class="read-mark">✓ 読んだ</div>
   </a>
 
   <a href="/magnesium.html" class="card" data-slug="magnesium" onclick="markRead('magnesium')">
     <div class="num">②</div>
+    <div class="check-num">✓</div>
     <div class="card-body">
       <div class="card-cat">サプリ・健康</div>
       <div class="card-title">その頭痛、マグネシウム不足かも</div>
       <div class="card-desc">40種類試した末に毎日使ってる塩。錠剤でお腹を壊す人へ</div>
     </div>
     <div class="arrow">→</div>
-    <div class="read-mark">✓ 読んだ</div>
   </a>
 
   <div class="soon">
