@@ -14,6 +14,8 @@
     .card { background: white; border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 16px; text-decoration: none; color: inherit; }
     .card:active { opacity: 0.7; }
     .card-icon { font-size: 26px; min-width: 38px; text-align: center; }
+    .num { min-width: 30px; height: 30px; border-radius: 50%; background: #c8a97e; color: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .reason-lead { font-size: 12px; color: #999; line-height: 1.7; margin: 2px 4px 12px; }
     .card-body { flex: 1; }
     .card-title { font-size: 15px; font-weight: bold; color: #1a1a2e; line-height: 1.4; margin-bottom: 4px; }
     .card-desc { font-size: 12px; color: #888; line-height: 1.6; }
@@ -28,21 +30,12 @@
   <h1>🛒 松本のおすすめ</h1>
   <p class="subtitle">「なぜ良いのか」で選んだ物だけ。<br>“これは要らない・安物で十分” も正直に言います。</p>
 
-  <div class="cat-label">― サプリ・健康 ―</div>
-
-  <a href="/bone.html" class="card">
-    <div class="card-icon">🦴</div>
-    <div class="card-body">
-      <div class="card-title">骨を強くするサプリの選び方</div>
-      <div class="card-desc">「カルシウムだけ」が一番あぶない。元・骨折予防研究者の目利き</div>
-    </div>
-    <div class="arrow">→</div>
-  </a>
+  <div class="cat-label">― おすすめの商品 ―</div>
 
   <a href="/protein.html" class="card">
     <div class="card-icon">💪</div>
     <div class="card-body">
-      <div class="card-title">おすすめのプロテイン</div>
+      <div class="card-title">プロテイン</div>
       <div class="card-desc">溶けやすさ・お腹・コスパ。現場で見てきた選び方</div>
     </div>
     <div class="arrow">→</div>
@@ -51,7 +44,7 @@
   <a href="/supple.html" class="card">
     <div class="card-icon">💊</div>
     <div class="card-body">
-      <div class="card-title">必須サプリメント</div>
+      <div class="card-title">サプリメント</div>
       <div class="card-desc">元・骨折予防研究者の視点で、本当に要る物だけ</div>
     </div>
     <div class="arrow">→</div>
@@ -60,15 +53,21 @@
   <a href="/goods.html" class="card">
     <div class="card-icon">🏋️</div>
     <div class="card-body">
-      <div class="card-title">おすすめグッズ</div>
+      <div class="card-title">トレーニンググッズ</div>
       <div class="card-desc">トレーニング・体のケアに本当に使える道具</div>
     </div>
     <div class="arrow">→</div>
   </a>
 
-  <div class="soon">
-    <div class="soon-title">＋ 今後ふえます</div>
-    <div class="soon-text">PC・周辺機器、その他「松本が"なぜ"で選んだ物」を順次追加していきます。</div>
-  </div>
+  <div class="cat-label" style="margin-top:26px;">― 読む ―</div>
+
+  <a href="/reasons.html" class="card reason-bar">
+    <div class="card-icon">📖</div>
+    <div class="card-body">
+      <div class="card-title">おすすめの理由</div>
+      <div class="card-desc">「なぜそれが良いのか」を深掘りした記事一覧。買う前に読む話</div>
+    </div>
+    <div class="arrow">→</div>
+  </a>
 </body>
 </html>
