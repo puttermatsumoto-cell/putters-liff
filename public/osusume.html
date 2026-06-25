@@ -20,6 +20,8 @@
     .card-title { font-size: 15px; font-weight: bold; color: #1a1a2e; line-height: 1.4; margin-bottom: 4px; }
     .card-desc { font-size: 12px; color: #888; line-height: 1.6; }
     .arrow { color: #c8a97e; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+    .reason-bar { position: relative; }
+    .badge { position: absolute; top: -7px; right: -7px; min-width: 24px; height: 24px; border-radius: 12px; background: #ff0000; color: #fff; font-size: 13px; font-weight: 700; display: none; align-items: center; justify-content: center; padding: 0 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
     .soon { background: #faf6f0; border: 1px dashed #d8c4a8; border-radius: 14px; padding: 16px 18px; margin-top: 8px; }
     .soon-title { font-size: 13px; font-weight: 700; color: #b89968; margin-bottom: 6px; }
     .soon-text { font-size: 12px; color: #a08c6e; line-height: 1.7; }
@@ -62,6 +64,7 @@
   <div class="cat-label" style="margin-top:26px;">― 読む ―</div>
 
   <a href="/reasons.html" class="card reason-bar">
+    <span class="badge" id="reasonBadge"></span>
     <div class="card-icon">📖</div>
     <div class="card-body">
       <div class="card-title">おすすめの理由</div>
@@ -69,5 +72,21 @@
     </div>
     <div class="arrow">→</div>
   </a>
+
+  <script>
+    (function(){
+      var SLUGS = ['bone','magnesium'];
+      function update(){
+        var read = {};
+        try { read = JSON.parse(localStorage.getItem('putters_reasons_read') || '{}'); } catch(e){}
+        var unread = SLUGS.filter(function(s){ return !read[s]; }).length;
+        var b = document.getElementById('reasonBadge');
+        if (unread > 0) { b.textContent = unread; b.style.display = 'flex'; }
+        else { b.style.display = 'none'; }
+      }
+      update();
+      window.addEventListener('pageshow', update);
+    })();
+  </script>
 </body>
 </html>

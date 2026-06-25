@@ -10,22 +10,19 @@
     .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
     h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 700; }
     .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 24px; line-height: 1.7; }
-    .card { background: white; border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 16px; text-decoration: none; color: inherit; position: relative; }
-    .card:active { opacity: 0.7; }
+    .card { background: white; border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; }
     .card.read { background: #f0f7f0; }
-    .card.read .card-title { color: #888; }
-    .num { font-size: 30px; line-height: 1; color: #c8a97e; font-weight: 700; flex-shrink: 0; width: 34px; text-align: center; }
-    .check-num { display: none; width: 34px; text-align: center; flex-shrink: 0; font-size: 26px; line-height: 1; color: #4caf50; font-weight: 800; }
-    .card.read .num { display: none; }
-    .card.read .check-num { display: block; }
-    .card-body { flex: 1; }
+    .card-link { flex: 1; display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; min-width: 0; }
+    .card-link:active { opacity: 0.7; }
+    .num { width: 30px; height: 30px; border-radius: 50%; background: #ff0000; color: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card.read .num { background: #4caf50; }
+    .card-body { flex: 1; min-width: 0; }
     .card-cat { font-size: 11px; color: #c8a97e; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 3px; }
     .card-title { font-size: 15px; font-weight: bold; color: #1a1a2e; line-height: 1.4; margin-bottom: 4px; }
+    .card.read .card-title { color: #888; }
     .card-desc { font-size: 12px; color: #888; line-height: 1.6; }
-    .arrow { color: #c8a97e; font-size: 18px; font-weight: 700; flex-shrink: 0; }
-    .read-mark { display: none; align-items: center; gap: 3px; color: #4caf50; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-    .card.read .arrow { display: none; }
-    .card.read .read-mark { display: inline-flex; }
+    .check-btn { width: 44px; height: 44px; border-radius: 10px; border: 2px solid #c8a97e; background: white; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; flex-shrink: 0; color: #ccc; }
+    .check-btn.checked { background: #4caf50; border-color: #4caf50; color: white; }
     .soon { background: #faf6f0; border: 1px dashed #d8c4a8; border-radius: 14px; padding: 16px 18px; margin-top: 8px; }
     .soon-title { font-size: 13px; font-weight: 700; color: #b89968; margin-bottom: 6px; }
     .soon-text { font-size: 12px; color: #a08c6e; line-height: 1.7; }
@@ -34,29 +31,31 @@
 <body>
   <a href="javascript:history.back()" class="back">← 戻る</a>
   <h1>📖 おすすめの理由</h1>
-  <p class="subtitle">「なぜそれが良いのか」を深掘りした記事。<br>買う前に読むと、選び方そのものが分かります。</p>
+  <p class="subtitle">「なぜそれが良いのか」を深掘りした記事。<br>読んだら右の✓を押してチェック。</p>
 
-  <a href="/bone.html" class="card" data-slug="bone" onclick="markRead('bone')">
-    <div class="num">①</div>
-    <div class="check-num">✓</div>
-    <div class="card-body">
-      <div class="card-cat">サプリ・健康</div>
-      <div class="card-title">骨を強くするサプリの選び方</div>
-      <div class="card-desc">「カルシウムだけ」が一番あぶない。元・骨折予防研究者の目利き</div>
-    </div>
-    <div class="arrow">→</div>
-  </a>
+  <div class="card" data-slug="bone">
+    <a href="/bone.html" class="card-link">
+      <div class="num">1</div>
+      <div class="card-body">
+        <div class="card-cat">サプリ・健康</div>
+        <div class="card-title">骨を強くするサプリの選び方</div>
+        <div class="card-desc">「カルシウムだけ」が一番あぶない。元・骨折予防研究者の目利き</div>
+      </div>
+    </a>
+    <button class="check-btn" id="check-bone" onclick="toggleRead('bone')">✓</button>
+  </div>
 
-  <a href="/magnesium.html" class="card" data-slug="magnesium" onclick="markRead('magnesium')">
-    <div class="num">②</div>
-    <div class="check-num">✓</div>
-    <div class="card-body">
-      <div class="card-cat">サプリ・健康</div>
-      <div class="card-title">その頭痛、マグネシウム不足かも</div>
-      <div class="card-desc">40種類試した末に毎日使ってる塩。錠剤でお腹を壊す人へ</div>
-    </div>
-    <div class="arrow">→</div>
-  </a>
+  <div class="card" data-slug="magnesium">
+    <a href="/magnesium.html" class="card-link">
+      <div class="num">2</div>
+      <div class="card-body">
+        <div class="card-cat">サプリ・健康</div>
+        <div class="card-title">その頭痛、マグネシウム不足かも</div>
+        <div class="card-desc">40種類試した末に毎日使ってる塩。錠剤でお腹を壊す人へ</div>
+      </div>
+    </a>
+    <button class="check-btn" id="check-magnesium" onclick="toggleRead('magnesium')">✓</button>
+  </div>
 
   <div class="soon">
     <div class="soon-title">＋ 記事はこれから増えます</div>
@@ -69,25 +68,22 @@
       try { return JSON.parse(localStorage.getItem(READ_KEY) || '{}'); }
       catch (e) { return {}; }
     }
-    function markRead(slug) {
+    function toggleRead(slug) {
       const read = getRead();
-      read[slug] = true;
+      read[slug] = !read[slug];
       localStorage.setItem(READ_KEY, JSON.stringify(read));
+      render();
     }
-    // 読んだ記事にレ点を反映
-    (function render() {
+    function render() {
       const read = getRead();
       document.querySelectorAll('.card[data-slug]').forEach(card => {
-        if (read[card.dataset.slug]) card.classList.add('read');
+        const slug = card.dataset.slug;
+        const btn = document.getElementById('check-' + slug);
+        if (read[slug]) { card.classList.add('read'); btn.classList.add('checked'); }
+        else { card.classList.remove('read'); btn.classList.remove('checked'); }
       });
-    })();
-    // 戻ってきた時（bfcache復帰）にも再反映
-    window.addEventListener('pageshow', () => {
-      const read = getRead();
-      document.querySelectorAll('.card[data-slug]').forEach(card => {
-        card.classList.toggle('read', !!read[card.dataset.slug]);
-      });
-    });
+    }
+    render();
   </script>
 </body>
 </html>
