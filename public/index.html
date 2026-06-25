@@ -240,7 +240,7 @@
       <div class="menu-label">PICKUP</div>
       <div class="menu-pickup">
         <a href="/textbook.html" id="yt-menu-link" style="color:#c8a97e; position:relative;"><span class="menu-icon">📺</span>YouTube</a>
-        <a href="/osusume.html" style="color:#c8a97e;"><span class="menu-icon">🛒</span>松本のおすすめ</a>
+        <a href="/osusume.html" id="osusume-menu-link" style="color:#c8a97e; position:relative;"><span class="menu-icon">🛒</span>松本のおすすめ</a>
         <a href="https://beauty.hotpepper.jp/kr/slnH000674679/" target="_blank" style="color:#c8a97e;"><span class="menu-icon">✨</span>Crescent｜松本トレーナー経営のまつげ専門店</a>
       </div>
       <div class="menu-label">ご協力お願いします😊</div>
@@ -2159,6 +2159,22 @@
       const unread = PUTTERS_VIDEOS.filter(v => !watched[v.slug]).length;
       if (unread > 0) {
         const link = document.getElementById('yt-menu-link');
+        if (link) {
+          const badge = document.createElement('span');
+          badge.className = 'yt-badge';
+          badge.textContent = unread;
+          link.appendChild(badge);
+        }
+      }
+    })();
+
+    // 松本のおすすめ：未読記事バッジ（メニュー）— 記事が増えたらこのリストに追加
+    const REASON_SLUGS = ['bone', 'magnesium'];
+    (function() {
+      const read = JSON.parse(localStorage.getItem('putters_reasons_read') || '{}');
+      const unread = REASON_SLUGS.filter(s => !read[s]).length;
+      if (unread > 0) {
+        const link = document.getElementById('osusume-menu-link');
         if (link) {
           const badge = document.createElement('span');
           badge.className = 'yt-badge';
