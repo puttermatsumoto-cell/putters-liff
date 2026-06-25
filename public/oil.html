@@ -44,12 +44,17 @@
     .u-ttl { font-size: 13.5px; font-weight: 800; margin-bottom: 2px; }
     .u-raw .u-ttl { color: #2e7d32; } .u-heat .u-ttl { color: #b08a4e; } .u-omega .u-ttl { color: #3a6ea5; }
     .u-tx { font-size: 12.5px; line-height: 1.7; color: #666; }
-    .pcard { background: #faf7f2; border: 1px solid #ece3d5; border-radius: 12px; padding: 14px; margin-top: 12px; }
+    .pcard { display: flex; gap: 12px; background: #faf7f2; border: 1px solid #ece3d5; border-radius: 12px; padding: 12px; margin-top: 12px; }
+    .pcard-thumb { width: 72px; height: 72px; border-radius: 10px; background: #fff; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; overflow: hidden; }
+    .pcard-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .pcard-body { flex: 1; min-width: 0; }
     .pcard-label { font-size: 11px; color: #c8a97e; font-weight: bold; letter-spacing: 1px; margin-bottom: 3px; }
     .pcard-title { font-size: 14px; font-weight: bold; color: #1a1a2e; margin-bottom: 4px; line-height: 1.4; }
     .pcard-desc { font-size: 12px; color: #888; margin-bottom: 10px; line-height: 1.65; }
-    .btn-amazon { display: block; background: #FF9900; color: #fff; text-align: center; border-radius: 80px; padding: 9px; font-size: 12.5px; font-weight: bold; text-decoration: none; }
-    .btn-amazon:active { opacity: 0.8; }
+    .btn-row { display: flex; gap: 6px; }
+    .btn-amazon { flex: 1; display: block; background: #FF9900; color: #fff; text-align: center; border-radius: 80px; padding: 9px 6px; font-size: 12.5px; font-weight: bold; text-decoration: none; }
+    .btn-rakuten { flex: 1; display: block; background: #bf0000; color: #fff; text-align: center; border-radius: 80px; padding: 9px 6px; font-size: 12.5px; font-weight: bold; text-decoration: none; }
+    .btn-amazon:active, .btn-rakuten:active { opacity: 0.8; }
     .closing { font-size: 13.5px; line-height: 2; color: #555; text-align: center; padding: 18px 6px 4px; }
     .gymlink { display: inline-block; margin-top: 6px; color: #c8a97e; font-weight: 700; text-decoration: none; }
     .disc { font-size: 11px; color: #aaa; text-align: center; line-height: 1.7; margin-top: 22px; }
@@ -141,30 +146,54 @@
     <h2>迷ったら、この2本立て</h2>
     <p><b>① 生・仕上げ用に、エキストラバージンオリーブオイル。</b>正直に言うと——元・味の素なので、僕の本命は味の素です（笑）。でも、どこでも買えて外れない定番はボスコ。好みで選んでOK。</p>
     <div class="pcard">
-      <div class="pcard-label">本命（中の人の本音）</div>
-      <div class="pcard-title">味の素 オリーブオイル エクストラバージン</div>
-      <div class="pcard-desc">元・味の素の僕の本命。中で品質を見てきた上で、これが好きです。容器も光と空気を防ぐ“鮮度キープ”設計で酸化に強い。</div>
-      <a href="https://amzn.to/4w7MGMv" target="_blank" rel="nofollow sponsored noopener" class="btn-amazon">Amazon で見る</a>
+      <div class="pcard-thumb"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/kshouhin/cabinet/05721218/06396696/imgrc0113780319.jpg?_ex=240x240" alt="味の素 オリーブオイル エクストラバージン"></div>
+      <div class="pcard-body">
+        <div class="pcard-label">本命（中の人の本音）</div>
+        <div class="pcard-title">味の素 オリーブオイル エクストラバージン</div>
+        <div class="pcard-desc">元・味の素の僕の本命。中で品質を見てきた上で、これが好きです。容器も光と空気を防ぐ“鮮度キープ”設計で酸化に強い。</div>
+        <div class="btn-row">
+          <a href="https://amzn.to/4w7MGMv" target="_blank" rel="nofollow sponsored noopener" class="btn-amazon">Amazon</a>
+          <a href="https://hb.afl.rakuten.co.jp/ichiba/553c3393.40b91151.553c3394.8af4f354/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fkshouhin%2Fbh-202405131700-2%2F&link_type=picttext&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0dGV4dCIsInNpemUiOiIyNDB4MjQwIiwibmFtIjoxLCJuYW1wIjoicmlnaHQiLCJjb20iOjEsImNvbXAiOiJkb3duIiwicHJpY2UiOjEsImJvciI6MSwiY29sIjoxLCJiYnRuIjoxLCJwcm9kIjowLCJhbXAiOmZhbHNlfQ%3D%3D" target="_blank" rel="nofollow sponsored noopener" class="btn-rakuten">楽天</a>
+        </div>
+      </div>
     </div>
     <div class="pcard">
-      <div class="pcard-label">定番・買いやすい</div>
-      <div class="pcard-title">BOSCO エキストラバージンオリーブオイル</div>
-      <div class="pcard-desc">日清オイリオの定番。スーパーでもどこでも手に入り、品質も安定。毎日続けやすい一本。遮光ビンで光対策もOK。</div>
-      <a href="https://amzn.to/4uYeUZb" target="_blank" rel="nofollow sponsored noopener" class="btn-amazon">Amazon で見る</a>
+      <div class="pcard-thumb"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/rakuten24/cabinet/573/4902380111573.jpg?_ex=240x240" alt="BOSCO エキストラバージンオリーブオイル"></div>
+      <div class="pcard-body">
+        <div class="pcard-label">定番・買いやすい</div>
+        <div class="pcard-title">BOSCO エキストラバージンオリーブオイル</div>
+        <div class="pcard-desc">日清オイリオの定番。スーパーでもどこでも手に入り、品質も安定。毎日続けやすい一本。遮光ビンで光対策もOK。</div>
+        <div class="btn-row">
+          <a href="https://amzn.to/4uYeUZb" target="_blank" rel="nofollow sponsored noopener" class="btn-amazon">Amazon</a>
+          <a href="https://hb.afl.rakuten.co.jp/ichiba/531d7f00.72c996d0.531d7f01.d01e294b/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Frakuten24%2Fe010698h%2F&link_type=picttext&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0dGV4dCIsInNpemUiOiIyNDB4MjQwIiwibmFtIjoxLCJuYW1wIjoicmlnaHQiLCJjb20iOjEsImNvbXAiOiJkb3duIiwicHJpY2UiOjEsImJvciI6MSwiY29sIjoxLCJiYnRuIjoxLCJwcm9kIjowLCJhbXAiOmZhbHNlfQ%3D%3D" target="_blank" rel="nofollow sponsored noopener" class="btn-rakuten">楽天</a>
+        </div>
+      </div>
     </div>
     <p style="margin-top:12px;"><b>② 加熱用に、クセがなく酸化に強い油</b>を1本。毎日の炒め物はこれで十分です。</p>
     <div class="pcard">
-      <div class="pcard-label">加熱・炒め用</div>
-      <div class="pcard-title">日清 キャノーラ油（菜種）</div>
-      <div class="pcard-desc">「サラダ油」でもキャノーラ（菜種）はオレイン酸＝オメガ9寄りで、大豆系よりオメガ6が少なく加熱に強い。安くて毎日の炒め物・揚げ物に。コスパも◎。</div>
-      <a href="https://amzn.to/4xOAsKq" target="_blank" rel="nofollow sponsored noopener" class="btn-amazon">Amazon で見る</a>
+      <div class="pcard-thumb"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/rakuten24/cabinet/227/523227.jpg?_ex=240x240" alt="日清キャノーラ油"></div>
+      <div class="pcard-body">
+        <div class="pcard-label">加熱・炒め用</div>
+        <div class="pcard-title">日清 キャノーラ油（菜種）</div>
+        <div class="pcard-desc">「サラダ油」でもキャノーラ（菜種）はオレイン酸＝オメガ9寄りで、大豆系よりオメガ6が少なく加熱に強い。安くて毎日の炒め物・揚げ物に。コスパも◎。<b>オリーブは味の素派の僕ですが、キャノーラは日清オイリオ推しです。</b></div>
+        <div class="btn-row">
+          <a href="https://amzn.to/4xOAsKq" target="_blank" rel="nofollow sponsored noopener" class="btn-amazon">Amazon</a>
+          <a href="https://hb.afl.rakuten.co.jp/ichiba/531d7f00.72c996d0.531d7f01.d01e294b/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Frakuten24%2F523227%2F&link_type=picttext&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0dGV4dCIsInNpemUiOiIyNDB4MjQwIiwibmFtIjoxLCJuYW1wIjoicmlnaHQiLCJjb20iOjEsImNvbXAiOiJkb3duIiwicHJpY2UiOjEsImJvciI6MSwiY29sIjoxLCJiYnRuIjoxLCJwcm9kIjowLCJhbXAiOmZhbHNlfQ%3D%3D" target="_blank" rel="nofollow sponsored noopener" class="btn-rakuten">楽天</a>
+        </div>
+      </div>
     </div>
     <p><b>③ オメガ3は、油じゃなくサプリで摂る。</b>オメガ3（EPA・DHA／α-リノレン酸）は二重結合が多く、<span class="strong">脂の中で一番"酸化"しやすい</span>。えごま油・亜麻仁油は加熱厳禁で、開封後もすぐ酸化します。だから安定して摂るなら、<span class="em">酸化を防いだカプセル</span>が確実。これは油屋として断言できます。</p>
     <div class="pcard">
-      <div class="pcard-label">OMEGA-3（EPA/DHA）</div>
-      <div class="pcard-title">ネイチャーメイド スーパーフィッシュオイル（90日分）</div>
-      <div class="pcard-desc">大塚製薬。EPA・DHAをカプセルで。酸化しやすいオメガ3を、空気に触れさせず確実に摂れる。1日分でしっかり量がとれてコスパも良い。</div>
-      <a href="https://www.amazon.co.jp/dp/B0FLCY3KQJ?psc=1&linkCode=ll2&tag=index712-22&linkId=c653fee5f6b0e4412a5cb02524e01f7b&ref_=as_li_ss_tl" target="_blank" rel="nofollow sponsored noopener" class="btn-amazon">Amazon で見る</a>
+      <div class="pcard-thumb"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/rakuten24/cabinet/914/4987035691914.jpg?_ex=240x240" alt="ネイチャーメイド スーパーフィッシュオイル"></div>
+      <div class="pcard-body">
+        <div class="pcard-label">OMEGA-3（EPA/DHA）</div>
+        <div class="pcard-title">ネイチャーメイド スーパーフィッシュオイル</div>
+        <div class="pcard-desc">大塚製薬。EPA・DHAをカプセルで。酸化しやすいオメガ3を、空気に触れさせず確実に摂れる。</div>
+        <div class="btn-row">
+          <a href="https://www.amazon.co.jp/dp/B0FLCY3KQJ?psc=1&linkCode=ll2&tag=index712-22&linkId=c653fee5f6b0e4412a5cb02524e01f7b&ref_=as_li_ss_tl" target="_blank" rel="nofollow sponsored noopener" class="btn-amazon">Amazon</a>
+          <a href="https://hb.afl.rakuten.co.jp/ichiba/531d7f00.72c996d0.531d7f01.d01e294b/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Frakuten24%2F4987035691914%2F&link_type=picttext&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0dGV4dCIsInNpemUiOiIyNDB4MjQwIiwibmFtIjoxLCJuYW1wIjoicmlnaHQiLCJjb20iOjEsImNvbXAiOiJkb3duIiwicHJpY2UiOjEsImJvciI6MSwiY29sIjoxLCJiYnRuIjoxLCJwcm9kIjowLCJhbXAiOmZhbHNlfQ%3D%3D" target="_blank" rel="nofollow sponsored noopener" class="btn-rakuten">楽天</a>
+        </div>
+      </div>
     </div>
   </div>
 

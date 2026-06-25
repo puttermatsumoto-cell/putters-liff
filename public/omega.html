@@ -58,6 +58,16 @@
     .down:before { content: "▼"; color: #c0532e; }
     .heat:before { content: "🔥"; }
 
+    .pcard { display: flex; gap: 12px; background: #faf7f2; border: 1px solid #ece3d5; border-radius: 12px; padding: 12px; margin-top: 14px; }
+    .pcard-thumb { width: 72px; height: 72px; border-radius: 10px; background: #fff; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+    .pcard-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .pcard-body { flex: 1; min-width: 0; }
+    .pcard-label { font-size: 11px; color: #c8a97e; font-weight: bold; letter-spacing: 1px; margin-bottom: 3px; }
+    .pcard-title { font-size: 14px; font-weight: bold; color: #1a1a2e; margin-bottom: 4px; line-height: 1.4; }
+    .pcard-desc { font-size: 12px; color: #888; margin-bottom: 10px; line-height: 1.65; }
+    .btn-row { display: flex; gap: 6px; }
+    .btn-amazon { flex: 1; display: block; background: #FF9900; color: #fff; text-align: center; border-radius: 80px; padding: 9px 6px; font-size: 12.5px; font-weight: bold; text-decoration: none; }
+    .btn-rakuten { flex: 1; display: block; background: #bf0000; color: #fff; text-align: center; border-radius: 80px; padding: 9px 6px; font-size: 12.5px; font-weight: bold; text-decoration: none; }
     .closing { font-size: 13.5px; line-height: 2; color: #555; text-align: center; padding: 18px 6px 4px; }
     .gymlink { display: inline-block; margin-top: 6px; color: #c8a97e; font-weight: 700; text-decoration: none; }
     .disc { font-size: 11px; color: #aaa; text-align: center; line-height: 1.7; margin-top: 22px; }
@@ -137,6 +147,18 @@
       <li class="heat"><b>加熱はオメガ9で</b>：炒め物・揚げ物はオリーブ油や菜種油に</li>
     </ul>
     <p style="margin-top:14px;">サプリで足すなら、<span class="em">3だけでいい</span>。6は減らす側、9は食事と調理油で十分です。</p>
+    <div class="pcard">
+      <div class="pcard-thumb"><img src="https://thumbnail.image.rakuten.co.jp/@0_mall/rakuten24/cabinet/914/4987035691914.jpg?_ex=240x240" alt="ネイチャーメイド スーパーフィッシュオイル"></div>
+      <div class="pcard-body">
+        <div class="pcard-label">OMEGA-3（EPA/DHA）</div>
+        <div class="pcard-title">ネイチャーメイド スーパーフィッシュオイル</div>
+        <div class="pcard-desc">大塚製薬。熱に弱いオメガ3を、空気に触れさせずカプセルで確実に。魚が少ない日の補い方。</div>
+        <div class="btn-row">
+          <a href="https://www.amazon.co.jp/dp/B0FLCY3KQJ?psc=1&linkCode=ll2&tag=index712-22&linkId=c653fee5f6b0e4412a5cb02524e01f7b&ref_=as_li_ss_tl" target="_blank" rel="nofollow sponsored noopener" class="btn-amazon">Amazon</a>
+          <a href="https://hb.afl.rakuten.co.jp/ichiba/531d7f00.72c996d0.531d7f01.d01e294b/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Frakuten24%2F4987035691914%2F&link_type=picttext&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0dGV4dCIsInNpemUiOiIyNDB4MjQwIiwibmFtIjoxLCJuYW1wIjoicmlnaHQiLCJjb20iOjEsImNvbXAiOiJkb3duIiwicHJpY2UiOjEsImJvciI6MSwiY29sIjoxLCJiYnRuIjoxLCJwcm9kIjowLCJhbXAiOmZhbHNlfQ%3D%3D" target="_blank" rel="nofollow sponsored noopener" class="btn-rakuten">楽天</a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <p class="closing">
