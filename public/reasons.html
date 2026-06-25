@@ -9,7 +9,11 @@
     body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
     .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
     h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 700; }
-    .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 24px; line-height: 1.7; }
+    .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 18px; line-height: 1.7; }
+    .progress-box { background: white; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .progress-text { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+    .progress-bar-bg { background: #eee; border-radius: 99px; height: 8px; overflow: hidden; }
+    .progress-bar-fill { background: linear-gradient(90deg, #4caf50, #81c784); height: 100%; border-radius: 99px; width: 0; transition: width 0.4s ease; }
     .card { background: white; border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; }
     .card.read { background: #f0f7f0; }
     .card-link { flex: 1; display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; min-width: 0; }
@@ -32,6 +36,11 @@
   <a href="javascript:history.back()" class="back">← 戻る</a>
   <h1>📖 おすすめの理由</h1>
   <p class="subtitle">「なぜそれが良いのか」を深掘りした記事。<br>読んだら右の✓を押してチェック。</p>
+
+  <div class="progress-box">
+    <div class="progress-text" id="progress-text">読破率 0/0（0%）</div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar"></div></div>
+  </div>
 
   <div class="card" data-slug="bone">
     <a href="/bone.html" class="card-link">
@@ -82,12 +91,18 @@
     }
     function render() {
       const read = getRead();
-      document.querySelectorAll('.card[data-slug]').forEach(card => {
+      const cards = document.querySelectorAll('.card[data-slug]');
+      let readCount = 0;
+      cards.forEach(card => {
         const slug = card.dataset.slug;
         const btn = document.getElementById('check-' + slug);
-        if (read[slug]) { card.classList.add('read'); btn.classList.add('checked'); }
+        if (read[slug]) { card.classList.add('read'); btn.classList.add('checked'); readCount++; }
         else { card.classList.remove('read'); btn.classList.remove('checked'); }
       });
+      const total = cards.length;
+      const pct = total > 0 ? Math.round(readCount / total * 100) : 0;
+      document.getElementById('progress-text').textContent = `読破率 ${readCount}/${total}（${pct}%）`;
+      document.getElementById('progress-bar').style.width = pct + '%';
     }
     render();
   </script>
