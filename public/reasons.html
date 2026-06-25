@@ -10,14 +10,20 @@
     .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
     h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 700; }
     .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 24px; line-height: 1.7; }
-    .card { background: white; border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 16px; text-decoration: none; color: inherit; }
+    .card { background: white; border-radius: 16px; padding: 18px 20px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 16px; text-decoration: none; color: inherit; position: relative; }
     .card:active { opacity: 0.7; }
+    .card.read { background: #f0f7f0; }
+    .card.read .card-title { color: #888; }
     .num { min-width: 32px; height: 32px; border-radius: 50%; background: #c8a97e; color: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card.read .num { background: #4caf50; }
     .card-body { flex: 1; }
     .card-cat { font-size: 11px; color: #c8a97e; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 3px; }
     .card-title { font-size: 15px; font-weight: bold; color: #1a1a2e; line-height: 1.4; margin-bottom: 4px; }
     .card-desc { font-size: 12px; color: #888; line-height: 1.6; }
     .arrow { color: #c8a97e; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+    .read-mark { display: none; align-items: center; gap: 3px; color: #4caf50; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .card.read .arrow { display: none; }
+    .card.read .read-mark { display: inline-flex; }
     .soon { background: #faf6f0; border: 1px dashed #d8c4a8; border-radius: 14px; padding: 16px 18px; margin-top: 8px; }
     .soon-title { font-size: 13px; font-weight: 700; color: #b89968; margin-bottom: 6px; }
     .soon-text { font-size: 12px; color: #a08c6e; line-height: 1.7; }
@@ -28,7 +34,7 @@
   <h1>📖 おすすめの理由</h1>
   <p class="subtitle">「なぜそれが良いのか」を深掘りした記事。<br>買う前に読むと、選び方そのものが分かります。</p>
 
-  <a href="/bone.html" class="card">
+  <a href="/bone.html" class="card" data-slug="bone" onclick="markRead('bone')">
     <div class="num">1</div>
     <div class="card-body">
       <div class="card-cat">サプリ・健康</div>
@@ -36,11 +42,39 @@
       <div class="card-desc">「カルシウムだけ」が一番あぶない。元・骨折予防研究者の目利き</div>
     </div>
     <div class="arrow">→</div>
+    <div class="read-mark">✓ 読んだ</div>
   </a>
 
   <div class="soon">
     <div class="soon-title">＋ 記事はこれから増えます</div>
     <div class="soon-text">プロテイン・グッズの「なぜ」、PC・周辺機器など、「松本が"なぜ"で選んだ物」を順次追加していきます。</div>
   </div>
+
+  <script>
+    const READ_KEY = 'putters_reasons_read';
+    function getRead() {
+      try { return JSON.parse(localStorage.getItem(READ_KEY) || '{}'); }
+      catch (e) { return {}; }
+    }
+    function markRead(slug) {
+      const read = getRead();
+      read[slug] = true;
+      localStorage.setItem(READ_KEY, JSON.stringify(read));
+    }
+    // 読んだ記事にレ点を反映
+    (function render() {
+      const read = getRead();
+      document.querySelectorAll('.card[data-slug]').forEach(card => {
+        if (read[card.dataset.slug]) card.classList.add('read');
+      });
+    })();
+    // 戻ってきた時（bfcache復帰）にも再反映
+    window.addEventListener('pageshow', () => {
+      const read = getRead();
+      document.querySelectorAll('.card[data-slug]').forEach(card => {
+        card.classList.toggle('read', !!read[card.dataset.slug]);
+      });
+    });
+  </script>
 </body>
 </html>
