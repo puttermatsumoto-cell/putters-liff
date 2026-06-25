@@ -64,6 +64,7 @@
 
   <script>
     const READ_KEY = 'putters_reasons_read';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
     function getRead() {
       try { return JSON.parse(localStorage.getItem(READ_KEY) || '{}'); }
       catch (e) { return {}; }
@@ -73,6 +74,11 @@
       read[slug] = !read[slug];
       localStorage.setItem(READ_KEY, JSON.stringify(read));
       render();
+      const name = localStorage.getItem('putters_user_name') || '不明';
+      fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'saveTextbookWatch', name, videoId: 'reason-' + slug, watched: read[slug] })
+      }).catch(() => {});
     }
     function render() {
       const read = getRead();
