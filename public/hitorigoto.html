@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>松本の独り言</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; color: #2a2a33; }
+    .wrap { max-width: 560px; margin: 0 auto; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 18px; background: none; border: none; cursor: pointer; padding: 0; font-family: inherit; }
+    .eyebrow { font-size: 12px; color: #c8a97e; font-weight: 700; letter-spacing: 0.08em; text-align: center; margin-bottom: 8px; }
+    h1.page { font-size: 21px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 800; }
+    .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 22px; line-height: 1.8; }
+
+    /* 一覧 */
+    .card { display: block; background: white; border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); text-decoration: none; color: inherit; }
+    .card:active { opacity: 0.7; }
+    .card-date { font-size: 11px; color: #b9a98f; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .card-title { font-size: 16px; font-weight: 800; color: #1a1a2e; line-height: 1.5; }
+    .card-cta { font-size: 12px; color: #c8a97e; font-weight: 700; margin-top: 10px; }
+
+    /* 本文 */
+    .article { display: none; }
+    .art-date { font-size: 12px; color: #c8a97e; font-weight: 700; letter-spacing: 0.08em; text-align: center; margin-bottom: 8px; }
+    h1.art { font-size: 22px; line-height: 1.5; color: #1a1a2e; text-align: center; margin-bottom: 22px; font-weight: 800; }
+    .sec { background: #fff; border-radius: 16px; padding: 22px 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+    .sec p { font-size: 14.5px; line-height: 2; margin-bottom: 14px; }
+    .sec p:last-child { margin-bottom: 0; }
+    .em { background: linear-gradient(transparent 62%, #f4e3c4 62%); font-weight: 700; }
+    .strong { color: #b5532e; font-weight: 700; }
+    .sign { font-size: 13px; color: #999; text-align: right; margin-top: 16px; }
+    .nav-foot { margin-top: 18px; text-align: center; }
+    .nav-foot button { background: none; border: none; color: #c8a97e; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; }
+    .empty { background:#fff; border-radius:14px; padding:24px; text-align:center; color:#999; font-size:13px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 一覧ビュー -->
+  <div id="list-view">
+    <a href="javascript:history.back()" class="back">← 戻る</a>
+    <div class="eyebrow">PUTTERS</div>
+    <h1 class="page">📝 松本の独り言</h1>
+    <p class="subtitle">いま考えてること、現場の裏側、本音。<br>答えじゃなくて、進行中の頭の中です。</p>
+    <div id="list"></div>
+  </div>
+
+  <!-- 本文ビュー -->
+  <div id="article-view" class="article">
+    <button class="back" onclick="showList()">← 独り言一覧に戻る</button>
+    <div class="art-date" id="art-date"></div>
+    <h1 class="art" id="art-title"></h1>
+    <div class="sec" id="art-body"></div>
+    <div class="sign">— 松本</div>
+    <div class="nav-foot"><button onclick="showList()">← 一覧に戻る</button></div>
+  </div>
+
+</div>
+
+<script src="/hitorigoto-data.js"></script>
+<script>
+  const listEl = document.getElementById('list');
+  const listView = document.getElementById('list-view');
+  const artView = document.getElementById('article-view');
+
+  function renderList() {
+    if (!Array.isArray(HITORIGOTO) || HITORIGOTO.length === 0) {
+      listEl.innerHTML = '<div class="empty">まだ独り言はありません。</div>';
+      return;
+    }
+    listEl.innerHTML = HITORIGOTO.map(e => `
+      <a class="card" href="?id=${e.id}" onclick="showArticle('${e.id}');return false;">
+        <div class="card-date">${e.date}</div>
+        <div class="card-title">${e.title}</div>
+        <div class="card-cta">読む →</div>
+      </a>`).join('');
+  }
+
+  // 画面切替はJSの表示/非表示のみ。location.hash や history は一切触らない
+  // → 「← 戻る」(history.back) が常に元のページ（ホーム等）に戻れる
+  function showList() {
+    artView.style.display = 'none';
+    listView.style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showArticle(id) {
+    const e = HITORIGOTO.find(x => x.id === id);
+    if (!e) { showList(); return; }
+    document.getElementById('art-date').textContent = e.date;
+    document.getElementById('art-title').textContent = e.title;
+    document.getElementById('art-body').innerHTML = e.body.map(p => `<p>${p}</p>`).join('');
+    listView.style.display = 'none';
+    artView.style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  renderList();
+  // 初期表示：?id= があればその本文、なければ一覧
+  const _id = new URLSearchParams(location.search).get('id');
+  if (_id) showArticle(_id);
+  else showList();
+</script>
+</body>
+</html>
