@@ -71,15 +71,16 @@
       return;
     }
     listEl.innerHTML = HITORIGOTO.map(e => `
-      <a class="card" href="#${e.id}">
+      <a class="card" href="?id=${e.id}" onclick="showArticle('${e.id}');return false;">
         <div class="card-date">${e.date}</div>
         <div class="card-title">${e.title}</div>
         <div class="card-cta">読む →</div>
       </a>`).join('');
   }
 
+  // 画面切替はJSの表示/非表示のみ。location.hash や history は一切触らない
+  // → 「← 戻る」(history.back) が常に元のページ（ホーム等）に戻れる
   function showList() {
-    if (location.hash) { location.hash = ''; return; }
     artView.style.display = 'none';
     listView.style.display = 'block';
     window.scrollTo(0, 0);
@@ -96,15 +97,11 @@
     window.scrollTo(0, 0);
   }
 
-  function route() {
-    const id = location.hash.replace(/^#/, '');
-    if (id) showArticle(id);
-    else showList();
-  }
-
   renderList();
-  window.addEventListener('hashchange', route);
-  route();
+  // 初期表示：?id= があればその本文、なければ一覧
+  const _id = new URLSearchParams(location.search).get('id');
+  if (_id) showArticle(_id);
+  else showList();
 </script>
 </body>
 </html>
