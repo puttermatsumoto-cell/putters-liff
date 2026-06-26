@@ -198,16 +198,33 @@
       try { return JSON.parse(localStorage.getItem(READ_KEY) || '{}'); }
       catch (e) { return {}; }
     }
-    function toggleRead(slug) {
-      const read = getRead();
-      read[slug] = !read[slug];
-      localStorage.setItem(READ_KEY, JSON.stringify(read));
-      render();
+    function postRead(slug, read) {
       const name = localStorage.getItem('putters_user_name') || '不明';
-      fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'saveReasonRead', name, slug, read: read[slug] })
-      }).catch(() => {});
+      const payload = JSON.stringify({ action: 'saveReasonRead', name, slug, read });
+      // カードを開く＝ページ遷移で fetch が切れるため sendBeacon 優先
+      if (navigator.sendBeacon) { try { navigator.sendBeacon(GAS_URL, payload); return; } catch (e) {} }
+      fetch(GAS_URL, { method: 'POST', body: payload }).catch(() => {});
+    }
+    function setRead(slug, read) {
+      const r = getRead();
+      r[slug] = read;
+      localStorage.setItem(READ_KEY, JSON.stringify(r));
+      postRead(slug, read);
+    }
+    // 手動トグル（レ点ボタン）＝残す。自動で付いたレ点を「外す」のにも使える。
+    function toggleRead(slug) {
+      setRead(slug, !getRead()[slug]);
+      render();
+    }
+    // 自動レ点：記事カードを開いたら read=true（既に付いていれば何もしない）
+    function bindAutoRead() {
+      document.querySelectorAll('.card[data-slug] .card-link').forEach(a => {
+        a.addEventListener('click', () => {
+          const card = a.closest('.card');
+          const slug = card && card.dataset.slug;
+          if (slug && !getRead()[slug]) setRead(slug, true);
+        });
+      });
     }
     function render() {
       const read = getRead();
@@ -225,6 +242,7 @@
       document.getElementById('progress-bar').style.width = pct + '%';
     }
     render();
+    bindAutoRead();
   </script>
 </body>
 </html>
