@@ -188,16 +188,32 @@
       return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     }
 
-    function toggleWatch(slug) {
-      const watched = getWatched();
-      watched[slug] = !watched[slug];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(watched));
-      updateUI();
+    function postWatch(slug, watched) {
       const name = localStorage.getItem('putters_user_name') || '不明';
-      fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'saveTextbookWatch', name, videoId: slug, watched: watched[slug] })
-      }).catch(() => {});
+      const payload = JSON.stringify({ action: 'saveTextbookWatch', name, videoId: slug, watched });
+      if (navigator.sendBeacon) { try { navigator.sendBeacon(GAS_URL, payload); return; } catch (e) {} }
+      fetch(GAS_URL, { method: 'POST', body: payload }).catch(() => {});
+    }
+    function setWatched(slug, watched) {
+      const w = getWatched();
+      w[slug] = watched;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(w));
+      postWatch(slug, watched);
+    }
+    // 手動トグル（✓ボタン）＝残す。自動で付いた履修を「外す」のにも使える。
+    function toggleWatch(slug) {
+      setWatched(slug, !getWatched()[slug]);
+      updateUI();
+    }
+    // 自動：動画リンクを開いたら履修済み（既に付いていれば何もしない）
+    function bindAutoWatch() {
+      document.querySelectorAll('[id^="card-"] .card-title a').forEach(a => {
+        a.addEventListener('click', () => {
+          const card = a.closest('[id^="card-"]');
+          const slug = card && card.id.replace('card-', '');
+          if (slug && !getWatched()[slug]) { setWatched(slug, true); updateUI(); }
+        });
+      });
     }
 
     function updateUI() {
@@ -230,6 +246,7 @@
     }
 
     updateUI();
+    bindAutoWatch();
   </script>
 </body>
 </html>
