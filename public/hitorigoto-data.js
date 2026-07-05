@@ -7,6 +7,7 @@ const HITORIGOTO = [
     date: '2026.07.05',
     title: '自動製氷機、買いました。冷たいプロテイン出します',
     body: [
+      '<img src="/seihyouki.jpg" alt="買った自動製氷機" style="display:block; width:100%; max-width:320px; margin:0 auto 6px; border-radius:12px;">',
       '自動製氷機を買いました。',
       'これから、<span class="strong">冷たいプロテインを提供します</span>。運動のあと、キンキンに冷えたやつを一杯。',
       'とはいえ——正直、私自身はお腹を下すので常温派です。女性も常温派の方が多い。なので、<span class="em">冷たいのと常温、その都度確認しながら作ります</span>。',
