@@ -486,7 +486,13 @@
   <script>
     (function() {
       if (typeof HITORIGOTO === 'undefined' || !HITORIGOTO.length) return;
-      document.getElementById('hitorigoto-news-list').innerHTML = HITORIGOTO.slice(0, 5).map(e => `
+      // 予約投稿：dateが今日以前のものだけ・新しい順（hitorigoto.htmlのゲートと揃える）
+      var hgKey = function(s){ var p = String(s).split('.').map(Number); return p[0]*10000 + p[1]*100 + p[2]; };
+      var HG_TODAY = (function(){ var d = new Date(); return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate(); })();
+      var visible = HITORIGOTO.filter(function(e){ return hgKey(e.date) <= HG_TODAY; })
+        .sort(function(a, b){ return hgKey(b.date) - hgKey(a.date); });
+      if (!visible.length) return;
+      document.getElementById('hitorigoto-news-list').innerHTML = visible.slice(0, 5).map(e => `
         <a href="/hitorigoto.html?id=${e.id}" style="display:block; padding:11px 0; border-top:1px solid #f0ebe3; text-decoration:none; color:inherit;">
           <div style="font-size:10.5px; color:#b9a98f; font-weight:700; margin-bottom:3px;">${e.date}</div>
           <div style="font-size:13.5px; color:#1a1a2e; font-weight:600; line-height:1.5;">${e.title}</div>
