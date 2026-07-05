@@ -65,12 +65,20 @@
   const listView = document.getElementById('list-view');
   const artView = document.getElementById('article-view');
 
+  // 予約投稿：date（'YYYY.MM.DD'）が今日以前のものだけを、新しい順で公開。
+  // 未来日付のエントリは、その日が来るまで一覧にも直リンクにも出ない＝先出しストック可。
+  function hgKey(s){ const p = String(s).split('.').map(Number); return p[0]*10000 + p[1]*100 + p[2]; }
+  const HG_TODAY = (function(){ const d = new Date(); return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate(); })();
+  const VISIBLE = (Array.isArray(HITORIGOTO) ? HITORIGOTO : [])
+    .filter(e => hgKey(e.date) <= HG_TODAY)
+    .sort((a, b) => hgKey(b.date) - hgKey(a.date));
+
   function renderList() {
-    if (!Array.isArray(HITORIGOTO) || HITORIGOTO.length === 0) {
+    if (VISIBLE.length === 0) {
       listEl.innerHTML = '<div class="empty">まだ独り言はありません。</div>';
       return;
     }
-    listEl.innerHTML = HITORIGOTO.map(e => `
+    listEl.innerHTML = VISIBLE.map(e => `
       <a class="card" href="?id=${e.id}" onclick="showArticle('${e.id}');return false;">
         <div class="card-date">${e.date}</div>
         <div class="card-title">${e.title}</div>
@@ -87,7 +95,7 @@
   }
 
   function showArticle(id) {
-    const e = HITORIGOTO.find(x => x.id === id);
+    const e = VISIBLE.find(x => x.id === id);
     if (!e) { showList(); return; }
     document.getElementById('art-date').textContent = e.date;
     document.getElementById('art-title').textContent = e.title;
