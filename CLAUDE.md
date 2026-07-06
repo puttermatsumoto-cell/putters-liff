@@ -8,7 +8,7 @@
 - **バックエンド**: Google Apps Script (GAS)
 - **データ**: Googleスプレッドシート
 - **AI**: Claude API（Haiku）/ Anthropic
-- **LINE連携**: LIFF
+- **LINE連携**: LIFF SDKは読み込むが`liff.closeWindow()`だけ使用。**LINEログインは未実装**。お客さんはブラウザ(Safari等)で開き、**名前を手入力**して使う（本人確認＝打った名前をlocalStorage保存＋宿題シート照合）。「LINEログイン前提」で考えないこと
 
 ## 重要なURL・ID
 - **GAS URL**: `https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec`
