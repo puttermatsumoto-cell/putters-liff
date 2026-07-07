@@ -82,7 +82,8 @@
     .auth-block-inner { text-align: center; padding: 32px 24px; }
     .auth-block-inner h2 { color: #c8a97e; font-size: 22px; margin-bottom: 16px; }
     .auth-block-inner p { color: #aaa; font-size: 14px; line-height: 1.8; }
-    .auth-block-inner button { margin-top: 24px; padding: 12px 24px; background: none; border: 1px solid #555; border-radius: 8px; color: #888; font-size: 13px; cursor: pointer; }
+    .auth-block-inner button { margin-top: 14px; padding: 12px 24px; background: none; border: 1px solid #555; border-radius: 8px; color: #888; font-size: 13px; cursor: pointer; }
+    .auth-block-journal { display: inline-block; margin-top: 28px; padding: 13px 28px; background: #c8a97e; border-radius: 999px; color: #1a1a2e; font-size: 14px; font-weight: 700; text-decoration: none; letter-spacing: .02em; }
     .menu-overlay { position: fixed; inset: 0; z-index: 998; display: none; }
     .menu-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
     .menu-drawer { position: absolute; left: 0; top: 0; bottom: 0; width: 80%; max-width: 320px; background: #1a1a2e; padding: 60px 16px 24px; overflow-y: auto; }
@@ -102,6 +103,7 @@
     .name-modal p { font-size: 13px; color: #888; margin-bottom: 20px; line-height: 1.6; }
     .name-modal input { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; margin-bottom: 12px; text-align: center; }
     .name-modal button { width: 100%; padding: 14px; background: #1a1a2e; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    .name-modal-journal { display: inline-block; margin-top: 18px; color: #b08d5b; font-size: 13px; font-weight: 700; text-decoration: none; }
     .soreness-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; }
     .soreness-modal { background: white; border-radius: 20px; padding: 28px 24px; width: 88%; max-width: 340px; }
     .soreness-modal h2 { font-size: 17px; color: #1a1a2e; margin-bottom: 6px; font-weight: bold; }
@@ -197,6 +199,7 @@
     <div class="auth-block-inner">
       <h2>PUTTERS</h2>
       <p>このアプリは会員専用です。<br>松本さんに登録してもらってから<br>再度お試しください。</p>
+      <a href="/hitorigoto.html" class="auth-block-journal">📝 松本の独り言を読む →</a>
       <button onclick="resetName()">名前を変更する</button>
     </div>
   </div>
@@ -218,6 +221,7 @@
       <p>Googleカレンダーの予約名と<br>同じ名前を入力してください</p>
       <input type="text" id="name-input" placeholder="例：田中 太郎" maxlength="20">
       <button onclick="saveName()">決定</button>
+      <a href="/hitorigoto.html" class="name-modal-journal">会員じゃない方 → 松本の独り言を読む</a>
     </div>
   </div>
 
