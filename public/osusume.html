@@ -73,16 +73,34 @@
     <div class="arrow">→</div>
   </a>
 
+  <a href="/shitte.html" class="card reason-bar">
+    <span class="badge" id="shitteBadge"></span>
+    <div class="card-icon">💡</div>
+    <div class="card-body">
+      <div class="card-title">知って欲しいこと</div>
+      <div class="card-desc">体づくりの前に、松本が知っておいてほしい話</div>
+    </div>
+    <div class="arrow">→</div>
+  </a>
+
   <script>
     (function(){
-      var SLUGS = ['bone','magnesium','inulin','water','protein-heat','omega','oil','mct','urabanashi','stretchpole','imuse','suihanki','mitochondria','coq10','hazakai','iron','explosion','cinnamon','seitai'];
-      function update(){
+      function countUnread(slugs, key){
         var read = {};
-        try { read = JSON.parse(localStorage.getItem('putters_reasons_read') || '{}'); } catch(e){}
-        var unread = SLUGS.filter(function(s){ return !read[s]; }).length;
-        var b = document.getElementById('reasonBadge');
-        if (unread > 0) { b.textContent = unread; b.style.display = 'flex'; }
+        try { read = JSON.parse(localStorage.getItem(key) || '{}'); } catch(e){}
+        return slugs.filter(function(s){ return !read[s]; }).length;
+      }
+      function setBadge(id, n){
+        var b = document.getElementById(id);
+        if (!b) return;
+        if (n > 0) { b.textContent = n; b.style.display = 'flex'; }
         else { b.style.display = 'none'; }
+      }
+      var REASON_SLUGS = ['bone','magnesium','inulin','water','protein-heat','omega','oil','mct','urabanashi','stretchpole','imuse','suihanki','mitochondria','coq10','hazakai','iron','explosion','cinnamon'];
+      var SHITTE_SLUGS = ['seitai'];
+      function update(){
+        setBadge('reasonBadge', countUnread(REASON_SLUGS, 'putters_reasons_read'));
+        setBadge('shitteBadge', countUnread(SHITTE_SLUGS, 'putters_shitte_read'));
       }
       update();
       window.addEventListener('pageshow', update);

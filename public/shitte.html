@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知って欲しいこと</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
+    h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 700; }
+    .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 18px; line-height: 1.7; }
+    .progress-box { background: white; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .progress-text { font-size: 13px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+    .progress-bar-bg { background: #eee; border-radius: 99px; height: 8px; overflow: hidden; }
+    .progress-bar-fill { background: linear-gradient(90deg, #4caf50, #81c784); height: 100%; border-radius: 99px; width: 0; transition: width 0.4s ease; }
+    .card { background: white; border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; }
+    .card.read { background: #f0f7f0; }
+    .card-link { flex: 1; display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; min-width: 0; }
+    .card-link:active { opacity: 0.7; }
+    .num { width: 30px; height: 30px; border-radius: 50%; background: #ff0000; color: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .card.read .num { background: #4caf50; }
+    .card-body { flex: 1; min-width: 0; }
+    .card-cat { font-size: 11px; color: #c8a97e; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .card-title { font-size: 15px; font-weight: bold; color: #1a1a2e; line-height: 1.4; margin-bottom: 4px; }
+    .card.read .card-title { color: #888; }
+    .card-desc { font-size: 12px; color: #888; line-height: 1.6; }
+    .check-btn { width: 44px; height: 44px; border-radius: 10px; border: 2px solid #c8a97e; background: white; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; flex-shrink: 0; color: #ccc; }
+    .check-btn.checked { background: #4caf50; border-color: #4caf50; color: white; }
+    .soon { background: #faf6f0; border: 1px dashed #d8c4a8; border-radius: 14px; padding: 16px 18px; margin-top: 8px; }
+    .soon-title { font-size: 13px; font-weight: 700; color: #b89968; margin-bottom: 6px; }
+    .soon-text { font-size: 12px; color: #a08c6e; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <a href="javascript:history.back()" class="back">← 戻る</a>
+  <h1>💡 知って欲しいこと</h1>
+  <p class="subtitle">体づくりの前に、松本が知っておいてほしい話。<br>読んだら右の✓を押してチェック。</p>
+
+  <div class="progress-box">
+    <div class="progress-text" id="progress-text">読破率 0/0（0%）</div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar"></div></div>
+  </div>
+
+  <div class="card" data-slug="seitai">
+    <a href="/seitai.html" class="card-link">
+      <div class="num">1</div>
+      <div class="card-body">
+        <div class="card-cat">知って欲しいこと</div>
+        <div class="card-title">「いい整体師さん、知りませんか？」と聞かれると、困る</div>
+        <div class="card-desc">整体で姿勢は治らない。動ける体まで持っていくのが仕事、という話</div>
+      </div>
+    </a>
+    <button class="check-btn" id="check-seitai" onclick="toggleRead('seitai')">✓</button>
+  </div>
+
+  <div class="soon">
+    <div class="soon-title">＋ 記事はこれから増えます</div>
+    <div class="soon-text">体づくりの土台になる「考え方」を、順次ここに足していきます。</div>
+  </div>
+
+  <script>
+    const READ_KEY = 'putters_shitte_read';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+    function getRead() {
+      try { return JSON.parse(localStorage.getItem(READ_KEY) || '{}'); }
+      catch (e) { return {}; }
+    }
+    function postRead(slug, read) {
+      const name = localStorage.getItem('putters_user_name') || '不明';
+      const payload = JSON.stringify({ action: 'saveReasonRead', name, slug, read });
+      if (navigator.sendBeacon) { try { navigator.sendBeacon(GAS_URL, payload); return; } catch (e) {} }
+      fetch(GAS_URL, { method: 'POST', body: payload }).catch(() => {});
+    }
+    function setRead(slug, read) {
+      const r = getRead();
+      r[slug] = read;
+      localStorage.setItem(READ_KEY, JSON.stringify(r));
+      postRead(slug, read);
+    }
+    function toggleRead(slug) {
+      setRead(slug, !getRead()[slug]);
+      render();
+    }
+    function bindAutoRead() {
+      document.querySelectorAll('.card[data-slug] .card-link').forEach(a => {
+        a.addEventListener('click', () => {
+          const card = a.closest('.card');
+          const slug = card && card.dataset.slug;
+          if (slug && !getRead()[slug]) setRead(slug, true);
+        });
+      });
+    }
+    function render() {
+      const read = getRead();
+      const cards = document.querySelectorAll('.card[data-slug]');
+      let readCount = 0;
+      cards.forEach(card => {
+        const slug = card.dataset.slug;
+        const btn = document.getElementById('check-' + slug);
+        if (read[slug]) { card.classList.add('read'); btn.classList.add('checked'); readCount++; }
+        else { card.classList.remove('read'); btn.classList.remove('checked'); }
+      });
+      const total = cards.length;
+      const pct = total > 0 ? Math.round(readCount / total * 100) : 0;
+      document.getElementById('progress-text').textContent = `読破率 ${readCount}/${total}（${pct}%）`;
+      document.getElementById('progress-bar').style.width = pct + '%';
+    }
+    render();
+    bindAutoRead();
+  </script>
+</body>
+</html>
