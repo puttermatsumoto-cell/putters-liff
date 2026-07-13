@@ -2188,7 +2188,7 @@
     })();
 
     // 松本のおすすめ：未読記事バッジ（メニュー）— 記事が増えたらこのリストに追加
-    const REASON_SLUGS = ['bone', 'magnesium', 'inulin', 'water', 'protein-heat', 'omega', 'oil', 'mct', 'urabanashi', 'stretchpole', 'imuse', 'suihanki', 'mitochondria', 'coq10', 'hazakai', 'iron', 'explosion', 'cinnamon'];
+    const REASON_SLUGS = ['bone', 'magnesium', 'inulin', 'water', 'protein-heat', 'omega', 'oil', 'mct', 'urabanashi', 'stretchpole', 'imuse', 'suihanki', 'mitochondria', 'coq10', 'hazakai', 'iron', 'explosion', 'cinnamon', 'gluten'];
     (function() {
       const read = JSON.parse(localStorage.getItem('putters_reasons_read') || '{}');
       const unread = REASON_SLUGS.filter(s => !read[s]).length;
