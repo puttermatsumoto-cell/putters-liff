@@ -433,7 +433,7 @@ const HITORIGOTO = [
     title: 'サプリ、12年で40種類試して、ほとんど要らなかった話',
     body: [
       'アプリに、サプリの「おすすめの理由」記事を追加しました。なぜ要るのか・要らないのかを、正直に書いてます。',
-      '<a href="/reasons.html" style="color:#c8a97e; font-weight:700; text-decoration:none;">→ アプリで「おすすめの理由」を見る</a>',
+      '<a href="/reasons.html" style="color:#c8a97e; font-weight:700; text-decoration:none;">→ アプリで「松本の読み物」を見る</a>',
       'で、書きながら改めて気づいたんですけど——私、これまで <span class="em">12年で40種類くらい</span> 自腹でサプリを試してきました。プロテインみたいな定番から、マニアックなやつまで一通り。',
       '結論、<span class="strong">ほとんど要らなかった</span>です。',
       '本当に要るものって、ほんの数個。残りは「飲んでも飲まなくても変わらない」か、「むしろ要らない」。',
