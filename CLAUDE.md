@@ -14,7 +14,7 @@
 - **GAS URL**: `https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec`
 - **スプレッドシートID**: `1Me9JRGM8VKahuYrSSHskJ75z2OCcQSUg42zOojOTmf8`
 - **Vercel URL**: `liff-app-weld.vercel.app`
-- **GASファイル**: `/home/poritan/secretary/gas/Code.gs`
+- **GASファイル**: `Code.gs`（このリポジトリのルート）
 
 ## アプリの主な機能（ページ一覧）
 | ページ | 説明 |
