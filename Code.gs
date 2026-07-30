@@ -835,8 +835,11 @@ function morningReport() {
 
   names.forEach(name => {
     const weeklyData = getClientWeeklyData(name);
-    // 記録が1件もない人（この1週間アプリに何も入れてない人）は送らない
-    if (!weeklyData.records || weeklyData.records.length === 0) return;
+    // この1週間アプリに何も入れてない人は送らない。
+    // ただし食事・体重等の記録が無くても、筋肉痛だけ記録している人には送る。
+    const hasRecords = weeklyData.records && weeklyData.records.length > 0;
+    const hasSoreness = weeklyData.soreness && weeklyData.soreness.length > 0;
+    if (!hasRecords && !hasSoreness) return;
     weeklyHtmls.push(buildReportHtml(name, weeklyData, todayStr));
     weeklyPdfs.push(buildReportPdf(name, weeklyData, todayStr));
     weeklyNames.push(name);
@@ -911,7 +914,9 @@ function getClientWeeklyData(name) {
     }
   }
 
-  return { records, feedback, prevVisitStr };
+  const soreness = getSorenessByPeriod(name, prevVisitStr || cutoffStr, todayStr);
+
+  return { records, feedback, prevVisitStr, soreness };
 }
 
 function getSorenessByPeriod(name, fromStr, toStr) {
@@ -1001,7 +1006,7 @@ function buildSvgLineChart(points, color, unit) {
 }
 
 function buildReportHtml(name, data, todayStr) {
-  const { records, feedback, prevVisitStr } = data;
+  const { records, feedback, prevVisitStr, soreness } = data;
   const periodLabel = prevVisitStr
     ? prevVisitStr.slice(5).replace('-', '/') + ' 〜 ' + todayStr.slice(5).replace('-', '/')
     : '直近' + records.length + '日間';
@@ -1059,7 +1064,7 @@ function buildReportHtml(name, data, todayStr) {
     </div>
   `).join('') : '<p style="color:#aaa;">今週の意見箱はありません</p>';
 
-  const sorenessRows = getSorenessByPeriod(name, prevVisitStr || records[0]?.date, todayStr);
+  const sorenessRows = soreness || getSorenessByPeriod(name, prevVisitStr || records[0]?.date, todayStr);
   let sorenessHtml;
   if (!sorenessRows || sorenessRows.length === 0) {
     sorenessHtml = '<p style="color:#aaa;font-size:13px;">筋肉痛の記録なし</p>';
