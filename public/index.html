@@ -482,26 +482,49 @@
   <div id="hitorigoto-news" style="display:none; margin:0 0 16px; background:#fff; border-radius:14px; padding:16px 18px; box-shadow:0 2px 10px rgba(0,0,0,0.07); border-left:4px solid #c8a97e;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
       <span style="font-size:11px; font-weight:700; color:#c8a97e; letter-spacing:0.1em;">📝 松本の独り言</span>
-      <a href="/hitorigoto.html" style="font-size:12px; color:#c8a97e; font-weight:700; text-decoration:none;">すべて見る →</a>
+      <a href="https://poritanfitness.com/category/hitorigoto/" target="_blank" rel="noopener" style="font-size:12px; color:#c8a97e; font-weight:700; text-decoration:none;">すべて見る →</a>
     </div>
     <div id="hitorigoto-news-list"></div>
   </div>
   <script src="/hitorigoto-data.js"></script>
   <script>
+    // 独り言の最新5本。本体はブログ（独り言カテゴリ=15）から取得する。
+    // 取れなかった時だけ、アプリ内の旧データ(hitorigoto-data.js)で表示する。
     (function() {
-      if (typeof HITORIGOTO === 'undefined' || !HITORIGOTO.length) return;
-      // 予約投稿：dateが今日以前のものだけ・新しい順（hitorigoto.htmlのゲートと揃える）
-      var hgKey = function(s){ var p = String(s).split('.').map(Number); return p[0]*10000 + p[1]*100 + p[2]; };
-      var HG_TODAY = (function(){ var d = new Date(); return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate(); })();
-      var visible = HITORIGOTO.filter(function(e){ return hgKey(e.date) <= HG_TODAY; })
-        .sort(function(a, b){ return hgKey(b.date) - hgKey(a.date); });
-      if (!visible.length) return;
-      document.getElementById('hitorigoto-news-list').innerHTML = visible.slice(0, 5).map(e => `
-        <a href="/hitorigoto.html?id=${e.id}" style="display:block; padding:11px 0; border-top:1px solid #f0ebe3; text-decoration:none; color:inherit;">
-          <div style="font-size:10.5px; color:#b9a98f; font-weight:700; margin-bottom:3px;">${e.date}</div>
-          <div style="font-size:13.5px; color:#1a1a2e; font-weight:600; line-height:1.5;">${e.title}</div>
-        </a>`).join('');
-      document.getElementById('hitorigoto-news').style.display = 'block';
+      var box = document.getElementById('hitorigoto-news');
+      var list = document.getElementById('hitorigoto-news-list');
+      var row = function(date, title, href, external) {
+        return '<a href="' + href + '"' + (external ? ' target="_blank" rel="noopener"' : '') +
+          ' style="display:block; padding:11px 0; border-top:1px solid #f0ebe3; text-decoration:none; color:inherit;">' +
+          '<div style="font-size:10.5px; color:#b9a98f; font-weight:700; margin-bottom:3px;">' + date + '</div>' +
+          '<div style="font-size:13.5px; color:#1a1a2e; font-weight:600; line-height:1.5;">' + title + '</div></a>';
+      };
+
+      function renderLocal() {
+        if (typeof HITORIGOTO === 'undefined' || !HITORIGOTO.length) return;
+        var hgKey = function(s){ var p = String(s).split('.').map(Number); return p[0]*10000 + p[1]*100 + p[2]; };
+        var today = (function(){ var d = new Date(); return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate(); })();
+        var visible = HITORIGOTO.filter(function(e){ return hgKey(e.date) <= today; })
+          .sort(function(a, b){ return hgKey(b.date) - hgKey(a.date); });
+        if (!visible.length) return;
+        list.innerHTML = visible.slice(0, 5).map(function(e) {
+          return row(e.date, e.title, '/hitorigoto.html?id=' + e.id, false);
+        }).join('');
+        box.style.display = 'block';
+      }
+
+      var decode = function(s) { var t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
+
+      fetch('https://poritanfitness.com/wp-json/wp/v2/posts?categories=15&per_page=5&_fields=link,title,date')
+        .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function(posts) {
+          if (!posts || !posts.length) throw new Error('empty');
+          list.innerHTML = posts.map(function(p) {
+            return row(p.date.slice(0, 10).replace(/-/g, '.'), decode(p.title.rendered), p.link, true);
+          }).join('');
+          box.style.display = 'block';
+        })
+        .catch(renderLocal);
     })();
   </script>
 
