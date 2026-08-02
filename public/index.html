@@ -245,6 +245,7 @@
       <div class="menu-pickup">
         <a href="/textbook.html" id="yt-menu-link" style="color:#c8a97e; position:relative;"><span class="menu-icon">📺</span>YouTube</a>
         <a href="/osusume.html" id="osusume-menu-link" style="color:#c8a97e; position:relative;"><span class="menu-icon">🛒</span>松本のおすすめ</a>
+        <a href="/questions.html" id="questions-menu-link" style="color:#c8a97e; position:relative;"><span class="menu-icon">❓</span>お客さんからの質問</a>
         <a href="/hitorigoto.html" id="hitorigoto-menu-link" style="color:#c8a97e; position:relative;"><span class="menu-icon">📝</span>松本の独り言</a>
         <a href="https://beauty.hotpepper.jp/kr/slnH000674679/" target="_blank" style="color:#c8a97e;"><span class="menu-icon">✨</span>Crescent｜松本トレーナー経営のまつげ専門店</a>
       </div>
@@ -2220,6 +2221,22 @@
       const unread = REASON_SLUGS.filter(s => !read[s]).length;
       if (unread > 0) {
         const link = document.getElementById('osusume-menu-link');
+        if (link) {
+          const badge = document.createElement('span');
+          badge.className = 'yt-badge';
+          badge.textContent = unread;
+          link.appendChild(badge);
+        }
+      }
+    })();
+
+    // お客さんからの質問：未読バッジ（メニュー）— 質問が増えたらこのリストに追加
+    const QUESTION_SLUGS = ['q-hiza-poki', 'q-youtsuu', 'q-katakori', 'q-nekoze', 'q-katai', 'q-maemomo', 'q-yokohara', 'q-kubire', 'q-taikan', 'q-powergrip', 'q-stretchpole', 'q-treadmill', 'q-ems', 'q-run-muscle', 'q-taijukei', 'q-kinmaku', 'q-caffeine'];
+    (function() {
+      const read = JSON.parse(localStorage.getItem('putters_questions_read') || '{}');
+      const unread = QUESTION_SLUGS.filter(s => !read[s]).length;
+      if (unread > 0) {
+        const link = document.getElementById('questions-menu-link');
         if (link) {
           const badge = document.createElement('span');
           badge.className = 'yt-badge';

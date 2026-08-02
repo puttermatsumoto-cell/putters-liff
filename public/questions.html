@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, follow">
+  <title>お客さんからの質問</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
+    h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 700; }
+    .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 22px; line-height: 1.7; }
+    .cat-label { font-size: 13px; font-weight: 700; color: #c8a97e; letter-spacing: 0.06em; margin: 26px 4px 10px; }
+    .cat-label:first-of-type { margin-top: 4px; }
+    .card { background: white; border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; }
+    .card.read { background: #f0f7f0; }
+    .card-link { flex: 1; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit; min-width: 0; }
+    .card-link:active { opacity: 0.7; }
+    .q { font-size: 15px; font-weight: bold; color: #1a1a2e; line-height: 1.5; }
+    .q::before { content: 'Q．'; color: #c8a97e; font-weight: 700; }
+    .card.read .q { color: #888; }
+    .a { font-size: 12.5px; color: #666; line-height: 1.7; }
+    .a::before { content: 'A．'; color: #c8a97e; font-weight: 700; margin-right: 1px; }
+    .more { font-size: 11px; color: #c8a97e; font-weight: 700; letter-spacing: 0.04em; }
+    .check-btn { width: 44px; height: 44px; border-radius: 10px; border: 2px solid #c8a97e; background: white; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; flex-shrink: 0; color: #ccc; }
+    .check-btn.checked { background: #4caf50; border-color: #4caf50; color: white; }
+    .foot { background: #faf6f0; border: 1px dashed #d8c4a8; border-radius: 14px; padding: 16px 18px; margin-top: 26px; }
+    .foot-title { font-size: 13px; font-weight: 700; color: #b89968; margin-bottom: 6px; }
+    .foot-text { font-size: 12px; color: #a08c6e; line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <a href="javascript:history.back()" class="back">← 戻る</a>
+  <h1>❓ お客さんからの質問</h1>
+  <p class="subtitle">セッション中に実際によく聞かれることと、その答え。<br>気になったものだけ、詳しくは記事で読んでください。</p>
+
+  <div class="cat-label">― 痛み・こり ―</div>
+
+  <div class="card" data-slug="q-hiza-poki">
+    <a href="https://poritanfitness.com/1658/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">しゃがむ時に膝がポキッて鳴るんですけど、対策ありますか？</div>
+      <div class="a">立つ時もしゃがむ時も理由は同じです。鳴る瞬間＝股関節が抜ける瞬間。その一瞬だけ意識する癖をつけると鳴らなくなって、股関節が使えるぶん腰痛予防にもなります。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-hiza-poki" onclick="toggleRead('q-hiza-poki')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-youtsuu">
+    <a href="https://poritanfitness.com/1582/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">腰痛にいいって聞いて歩いてるんですが、治らないです</div>
+      <div class="a">歩いても治らないのは、お尻（中臀筋）が働いてないまま歩いてるからです。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-youtsuu" onclick="toggleRead('q-youtsuu')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-katakori">
+    <a href="https://poritanfitness.com/1580/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">肩こりがひどいんですけど、肩を揉めばいいですか？</div>
+      <div class="a">こってるのは肩でも、動いてないのは背中（菱形筋）です。揉んでも戻る理由がここ。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-katakori" onclick="toggleRead('q-katakori')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-nekoze">
+    <a href="https://poritanfitness.com/1584/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">猫背って、背筋を伸ばして意識すれば治りますか？</div>
+      <div class="a">意識で伸ばしても戻ります。カギは肩甲骨の3点支持で「支えられる」ようにすること。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-nekoze" onclick="toggleRead('q-nekoze')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-katai">
+    <a href="https://poritanfitness.com/1593/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">体が硬いんですけど、とりあえずストレッチですか？</div>
+      <div class="a">すぐ伸ばすのは逆効果のことがあります。硬さは「脳が張力を作ってる」場合があるので。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-katai" onclick="toggleRead('q-katai')">✓</div>
+  </div>
+
+  <div class="cat-label">― トレーニングのやり方 ―</div>
+
+  <div class="card" data-slug="q-maemomo">
+    <a href="https://poritanfitness.com/1618/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">スクワットすると前ももばっかり疲れるんですが、合ってますか？</div>
+      <div class="a">もも裏が「伸ばす」役のままで、支えてないからです。伸ばすより支える。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-maemomo" onclick="toggleRead('q-maemomo')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-yokohara">
+    <a href="https://poritanfitness.com/1573/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">横腹を鍛えてるのに、引き締まってこないです</div>
+      <div class="a">横腹だけ鍛えても形は変わりません。動く土台になってるのは背骨（胸椎）です。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-yokohara" onclick="toggleRead('q-yokohara')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-kubire">
+    <a href="https://poritanfitness.com/1576/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">くびれが欲しいんですけど、何をすればいいですか？</div>
+      <div class="a">横腹が落ちない原因がお尻にあることが多いです（中臀筋）。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-kubire" onclick="toggleRead('q-kubire')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-taikan">
+    <a href="https://poritanfitness.com/1588/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">体幹って、腹筋をやればいいってことですか？</div>
+      <div class="a">腹筋の数じゃないです。赤ちゃんが自然にやってる使い方で、カギは前鋸筋。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-taikan" onclick="toggleRead('q-taikan')">✓</div>
+  </div>
+
+  <div class="cat-label">― 道具・マシン ―</div>
+
+  <div class="card" data-slug="q-powergrip">
+    <a href="https://poritanfitness.com/1810/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">パワーグリップって、使ったほうがいいですか？</div>
+      <div class="a">僕は要らない派です。握力18kgだった僕が、使わずに52kgになりました。使うのは高重量の時だけ。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-powergrip" onclick="toggleRead('q-powergrip')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-stretchpole">
+    <a href="https://poritanfitness.com/1241/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">ストレッチポール、安いのでも一緒ですか？</div>
+      <div class="a">これは本物1択です。安い類似品はすすめません（理由があります）。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-stretchpole" onclick="toggleRead('q-stretchpole')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-treadmill">
+    <a href="https://poritanfitness.com/1484/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">家にランニングマシンを買おうと思うんですが、どれがいいですか？</div>
+      <div class="a">安い数万円のものは歩き方を崩します。及第点の1台を挙げてます。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-treadmill" onclick="toggleRead('q-treadmill')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-ems">
+    <a href="https://poritanfitness.com/1494/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">EMSって、貼っとけば腹筋割れますか？</div>
+      <div class="a">筋肉は確かに動きます。ただ「残らない」んです。その理由の話。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-ems" onclick="toggleRead('q-ems')">✓</div>
+  </div>
+
+  <div class="cat-label">― ダイエット・体のギモン ―</div>
+
+  <div class="card" data-slug="q-run-muscle">
+    <a href="https://poritanfitness.com/1489/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">走ると筋肉が落ちるって本当ですか？</div>
+      <div class="a">「走ると減る」は雑すぎます。減る条件があって、そこを外せば大丈夫です。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-run-muscle" onclick="toggleRead('q-run-muscle')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-taijukei">
+    <a href="https://poritanfitness.com/359/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">体重計って、柔らかい床だと重く出ますよね？</div>
+      <div class="a">逆です。柔らかい床だと「軽く」出ます。毎日測る人は置き場所を固定で。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-taijukei" onclick="toggleRead('q-taijukei')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-kinmaku">
+    <a href="https://poritanfitness.com/377/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">筋膜リリースって、痛いくらいやったほうが効きますか？</div>
+      <div class="a">くすぐったい・痛すぎるはNG。強さには適正があります。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-kinmaku" onclick="toggleRead('q-kinmaku')">✓</div>
+  </div>
+
+  <div class="card" data-slug="q-caffeine">
+    <a href="https://poritanfitness.com/1281/" target="_blank" rel="noopener" class="card-link">
+      <div class="q">トレーニング前にコーヒー飲むと効果ありますか？</div>
+      <div class="a">あります。ただ「脂肪が燃える」じゃなく、脳と筋肉をつなぐ方向で。錠剤は要らないです。</div>
+      <div class="more">記事で詳しく →</div>
+    </a>
+    <div class="check-btn" id="check-q-caffeine" onclick="toggleRead('q-caffeine')">✓</div>
+  </div>
+
+  <div class="foot">
+    <div class="foot-title">気になることは、いつでも聞いてください</div>
+    <div class="foot-text">
+      セッション中に聞かれたことは、こうやって順番に記事にしていきます。<br>
+      同じことで悩んでる人が、だいたい他にもいるので。
+    </div>
+  </div>
+
+  <script>
+    const READ_KEY = 'putters_questions_read';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+    function getRead() {
+      try { return JSON.parse(localStorage.getItem(READ_KEY) || '{}'); }
+      catch (e) { return {}; }
+    }
+    function postRead(slug, read) {
+      const name = localStorage.getItem('putters_user_name') || '不明';
+      const payload = JSON.stringify({ action: 'saveReasonRead', name, slug, read });
+      if (navigator.sendBeacon) { try { navigator.sendBeacon(GAS_URL, payload); return; } catch (e) {} }
+      fetch(GAS_URL, { method: 'POST', body: payload }).catch(() => {});
+    }
+    function setRead(slug, read) {
+      const r = getRead();
+      r[slug] = read;
+      localStorage.setItem(READ_KEY, JSON.stringify(r));
+      postRead(slug, read);
+    }
+    function toggleRead(slug) {
+      setRead(slug, !getRead()[slug]);
+      render();
+    }
+    // 記事（ブログ）を開いたら自動でレ点。別タブで開くのでこのページは残る
+    function bindAutoRead() {
+      document.querySelectorAll('.card[data-slug] .card-link').forEach(a => {
+        a.addEventListener('click', () => {
+          const card = a.closest('.card');
+          const slug = card && card.dataset.slug;
+          if (slug && !getRead()[slug]) { setRead(slug, true); render(); }
+        });
+      });
+    }
+    function render() {
+      const read = getRead();
+      document.querySelectorAll('.card[data-slug]').forEach(card => {
+        const slug = card.dataset.slug;
+        const btn = document.getElementById('check-' + slug);
+        if (!btn) return;
+        if (read[slug]) { card.classList.add('read'); btn.classList.add('checked'); }
+        else { card.classList.remove('read'); btn.classList.remove('checked'); }
+      });
+    }
+    render();
+    bindAutoRead();
+    window.addEventListener('pageshow', render);
+  </script>
+</body>
+</html>
