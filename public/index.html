@@ -2231,7 +2231,7 @@
     })();
 
     // お客さんからの質問：未読バッジ（メニュー）— 質問が増えたらこのリストに追加
-    const QUESTION_SLUGS = ['q-hiza-poki', 'q-youtsuu', 'q-katakori', 'q-nekoze', 'q-katai', 'q-maemomo', 'q-yokohara', 'q-kubire', 'q-taikan', 'q-powergrip', 'q-stretchpole', 'q-treadmill', 'q-ems', 'q-run-muscle', 'q-taijukei', 'q-kinmaku', 'q-caffeine'];
+    const QUESTION_SLUGS = ['q-shagamu-oto'];
     (function() {
       const read = JSON.parse(localStorage.getItem('putters_questions_read') || '{}');
       const unread = QUESTION_SLUGS.filter(s => !read[s]).length;
