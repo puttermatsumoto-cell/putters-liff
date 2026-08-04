@@ -393,7 +393,7 @@ const HITORIGOTO = [
     title: 'シナモンが2種類あるって、知ってました？',
     body: [
       'アプリの「松本のおすすめ」に、シナモンの記事を書きました。',
-      '<a href="/cinnamon.html" style="color:#c8a97e; font-weight:700; text-decoration:none;">→ アプリで「そのシナモン、実は2種類」を見る</a>',
+      '<a href="https://poritanfitness.com/1265/" style="color:#c8a97e; font-weight:700; text-decoration:none;">→ ブログで「そのシナモン、実は2種類」を見る</a>',
       'この前たまたま知って、へえ、と思ったんです。ひとくちにシナモンと言っても、実は<span class="strong">「カシア」と「セイロン」の2種類</span>がある。スーパーの安い粉は、だいたいカシアのほうです。',
       'で、この2つ、香りや値段だけじゃなくて<span class="em">体への負担が違う</span>。カシアには「クマリン」という成分が多くて、毎日たっぷりとると肝臓に負担がかかることがあるんです。',
       'とはいえ、脅かしたいわけじゃないです。コーヒーやお菓子に<span class="em">たまにひと振り</span>する程度なら、まったく気にしなくていい。気にするのは「毎日・スプーンで・サプリで」みたいな人だけ。',
@@ -501,7 +501,7 @@ const HITORIGOTO = [
     title: '鉄のサプリは、飛びつく前に「測って」',
     body: [
       'アプリの「松本のおすすめ」に、<span class="strong">鉄</span>の記事を書きました。',
-      '<a href="/iron.html" style="color:#c8a97e; font-weight:700; text-decoration:none;">→ アプリで「その“だるい”、鉄かもしれない」を見る</a>',
+      '<a href="https://poritanfitness.com/1259/" style="color:#c8a97e; font-weight:700; text-decoration:none;">→ ブログで「その“だるい”、鉄かもしれない」を見る</a>',
       '運動を始めた人が、最初なぜか<span class="em">逆にだるくなる</span>ことがあります。原因のひとつが鉄。体のエネルギーを作るのに鉄が要るので、切れると、動いてるのに元気が出ない。とくに女性は毎月、鉄が出ていくのではまりやすいんです。',
       'だから「鉄、飲もうかな」と思う。その気持ちはすごく分かります。でも、正直に言わせてください。<span class="strong">鉄は、サプリで一番“気軽に飲んじゃいけない”栄養</span>です。ビタミンCなんかは余ったら体から出ていきますが、鉄は<span class="em">余っても抜けにくくて、体に溜まる</span>。足りてる人が飲むと、胃を荒らすし、かえって逆効果になることもあります。',
       'なので、順番だけ間違えないでほしいんです。<span class="strong">まず食事（レバー・赤身の肉・貝）。次に、気になるなら測る。最後にサプリ</span>。この順番。',
@@ -529,7 +529,7 @@ const HITORIGOTO = [
     title: '「疲れやすいのは歳のせい」で、片づけたくなかった',
     body: [
       'アプリの「松本のおすすめ」に、新しい記事を書きました。テーマは<span class="strong">ミトコンドリア</span>——体のエンジンの話です。',
-      '<a href="/mitochondria.html" style="color:#c8a97e; font-weight:700; text-decoration:none;">→ アプリで「体のエンジン＝ミトコンドリアの話」を見る</a>',
+      '<a href="https://poritanfitness.com/1250/" style="color:#c8a97e; font-weight:700; text-decoration:none;">→ ブログで「体のエンジン＝ミトコンドリアの話」を見る</a>',
       '「最近すぐ疲れる」「スタミナが落ちた」。これ、<span class="strong">歳のせいにして終わらせてる人がすごく多い</span>んですけど、正体の多くは、体の中のエネルギー工場（ミトコンドリア）が減っているだけなんです。',
       'そして、その工場は<span class="em">何歳からでも増やせます</span>。増やし方も、特別なサプリじゃなくて「動くこと」が主役。しかも毎日ハードに、じゃなくていい。<span class="strong">週1で十分</span>です。使うと増えるので。',
       '前にサプリの記事で「12年試して、ほとんど要らなかった」と書きましたけど、今回のはその続きみたいな気持ちで書きました。<span class="em">サプリを足す話の前に、まず土台の話をさせてほしかった</span>。順番が逆だと、もったいないので。',
