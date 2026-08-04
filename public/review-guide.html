@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>口コミを書く</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 20px; }
+    h1 { font-size: 20px; color: #1a1a2e; text-align: center; margin-bottom: 6px; font-weight: 700; }
+    .subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 24px; line-height: 1.7; }
+    .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .label { font-size: 13px; color: #555; font-weight: bold; margin-bottom: 8px; }
+    .hint { font-size: 12px; color: #aaa; margin-bottom: 8px; line-height: 1.6; }
+    .guide ol { margin: 0; padding-left: 20px; }
+    .guide li { font-size: 14px; color: #1a1a2e; line-height: 1.6; margin-bottom: 12px; }
+    .guide li:last-child { margin-bottom: 0; }
+    .guide li span { display: block; font-size: 12px; color: #aaa; margin-top: 2px; }
+    .counter { font-size: 12px; color: #bbb; text-align: right; margin-top: 6px; }
+    textarea { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 12px; font-size: 14px; resize: none; font-family: inherit; line-height: 1.6; }
+    textarea:focus { outline: none; border-color: #c8a97e; }
+    .submit-btn { background: #1a1a2e; color: white; border: none; border-radius: 12px; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .submit-btn:active { opacity: 0.8; }
+    .submit-btn:disabled { background: #bbb; }
+    .steps { font-size: 12px; color: #888; line-height: 1.9; margin-top: 14px; text-align: center; }
+    #message { text-align: center; color: #c8a97e; margin-top: 12px; font-size: 14px; line-height: 1.7; }
+    .thanks { font-size: 12px; color: #999; text-align: center; margin-top: 24px; line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← 戻る</a>
+  <h1>⭐ 口コミを書く</h1>
+  <p class="subtitle">この5つが入っていれば、それだけで十分です。<br>順番も言い回しも自由に、思ったままどうぞ。</p>
+
+  <div class="section guide">
+    <ol>
+      <li>ご年齢と性別<span>差し支えなければ。例：60代 女性</span></li>
+      <li>どれくらい通っていますか？<span>例：半年ほど</span></li>
+      <li>どんな目的で通い出しましたか？<span>例：腰痛を治したかった／姿勢が気になっていた</span></li>
+      <li>何が変わりましたか？<span>例：腰痛が減った／立ち姿勢が変わった</span></li>
+      <li>どんな方におすすめですか？<span>例：運動が久しぶりの方／一人だと続かない方</span></li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <div class="label">📝 ここに書いてください</div>
+    <textarea id="body" rows="10" placeholder="上の5つを思い出しながら、ご自由にどうぞ。&#10;短くても大丈夫です。"></textarea>
+    <div class="counter" id="counter"></div>
+  </div>
+
+  <button class="submit-btn" onclick="copyAndGo()">コピーしてGoogleへ</button>
+  <p class="steps">ボタンを押すと、書いた内容をコピーして<br>Googleの口コミ画面が開きます。<br>入力欄を長押しして「ペースト」してください。</p>
+  <p id="message"></p>
+
+  <p class="thanks">お時間をいただきありがとうございます。<br>いただいた声は、これから通う方の参考になります。</p>
+
+<script>
+  const REVIEW_URL = 'https://g.page/r/CSbSXtnypGvAEAE/review';
+
+  function buildText() {
+    // お客さんが書いた文章をそのまま渡す。こちらで定型文や繋ぎの言葉を足さない。
+    // 足すと全員の口コミが同じ骨格になり、Googleのフィルタに束で消されるため。
+    return document.getElementById('body').value.trim();
+  }
+
+  document.getElementById('body').addEventListener('input', function () {
+    const n = this.value.trim().length;
+    document.getElementById('counter').textContent = n ? n + '文字' : '';
+  });
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.setSelectionRange(0, ta.value.length);
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function openReview() {
+    window.location.href = 'googlechrome://' + REVIEW_URL.replace('https://', '');
+    setTimeout(function () { window.open(REVIEW_URL, '_blank'); }, 500);
+  }
+
+  function copyAndGo() {
+    const text = buildText();
+    const msg = document.getElementById('message');
+
+    if (!text) {
+      msg.textContent = '一言でも書いていただけると嬉しいです。';
+      return;
+    }
+
+    // Safariはユーザー操作の中で同期的にコピーする必要があるため execCommand を先に試す
+    let copied = fallbackCopy(text);
+    if (!copied && navigator.clipboard) {
+      navigator.clipboard.writeText(text).catch(function () {});
+      copied = true;
+    }
+
+    msg.textContent = copied
+      ? 'コピーしました。Googleの入力欄に貼り付けてください。'
+      : 'Googleの画面が開きます。';
+
+    setTimeout(openReview, 700);
+  }
+</script>
+</body>
+</html>
