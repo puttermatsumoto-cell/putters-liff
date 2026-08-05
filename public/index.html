@@ -807,6 +807,7 @@
         html += '<br><span style="color:#888;">この日の記録はありません。</span>';
         if (ds === todayStr) html += calBtn('switchToToday()', '今日の入力に戻る');
         else if (ds === ydStr) html += calBtn('loadPrevDayEdit()', 'この日を書く');
+        else html += calEditForm(ds, null);
         box.innerHTML = html; return;
       }
       const head = [];
@@ -827,7 +828,46 @@
       if (r.checkedTasks) html += '<div style="margin-top:8px; font-size:11px; color:#888;">✓ ' + r.checkedTasks + '</div>';
       if (ds === todayStr) html += calBtn('switchToToday()', '今日の入力に戻る');
       else if (ds === ydStr) html += calBtn('loadPrevDayEdit()', 'この日を書き直す');
+      else html += calEditForm(ds, r);
       box.innerHTML = html;
+    }
+
+
+    // 過去日の入力欄＝体重・体温・有酸素だけ。GAS側も この3つ以外の列は触らない作りにしてある
+    function calEditForm(ds, r) {
+      if (!calLoaded) return '';   // 履歴が取れていない時は保存させない（0上書き事故の再発防止）
+      const inp = (id, val, ph) => '<input id="' + id + '" type="number" inputmode="decimal" step="0.1" value="'
+        + (val != null && val !== '' ? val : '') + '" placeholder="' + ph
+        + '" style="width:70px; padding:6px 8px; border:1px solid #ddd; border-radius:8px; font-size:13px;">';
+      return '<div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; padding-top:8px; border-top:1px dashed #eee4d8;">'
+        + '<label style="font-size:11px; color:#888;">体重' + inp('cal-w', r && r.weight, 'kg') + '</label>'
+        + '<label style="font-size:11px; color:#888;">体温' + inp('cal-t', r && r.temperature, '℃') + '</label>'
+        + '<label style="font-size:11px; color:#888;">有酸素' + inp('cal-c', r && r.cardio, '分') + '</label>'
+        + '</div>'
+        + '<button onclick="calSave(\'' + ds + '\')" style="margin-top:10px; width:100%; background:#1a1a2e; color:#c8a97e; border:none; border-radius:10px; padding:10px; font-size:13px; font-weight:bold; cursor:pointer;">この日を保存</button>'
+        + '<div id="cal-msg" style="margin-top:6px; font-size:11px; text-align:center; color:#888;"></div>';
+    }
+
+    async function calSave(ds) {
+      const name = localStorage.getItem(NAME_KEY);
+      const msg = document.getElementById('cal-msg');
+      if (!name || !calLoaded) { if (msg) msg.textContent = '記録を読み込めていないため保存できません'; return; }
+      const v = id => { const e = document.getElementById(id); return e && e.value !== '' ? Number(e.value) : ''; };
+      const fields = { weight: v('cal-w'), temperature: v('cal-t'), cardio: v('cal-c') };
+      msg.style.color = '#888'; msg.textContent = '保存中…';
+      try {
+        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateRecordFields', name: name, date: ds, fields: fields }) });
+      } catch (e) {
+        msg.style.color = '#e53935'; msg.textContent = '保存できませんでした。通信を確認してください'; return;
+      }
+      // シートを読み直して、入れた値と一致しているか確認してから「保存しました」を出す
+      await calLoad();
+      const after = calRecords[ds] || {};
+      const eq = (a, b) => (a === '' ? !b : Math.abs(Number(a) - Number(b || 0)) < 0.001);
+      const ok = eq(fields.weight, after.weight) && eq(fields.temperature, after.temperature) && eq(fields.cardio, after.cardio);
+      calPick(ds);
+      const m2 = document.getElementById('cal-msg');
+      if (m2) { m2.style.color = ok ? '#c8a97e' : '#e53935'; m2.textContent = ok ? '✅ 保存しました' : '⚠️ 反映を確認できませんでした。開き直して確認してください'; }
     }
 
     function calBtn(fn, label) {

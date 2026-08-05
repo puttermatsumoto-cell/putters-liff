@@ -82,6 +82,7 @@ function doPost(e) {
   if (data.action === 'saveTextbookWatch') { saveTextbookWatch(data.name, data.videoId, data.watched); return json({ ok: true }); }
   if (data.action === 'saveReasonRead') { saveReasonRead(data.name, data.slug, data.read); return json({ ok: true }); }
   if (data.action === 'book_rental') return bookRental(data);
+  if (data.action === 'updateRecordFields') return updateRecordFields(data);
   // 日々の記録保存
   if (data.name && data.date) return saveRecord(data);
   return json({ ok: false });
@@ -1638,4 +1639,27 @@ function adminWeeklyActivity() {
   const list = Object.keys(people).map(k => people[k])
     .sort((a, b) => b.lastDate.localeCompare(a.lastDate) || a.name.localeCompare(b.name));
   return json({ from: fromStr, to: Utilities.formatDate(today, 'Asia/Tokyo', 'yyyy-MM-dd'), people: list });
+}
+
+
+// アプリのカレンダーから「渡された項目だけ」書き換える。
+// ★渡されなかった列（食事・PFC・宿題など）には一切触れない＝上書きで消える事故を起こさないため。
+function updateRecordFields(data) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName('記録');
+  if (!sheet || !data.name || !data.date) return json({ ok: false, error: 'name/date が必要です' });
+  const COL = { weight: 3, goalWeight: 4, temperature: 5, cardio: 11 };  // 触っていいのはこの4列だけ
+  const rows = sheet.getDataRange().getValues();
+  let target = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const d = rows[i][0] ? Utilities.formatDate(new Date(rows[i][0]), 'Asia/Tokyo', 'yyyy-MM-dd') : '';
+    if (d === data.date && rows[i][1] === data.name) { target = i + 1; break; }
+  }
+  if (!target) { sheet.appendRow([data.date, data.name]); target = sheet.getLastRow(); }
+  const f = data.fields || {};
+  Object.keys(f).forEach(function(k) {
+    if (COL[k]) sheet.getRange(target, COL[k]).setValue(f[k] === '' ? '' : f[k]);
+  });
+  const row = sheet.getRange(target, 1, 1, 13).getValues()[0];
+  return json({ ok: true, saved: { weight: row[2], temperature: row[4], cardio: row[10] } });
 }
