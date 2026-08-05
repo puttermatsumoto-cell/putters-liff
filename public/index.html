@@ -292,6 +292,53 @@
     </div>
   </div>
 
+  <!-- 歩数 -->
+  <div class="section" id="steps-section" data-former-ok style="display:none">
+    <h2>🚶 歩数</h2>
+
+    <!-- 初回だけ出る導入。追加したら二度と出ない -->
+    <div id="steps-setup" style="display:none">
+      <p style="font-size:13px;color:#666;line-height:1.7;margin-bottom:12px;">
+        iPhoneの歩数を自動で取り込めます。<strong>最初の1回だけ</strong>この準備が必要です。
+      </p>
+      <a id="steps-install-link" href="/shortcuts/PUTTERS%E6%AD%A9%E6%95%B0.shortcut"
+         onclick="markStepsInstalled()"
+         style="display:block;text-align:center;background:#1a1a2e;color:white;border-radius:12px;padding:16px;font-size:16px;font-weight:bold;text-decoration:none;">
+        コレを押して
+      </a>
+      <p style="font-size:12px;color:#aaa;line-height:1.6;margin-top:10px;">
+        ショートカットアプリが開くので「追加」を押すだけです。終わったらこの案内は消えます。
+      </p>
+      <button onclick="markStepsInstalled()" style="width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:10px 0;margin-top:2px;cursor:pointer;">追加できたので閉じる</button>
+    </div>
+
+    <!-- 追加済みの人が見る画面 -->
+    <div id="steps-main" style="display:none">
+      <div style="text-align:center;padding:8px 0 16px;">
+        <div style="font-size:12px;color:#888;">累計</div>
+        <div id="steps-total" style="font-size:34px;font-weight:bold;color:#1a1a2e;line-height:1.2;">-</div>
+        <div style="font-size:12px;color:#888;">歩</div>
+      </div>
+      <div style="display:flex;gap:8px;text-align:center;margin-bottom:14px;">
+        <div style="flex:1;background:#f5f0eb;border-radius:10px;padding:10px;">
+          <div id="steps-week" style="font-size:17px;font-weight:bold;color:#1a1a2e;">-</div>
+          <div style="font-size:11px;color:#888;">今週</div>
+        </div>
+        <div style="flex:1;background:#f5f0eb;border-radius:10px;padding:10px;">
+          <div id="steps-avg" style="font-size:17px;font-weight:bold;color:#1a1a2e;">-</div>
+          <div style="font-size:11px;color:#888;">1日平均</div>
+        </div>
+      </div>
+      <button id="steps-send-btn" onclick="sendSteps()"
+              style="width:100%;background:#c8a97e;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:bold;cursor:pointer;">
+        歩数を送る
+      </button>
+
+      <p id="steps-msg" style="font-size:12px;color:#aaa;text-align:center;margin-top:8px;">押すと直近7日分がまとめて入ります</p>
+      <button id="steps-redo" onclick="redoStepsSetup()" style="display:none;width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:8px 0;cursor:pointer;text-decoration:underline;">準備をやり直す</button>
+    </div>
+  </div>
+
   <!-- 体重・体温 横並び -->
   <div data-former-ok style="display:flex; gap:12px; margin-bottom:16px;">
     <div class="section" style="flex:1; margin-bottom:0;">
@@ -427,53 +474,6 @@
     <div class="row">
       <input type="number" id="cardio" placeholder="0" min="0" oninput="saveCache()">
       <span class="unit">分</span>
-    </div>
-  </div>
-
-  <!-- 歩数 -->
-  <div class="section" id="steps-section" data-former-ok style="display:none">
-    <h2>🚶 歩数</h2>
-
-    <!-- 初回だけ出る導入。追加したら二度と出ない -->
-    <div id="steps-setup" style="display:none">
-      <p style="font-size:13px;color:#666;line-height:1.7;margin-bottom:12px;">
-        iPhoneの歩数を自動で取り込めます。<strong>最初の1回だけ</strong>この準備が必要です。
-      </p>
-      <a id="steps-install-link" href="/shortcuts/PUTTERS%E6%AD%A9%E6%95%B0.shortcut"
-         onclick="markStepsInstalled()"
-         style="display:block;text-align:center;background:#1a1a2e;color:white;border-radius:12px;padding:16px;font-size:16px;font-weight:bold;text-decoration:none;">
-        コレを押して
-      </a>
-      <p style="font-size:12px;color:#aaa;line-height:1.6;margin-top:10px;">
-        ショートカットアプリが開くので「追加」を押すだけです。終わったらこの案内は消えます。
-      </p>
-      <button onclick="markStepsInstalled()" style="width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:10px 0;margin-top:2px;cursor:pointer;">追加できたので閉じる</button>
-    </div>
-
-    <!-- 追加済みの人が見る画面 -->
-    <div id="steps-main" style="display:none">
-      <div style="text-align:center;padding:8px 0 16px;">
-        <div style="font-size:12px;color:#888;">累計</div>
-        <div id="steps-total" style="font-size:34px;font-weight:bold;color:#1a1a2e;line-height:1.2;">-</div>
-        <div style="font-size:12px;color:#888;">歩</div>
-      </div>
-      <div style="display:flex;gap:8px;text-align:center;margin-bottom:14px;">
-        <div style="flex:1;background:#f5f0eb;border-radius:10px;padding:10px;">
-          <div id="steps-week" style="font-size:17px;font-weight:bold;color:#1a1a2e;">-</div>
-          <div style="font-size:11px;color:#888;">今週</div>
-        </div>
-        <div style="flex:1;background:#f5f0eb;border-radius:10px;padding:10px;">
-          <div id="steps-avg" style="font-size:17px;font-weight:bold;color:#1a1a2e;">-</div>
-          <div style="font-size:11px;color:#888;">1日平均</div>
-        </div>
-      </div>
-      <button id="steps-send-btn" onclick="sendSteps()"
-              style="width:100%;background:#c8a97e;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:bold;cursor:pointer;">
-        歩数を送る
-      </button>
-
-      <p id="steps-msg" style="font-size:12px;color:#aaa;text-align:center;margin-top:8px;">押すと直近7日分がまとめて入ります</p>
-      <button id="steps-redo" onclick="redoStepsSetup()" style="display:none;width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:8px 0;cursor:pointer;text-decoration:underline;">準備をやり直す</button>
     </div>
   </div>
 
