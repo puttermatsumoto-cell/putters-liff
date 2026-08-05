@@ -29,8 +29,9 @@ import urllib.request
 import uuid
 from pathlib import Path
 
-GAS_URL = ('https://script.google.com/macros/s/'
-           'AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec')
+# 短いほどショートカットのプレビューが縮み、「追加」ボタンがすぐ見える位置に来る。
+# 実体は api/s.js が GAS に転送している
+POST_URL = 'https://liff-app-weld.vercel.app/api/s'
 SHORTCUT_NAME = 'PUTTERS歩数'
 
 # 宿題シートの見出し行。人ではない
@@ -42,6 +43,10 @@ OUT_DIR = ROOT / 'public' / 'shortcuts'
 
 def uid():
     return str(uuid.uuid4()).upper()
+
+
+GAS_URL = ('https://script.google.com/macros/s/'
+           'AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec')
 
 
 def fetch_names():
@@ -56,8 +61,7 @@ def build(name):
     health_uuid = uid()
 
     # 歩数の集計結果をそのままURLに差し込む
-    url_prefix = (f'{GAS_URL}?action=saveStepsBulk'
-                  f'&name={urllib.parse.quote(name)}&days=')
+    url_prefix = f'{POST_URL}?n={urllib.parse.quote(name)}&d='
     url_value = {
         'Value': {
             'string': url_prefix + '￼',

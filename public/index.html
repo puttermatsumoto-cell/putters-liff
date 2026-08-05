@@ -1141,9 +1141,14 @@
       document.getElementById('steps-setup').style.display = showSetup ? 'block' : 'none';
       document.getElementById('steps-main').style.display = showSetup ? 'none' : 'block';
 
-      // その人専用のショートカット（名前が埋め込んである＝入力させない）
+      // その人専用のショートカット（名前が埋め込んである＝入力させない）。
+      // ファイルURLを直接開くとSafariのダウンロード画面が挟まり「"ショートカット"で開く」を
+      // 押させることになるので、import-shortcut スキームでショートカットアプリへ直行させる
+      const fileUrl = `${location.origin}/shortcuts/`
+        + `${encodeURIComponent(getUserName())}/${encodeURIComponent(SHORTCUT_NAME)}.shortcut`;
       document.getElementById('steps-install-link').href =
-        `/shortcuts/${encodeURIComponent(getUserName())}/${encodeURIComponent(SHORTCUT_NAME)}.shortcut`;
+        `shortcuts://import-shortcut?url=${encodeURIComponent(fileUrl)}`
+        + `&name=${encodeURIComponent(SHORTCUT_NAME)}`;
 
       if (!showSetup) loadStepsSummary();
 
