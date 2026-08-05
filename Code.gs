@@ -585,7 +585,12 @@ function adminClientHistory(name) {
       f: parseFloat(rows[i][7]) || 0,
       c: parseFloat(rows[i][8]) || 0,
       kcal: parseFloat(rows[i][9]) || 0,
-      cardio: parseFloat(rows[i][10]) || 0
+      cardio: parseFloat(rows[i][10]) || 0,
+      // 過去日をアプリから編集する時に、食事と宿題を消さずに送り返すため
+      goalWeight: parseFloat(rows[i][3]) || null,
+      foods: rows[i][5] || '',
+      checkedTasks: rows[i][11] || '',
+      uncheckedTasks: rows[i][12] || ''
     });
   }
   records.sort((a, b) => a.date.localeCompare(b.date));

@@ -268,7 +268,19 @@
       <h1 id="page-title" style="margin:0;">PUTTERSアプリ</h1>
     </div>
     <p id="user-greeting" style="font-size:13px; color:#888; margin-top:4px;"></p>
-<div id="day-nav-btns" style="display:none; justify-content:center; gap:8px; margin-top:8px;">
+<div id="cal-wrap" style="display:none; margin:10px auto 0; max-width:340px; background:#fff; border-radius:14px; padding:10px 12px 12px; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+        <button onclick="calMove(-1)" style="background:none; border:none; font-size:16px; color:#c8a97e; padding:4px 10px; cursor:pointer;">◀</button>
+        <div id="cal-title" style="font-size:13px; font-weight:bold; color:#1a1a2e;"></div>
+        <button onclick="calMove(1)" style="background:none; border:none; font-size:16px; color:#c8a97e; padding:4px 10px; cursor:pointer;">▶</button>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:2px; font-size:10px; color:#aaa; text-align:center; margin-bottom:2px;">
+        <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+      </div>
+      <div id="cal-grid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:2px;"></div>
+      <div id="cal-detail" style="display:none; margin-top:8px; padding-top:8px; border-top:1px solid #f0e8dc; font-size:12px; color:#555; line-height:1.7;"></div>
+    </div>
+    <div id="day-nav-btns" style="display:none; justify-content:center; gap:8px; margin-top:8px;">
       <button id="prev-day-btn" onclick="loadPrevDayEdit()" style="display:none; background:none; border:1px solid #ddd; border-radius:10px; padding:10px 16px; font-size:14px; color:#888; cursor:pointer;">⏮️ 前日</button>
       <button id="today-btn" onclick="switchToToday()" style="display:none; background:#1a1a2e; border:1px solid #1a1a2e; border-radius:10px; padding:10px 16px; font-size:14px; color:#c8a97e; cursor:pointer; font-weight:bold;">本日</button>
       <button id="next-day-btn" onclick="toggleNextDay()" style="display:none; background:none; border:1px solid #ddd; border-radius:10px; padding:10px 16px; font-size:14px; color:#888; cursor:pointer;">⏭️ 翌日</button>
@@ -703,6 +715,126 @@
       setTimeout(() => {
         try { liff.closeWindow(); } catch(e) {}
       }, 800);
+    }
+
+
+    // ===== 記録カレンダー（過去の記録を月単位で見る）=====
+    // データは GAS の admin_client_history（記録シート）から取る＝端末を変えても見える
+    let calMonth = null;          // 表示中の月（Dateの1日）
+    let calRecords = null;        // { 'YYYY-MM-DD': {weight,temperature,p,f,c,kcal,cardio} }
+    const CAL_CACHE_KEY = 'putters_cal_cache';
+
+    function calToday() {
+      const d = new Date();
+      if (d.getHours() < 2) d.setDate(d.getDate() - 1); // 26時切り替え
+      return d;
+    }
+
+    async function calLoad(force) {
+      const name = localStorage.getItem(NAME_KEY);
+      if (!name) return;
+      if (!force) {
+        try {
+          const c = JSON.parse(localStorage.getItem(CAL_CACHE_KEY) || 'null');
+          if (c && c.name === name && Date.now() - c.at < 10 * 60 * 1000) { calRecords = c.rec; calRender(); return; }
+        } catch (e) {}
+      }
+      try {
+        const res = await fetch(GAS_URL + '?action=admin_client_history&name=' + encodeURIComponent(name));
+        const rows = await res.json();
+        calRecords = {};
+        rows.forEach(r => { calRecords[r.date] = r; });
+        localStorage.setItem(CAL_CACHE_KEY, JSON.stringify({ name: name, at: Date.now(), rec: calRecords }));
+      } catch (e) {
+        if (!calRecords) calRecords = {};
+      }
+      calRender();
+    }
+
+    function calMove(diff) {
+      calMonth.setMonth(calMonth.getMonth() + diff);
+      document.getElementById('cal-detail').style.display = 'none';
+      calRender();
+    }
+
+    function calRender() {
+      if (!calMonth) { const t = calToday(); calMonth = new Date(t.getFullYear(), t.getMonth(), 1); }
+      const y = calMonth.getFullYear(), m = calMonth.getMonth();
+      document.getElementById('cal-title').textContent = y + '年 ' + (m + 1) + '月';
+      const grid = document.getElementById('cal-grid');
+      grid.innerHTML = '';
+      const todayStr = getLocalDateISO(calToday());
+      const first = new Date(y, m, 1).getDay();
+      const last = new Date(y, m + 1, 0).getDate();
+      for (let i = 0; i < first; i++) grid.appendChild(document.createElement('div'));
+      for (let d = 1; d <= last; d++) {
+        const ds = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        const has = calRecords && calRecords[ds];
+        const cell = document.createElement('button');
+        cell.textContent = d;
+        cell.onclick = () => calPick(ds);
+        cell.style.cssText = 'border:none; border-radius:8px; padding:6px 0; font-size:12px; cursor:pointer;'
+          + (has ? 'background:#c8a97e; color:#fff; font-weight:bold;' : 'background:#f5f0eb; color:#bbb;')
+          + (ds === todayStr ? ' box-shadow:0 0 0 2px #1a1a2e inset;' : '');
+        grid.appendChild(cell);
+      }
+    }
+
+    function calPick(ds) {
+      const box = document.getElementById('cal-detail');
+      const r = calRecords && calRecords[ds];
+      const todayStr = getLocalDateISO(calToday());
+      const y = new Date(calToday()); y.setDate(y.getDate() - 1);
+      const yStr = getLocalDateISO(y);
+      if (ds === todayStr) { switchToToday(); box.style.display = 'none'; return; }
+      if (ds === yStr) { loadPrevDayEdit(); box.style.display = 'none'; return; }
+      box.style.display = 'block';
+      const inp = (id, val, ph, step) => '<input id="' + id + '" type="number" inputmode="decimal" step="' + step + '" value="' + (val != null && val !== '' ? val : '') + '" placeholder="' + ph + '" style="width:72px; padding:6px 8px; border:1px solid #ddd; border-radius:8px; font-size:13px;">';
+      const meal = r && r.foods ? '<div style="margin-top:8px; font-size:11px; color:#999; line-height:1.6;">🍽 ' + String(r.foods).slice(0, 120) + (String(r.foods).length > 120 ? '…' : '') + '</div>' : '';
+      box.innerHTML = '<b>' + ds + '</b>'
+        + (r ? '' : '<span style="color:#bbb;">（記録なし・新しく残せます）</span>')
+        + '<div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px;">'
+        + '<label style="font-size:11px; color:#888;">体重' + inp('cal-w', r && r.weight, 'kg', '0.1') + '</label>'
+        + '<label style="font-size:11px; color:#888;">体温' + inp('cal-t', r && r.temperature, '℃', '0.1') + '</label>'
+        + '<label style="font-size:11px; color:#888;">有酸素' + inp('cal-c', r && r.cardio, '分', '1') + '</label>'
+        + '</div>'
+        + (r && r.kcal ? '<div style="margin-top:6px; font-size:11px; color:#999;">' + Math.round(r.kcal) + 'kcal　P' + Math.round(r.p) + ' / F' + Math.round(r.f) + ' / C' + Math.round(r.c) + '</div>' : '')
+        + meal
+        + '<button onclick="calSave(\'' + ds + '\')" style="margin-top:10px; width:100%; background:#1a1a2e; color:#c8a97e; border:none; border-radius:10px; padding:10px; font-size:13px; font-weight:bold; cursor:pointer;">この日を保存</button>'
+        + '<div id="cal-msg" style="margin-top:6px; font-size:11px; color:#c8a97e; text-align:center;"></div>';
+    }
+
+    // 過去日の保存＝体重・体温・有酸素だけ書き換え、食事と宿題は取得した中身をそのまま送り返す（消さないため）
+    async function calSave(ds) {
+      const name = localStorage.getItem(NAME_KEY);
+      if (!name) return;
+      const r = (calRecords && calRecords[ds]) || {};
+      const msg = document.getElementById('cal-msg');
+      const v = id => { const e = document.getElementById(id); return e && e.value !== '' ? e.value : ''; };
+      if (r.foods === undefined && Object.keys(r).length > 0) {
+        msg.textContent = 'この日の食事内容が取得できていないため保存できません';
+        return;
+      }
+      msg.textContent = '保存中…';
+      const payload = {
+        action: 'save', name: name, date: ds,
+        weight: v('cal-w'), temperature: v('cal-t'), cardio: v('cal-c'),
+        goalWeight: r.goalWeight || '', foods: r.foods || '',
+        p: r.p || 0, f: r.f || 0, c: r.c || 0, kcal: r.kcal || 0,
+        checkedTasks: r.checkedTasks || '', uncheckedTasks: r.uncheckedTasks || ''
+      };
+      try {
+        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+        calRecords[ds] = Object.assign({}, r, {
+          date: ds, weight: parseFloat(payload.weight) || null,
+          temperature: parseFloat(payload.temperature) || null, cardio: parseFloat(payload.cardio) || 0
+        });
+        localStorage.setItem(CAL_CACHE_KEY, JSON.stringify({ name: name, at: Date.now(), rec: calRecords }));
+        msg.textContent = '✅ 保存しました';
+        calRender();
+      } catch (e) {
+        msg.textContent = '保存できませんでした。通信を確認してください';
+      }
     }
 
     const HISTORY_KEY = 'putters_history';
@@ -2297,6 +2429,8 @@
     // 下部固定バー（全員）
     document.getElementById('bottom-camera-btn').style.display = 'block';
     document.getElementById('day-nav-btns').style.display = 'flex';
+    document.getElementById('cal-wrap').style.display = 'block';
+    calRender(); calLoad();
     document.getElementById('today-btn').style.display = 'block';
     document.getElementById('next-day-btn').style.display = 'block';
     { const pb = document.getElementById('prev-day-btn'); pb.style.display = 'block'; pb.dataset.enabled = '1'; }
