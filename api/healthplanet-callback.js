@@ -1,8 +1,12 @@
 // タニタ Health Planet の認証の受け口。
 // ★通信はここ（Vercel）で完結させる。GASにUrlFetchAppを使わせると権限の壁に当たるため。
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
-const CLIENT_ID = '51791.5fsal39phO.apps.healthplanet.jp';
-const CLIENT_SECRET = '1785942369221-zlleNK3QyXGLNa521H9Hnes7vC7eRaBG5mL5HLby';
+// ヘルスプラネットに2組登録されているので、両方を順に試す（画像から読み取っているため取り違え対策）
+const PAIRS = [
+  { id: '51791.5fsal39phO.apps.healthplanet.jp', secret: '1785942369221-zlleNK3QyXGLNa521H9Hnes7vC7eRaBG5mL5HLby' },
+  { id: '51792.OkxDXa7vFo.apps.healthplanet.jp', secret: '1785942443955-lqhWe9KpP1hDhHjCSjiJgV3HFwDr7nl4BWxtgsCp' }
+];
+const CLIENT_ID = PAIRS[0].id;
 const REDIRECT = 'https://putters-liff.vercel.app/api/healthplanet-callback';
 
 function page(title, body) {
@@ -26,21 +30,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    const body = new URLSearchParams({
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      redirect_uri: REDIRECT,
-      code: String(code),
-      grant_type: 'authorization_code'
-    });
-    const r = await fetch('https://www.healthplanet.jp/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString()
-    });
-    const text = await r.text();
-    let data = {};
-    try { data = JSON.parse(text); } catch (e) {}
+    let data = {}, text = '';
+    for (const p of PAIRS) {
+      const body = new URLSearchParams({
+        client_id: p.id,
+        client_secret: p.secret,
+        redirect_uri: REDIRECT,
+        code: String(code),
+        grant_type: 'authorization_code'
+      });
+      const r = await fetch('https://www.healthplanet.jp/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      });
+      text = await r.text();
+      try { data = JSON.parse(text); } catch (e) { data = {}; }
+      if (data.access_token) break;
+    }
     if (!data.access_token) {
       return res.status(500).send(page('連携できませんでした', 'タニタからの返事：<br><code>' + text.slice(0, 300) + '</code>'));
     }
