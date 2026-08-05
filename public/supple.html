@@ -22,10 +22,15 @@
     .btn-amazon { flex: 1; display: block; background: #FF9900; color: white; text-align: center; border-radius: 80px; padding: 8px 6px; font-size: 12px; font-weight: bold; text-decoration: none; }
     .btn-rakuten { flex: 1; display: block; background: #bf0000; color: white; text-align: center; border-radius: 80px; padding: 8px 6px; font-size: 12px; font-weight: bold; text-decoration: none; }
     .btn-amazon:active, .btn-rakuten:active { opacity: 0.8; }
-    .tier { margin: 26px 4px 4px; }
-    .tier:first-of-type { margin-top: 8px; }
-    .tier-title { font-size: 14px; font-weight: 700; color: #1a1a2e; letter-spacing: 0.04em; border-left: 4px solid #c8a97e; padding-left: 9px; line-height: 1.5; }
-    .tier-lead { font-size: 11px; color: #999; line-height: 1.7; margin: 6px 0 12px 13px; }
+    .tier { background: #fff; border-radius: 14px; margin-bottom: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: hidden; }
+    .tier > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 16px 16px; }
+    .tier > summary::-webkit-details-marker { display: none; }
+    .tier-title { flex: 1; font-size: 15px; font-weight: 700; color: #1a1a2e; line-height: 1.4; }
+    .tier-count { font-size: 11px; font-weight: 700; color: #c8a97e; background: #faf6f0; border-radius: 80px; padding: 3px 9px; }
+    .tier-mark { color: #c8a97e; font-size: 13px; transition: transform .2s; }
+    .tier[open] .tier-mark { transform: rotate(180deg); }
+    .tier-lead { font-size: 12px; color: #999; line-height: 1.7; margin: -6px 16px 12px; }
+    .tier .card { box-shadow: none; border: 1px solid #eee4d8; margin: 0 12px 10px; }
     .card-rel { display: inline-block; margin: 2px 0 10px; font-size: 11px; color: #1a1a2e; font-weight: bold; text-decoration: none; border-bottom: 2px solid #c8a97e; }
   </style>
 </head>
@@ -34,11 +39,13 @@
   <h1>💊 サプリメント</h1>
   <p class="subtitle">全員に要るもの・人によるもので分けました</p>
 
-  <div class="tier">
-    <div class="tier-title">これは全員に要ります</div>
+  <details class="tier">
+    <summary>
+      <span class="tier-title">これは全員に要ります</span>
+      <span class="tier-count">3</span>
+      <span class="tier-mark">▼</span>
+    </summary>
     <div class="tier-lead">食事だけだと埋まりにくいところ。まずここから。</div>
-  </div>
-
   <div class="card">
     <img class="card-img" src="https://thumbnail.image.rakuten.co.jp/@0_mall/auc-sansei-shop/cabinet/okinawa-product/n111.jpg?_ex=240x240" alt="ぬちまーす">
     <div class="card-body">
@@ -80,12 +87,15 @@
       </div>
     </div>
   </div>
+  </details>
 
-  <div class="tier">
-    <div class="tier-title">人によっては要ります</div>
+  <details class="tier">
+    <summary>
+      <span class="tier-title">人によっては要ります</span>
+      <span class="tier-count">8</span>
+      <span class="tier-mark">▼</span>
+    </summary>
     <div class="tier-lead">当てはまる人には効きます。当てはまらないなら要りません。</div>
-  </div>
-
   <div class="card">
     <img class="card-img" src="https://thumbnail.image.rakuten.co.jp/@0_mall/kanzenshoku-tokyo/cabinet/10740470/10805568/0042.jpg?_ex=240x240" alt="JAKS グルタミン 1kg">
     <div class="card-body">
@@ -195,6 +205,11 @@
       </div>
     </div>
   </div>
+
+
+  <p style="font-size:11px; color:#aaa; line-height:1.7; text-align:center; margin-top:16px;">※本ページはアフィリエイトリンクを含みます。紹介は松本の判断によるもので、報酬の有無で内容は変えていません。</p>
+  </details>
+
 
 
   <p style="font-size:11px; color:#aaa; line-height:1.7; text-align:center; margin-top:16px;">※本ページはアフィリエイトリンクを含みます。紹介は松本の判断によるもので、報酬の有無で内容は変えていません。</p>
