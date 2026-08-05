@@ -1139,6 +1139,10 @@
       const sec = document.getElementById('steps-section');
       if (!sec) return;
 
+      // ショートカットが実機で通っていないので、当面は松本大樹だけに出す。
+      // 通ったらこの1行を消せば全員に出る
+      if (getUserName() !== '松本大樹') { sec.style.display = 'none'; return; }
+
       // iPhone以外はまだ自動取得の手段が無いので出さない。
       // Google FitのAPIは廃止済み（2026-08-05に実機で確認）、Health Connectはウェブから読めない。
       if (!IS_IOS) { sec.style.display = 'none'; return; }
