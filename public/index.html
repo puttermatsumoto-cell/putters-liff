@@ -278,6 +278,7 @@
         <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
       </div>
       <div id="cal-grid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:2px;"></div>
+      <div id="cal-month-summary" style="display:none; margin-top:10px; padding-top:9px; border-top:1px solid #f5f0eb;"></div>
       <div id="cal-detail" style="display:none; margin-top:8px; padding-top:8px; border-top:1px solid #f0e8dc; font-size:12px; color:#555; line-height:1.7; text-align:left;"></div>
     </div>
     <div id="day-nav-btns" style="display:none; justify-content:center; gap:8px; margin-top:8px;">
@@ -753,6 +754,54 @@
       }
     }
 
+
+    // 表示中の月のまとめ＝記録日数と体重の推移（見るだけ・書き込みなし）
+    function calMonthSummary() {
+      const box = document.getElementById('cal-month-summary');
+      if (!box || !calLoaded || !calRecords) return;
+      const y = calMonth.getFullYear(), m = calMonth.getMonth();
+      const prefix = y + '-' + String(m + 1).padStart(2, '0');
+      const days = Object.keys(calRecords).filter(d => d.indexOf(prefix) === 0).sort();
+      const lastDay = new Date(y, m + 1, 0).getDate();
+      if (days.length === 0) { box.style.display = 'none'; return; }
+      box.style.display = 'block';
+
+      const ws = days.map(d => ({ d: d, w: calRecords[d].weight })).filter(x => x.w);
+      let line = '';
+      if (ws.length >= 2) {
+        const vals = ws.map(x => x.w);
+        const min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+        const range = max === min ? 1 : max - min;
+        const W = 300, H = 34;
+        const pts = ws.map((x, i) => {
+          const px = (ws.length === 1 ? W / 2 : i / (ws.length - 1) * W);
+          const py = 3 + (1 - (x.w - min) / range) * (H - 6);
+          return px.toFixed(1) + ',' + py.toFixed(1);
+        }).join(' ');
+        const diff = (vals[vals.length - 1] - vals[0]).toFixed(1);
+        const color = diff < 0 ? '#388e3c' : diff > 0 ? '#c62828' : '#888';
+        line = '<div style="margin-top:8px;">'
+          + '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" style="width:100%; height:34px; overflow:visible;">'
+          + '<polyline points="' + pts + '" fill="none" stroke="#c8a97e" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'
+          + '</svg>'
+          + '<div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:2px;">'
+          + '<span>' + vals[0] + 'kg</span>'
+          + '<span style="color:' + color + '; font-weight:bold;">' + (diff > 0 ? '+' : '') + diff + 'kg</span>'
+          + '<span>' + vals[vals.length - 1] + 'kg</span>'
+          + '</div></div>';
+      } else if (ws.length === 1) {
+        line = '<div style="margin-top:6px; font-size:11px; color:#888;">体重 ' + ws[0].w + 'kg（1日ぶん）</div>';
+      }
+
+      const pct = Math.round(days.length / lastDay * 100);
+      box.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:baseline; font-size:11px; color:#888;">'
+        + '<span>この月の記録　<b style="font-size:15px; color:#1a1a2e;">' + days.length + '</b> 日 / ' + lastDay + '日</span>'
+        + '<span>' + pct + '%</span></div>'
+        + '<div style="margin-top:5px; height:6px; background:#f5f0eb; border-radius:99px; overflow:hidden;">'
+        + '<div style="width:' + pct + '%; height:100%; background:#c8a97e;"></div></div>'
+        + line;
+    }
+
     function calMove(diff) {
       calMonth.setMonth(calMonth.getMonth() + diff);
       document.getElementById('cal-detail').style.display = 'none';
@@ -783,6 +832,7 @@
           + (ds === tomorrowStr ? ' outline:1px dashed #c8a97e; outline-offset:-2px;' : '');
         grid.appendChild(cell);
       }
+      calMonthSummary();
     }
 
     function calPick(ds) {
