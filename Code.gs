@@ -53,6 +53,10 @@ function doGet(e) {
   if (action === 'getSorenessHistory') return json(getSorenessHistory());
   if (action === 'getSorenessByUser') return getSorenessByUser(e.parameter.name);
   if (action === 'hp_token_get') return json({ access_token: PropertiesService.getScriptProperties().getProperty('HP_ACCESS_TOKEN') || '' });
+  if (action === 'scale_token_get') return json({
+    access_token: PropertiesService.getScriptProperties().getProperty('SCALE_ACCESS_TOKEN') || '',
+    refresh_token: PropertiesService.getScriptProperties().getProperty('SCALE_REFRESH_TOKEN') || ''
+  });
   if (action === 'hp_name_at') return json({ name: hpNameAtStr(e.parameter.at) });
   if (action === 'getIdeas') return json(getIdeas(e.parameter.name));
   if (action === 'getRandomTasks') return json(getRandomTasksList());
@@ -86,6 +90,12 @@ function doPost(e) {
   if (data.action === 'saveReasonRead') { saveReasonRead(data.name, data.slug, data.read); return json({ ok: true }); }
   if (data.action === 'book_rental') return bookRental(data);
   if (data.action === 'updateRecordFields') return updateRecordFields(data);
+  if (data.action === 'scale_token_save') {
+    const sp = PropertiesService.getScriptProperties();
+    if (data.access_token) sp.setProperty('SCALE_ACCESS_TOKEN', data.access_token);
+    if (data.refresh_token) sp.setProperty('SCALE_REFRESH_TOKEN', data.refresh_token);
+    return json({ ok: true });
+  }
   if (data.action === 'hp_token_save') {
     PropertiesService.getScriptProperties().setProperty('HP_ACCESS_TOKEN', data.access_token || '');
     if (data.refresh_token) PropertiesService.getScriptProperties().setProperty('HP_REFRESH_TOKEN', data.refresh_token);
