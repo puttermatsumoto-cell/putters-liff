@@ -3,7 +3,10 @@
 
   python3 scripts/build_steps_shortcut.py
 
-出力: public/shortcuts/putters-steps.shortcut（署名済み）
+出力: public/shortcuts/PUTTERS歩数.shortcut（署名済み）
+
+ファイル名がそのまま取り込み後のショートカット名になるので、
+アプリ側が呼ぶ SHORTCUT_NAME と必ず一致させること。
 
 中身は4アクション:
   1. ヘルスケアサンプルを検索（歩数・過去7日・日ごとに集計）
@@ -143,7 +146,7 @@ def build():
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     unsigned = OUT_DIR / '_unsigned.shortcut'
-    signed = OUT_DIR / 'putters-steps.shortcut'
+    signed = OUT_DIR / f'{SHORTCUT_NAME}.shortcut'
 
     with unsigned.open('wb') as f:
         plistlib.dump(build(), f)
@@ -158,7 +161,7 @@ def main():
 
     unsigned.unlink()
     print(f'できました: {signed} ({signed.stat().st_size:,} bytes)')
-    print(f'ショートカット名は「{SHORTCUT_NAME}」にしてもらう必要があります')
+    print(f'取り込み後の名前は「{SHORTCUT_NAME}」になります（ファイル名＝名前）')
     return 0
 
 
