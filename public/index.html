@@ -306,10 +306,9 @@
          style="display:block;text-align:center;background:#1a1a2e;color:white;border-radius:12px;padding:16px;font-size:16px;font-weight:bold;text-decoration:none;">
         コレを押して
       </a>
-      <p style="font-size:12px;color:#aaa;line-height:1.6;margin-top:10px;">
-        ショートカットアプリが開くので「追加」を押すだけです。終わったらこの案内は消えます。
+      <p id="steps-setup-note" style="font-size:12px;color:#aaa;line-height:1.6;margin-top:10px;">
+        ショートカットアプリが開くので、一番下の「追加」まで進んでください。
       </p>
-      <button onclick="markStepsInstalled()" style="width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:10px 0;margin-top:2px;cursor:pointer;">追加できたので閉じる</button>
     </div>
 
     <!-- 追加済みの人が見る画面 -->
@@ -1154,6 +1153,15 @@
         setTimeout(loadStepsSummary, 1500);
         history.replaceState(null, '', location.pathname);
       }
+      // 実行できなかった＝入っていない。案内を出し直す（タップしただけで完了扱いにしない）
+      if (location.search.indexOf('steps=err') !== -1) {
+        localStorage.removeItem(STEPS_INSTALLED_KEY);
+        history.replaceState(null, '', location.pathname);
+        document.getElementById('steps-setup').style.display = 'block';
+        document.getElementById('steps-main').style.display = 'none';
+        document.getElementById('steps-setup-note').textContent =
+          '前回の追加が完了していないようです。もう一度押して「追加」まで進んでください。';
+      }
     }
 
     async function loadStepsSummary() {
@@ -1174,10 +1182,12 @@
       msg.textContent = '取り込み中...';
       // x-callback-url を使うと、終わった時点でこのページに勝手に戻ってくる。
       // 素の shortcuts://run-shortcut だとショートカットアプリに置き去りになる
-      const back = encodeURIComponent(location.origin + location.pathname + '?steps=1');
+      const base = location.origin + location.pathname;
+      const ok = encodeURIComponent(base + '?steps=1');
+      const ng = encodeURIComponent(base + '?steps=err');
       location.href = `shortcuts://x-callback-url/run-shortcut`
         + `?name=${encodeURIComponent(SHORTCUT_NAME)}`
-        + `&x-success=${back}&x-error=${back}&x-cancel=${back}`;
+        + `&x-success=${ok}&x-error=${ng}&x-cancel=${ng}`;
       setTimeout(() => {
         msg.textContent = '戻ってこない場合は「準備をやり直す」から入れ直してください';
         document.getElementById('steps-redo').style.display = 'block';
