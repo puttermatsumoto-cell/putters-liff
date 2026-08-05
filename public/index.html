@@ -471,8 +471,8 @@
               style="width:100%;background:#c8a97e;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:bold;cursor:pointer;">
         歩数を送る
       </button>
+
       <p id="steps-msg" style="font-size:12px;color:#aaa;text-align:center;margin-top:8px;">押すと直近7日分がまとめて入ります</p>
-      <button id="steps-manual-link" onclick="sendStepsManual()" style="display:none;width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:8px 0;cursor:pointer;text-decoration:underline;">うまくいかない時は手入力</button>
       <button id="steps-redo" onclick="redoStepsSetup()" style="display:none;width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:8px 0;cursor:pointer;text-decoration:underline;">準備をやり直す</button>
     </div>
   </div>
@@ -1131,28 +1131,21 @@
     function renderStepsSection() {
       const sec = document.getElementById('steps-section');
       if (!sec) return;
+
+      // iPhone以外はまだ自動取得の手段が無いので出さない。
+      // Google FitのAPIは廃止済み（2026-08-05に実機で確認）、Health Connectはウェブから読めない。
+      if (!IS_IOS) { sec.style.display = 'none'; return; }
+
       sec.style.display = 'block';
       const installed = localStorage.getItem(STEPS_INSTALLED_KEY) === '1';
-      // iPhone以外はショートカットが使えないので、最初から手入力に寄せる
-      const showSetup = IS_IOS && !installed;
+      const showSetup = !installed;
       document.getElementById('steps-setup').style.display = showSetup ? 'block' : 'none';
       document.getElementById('steps-main').style.display = showSetup ? 'none' : 'block';
 
-      // iPhone以外は既存のGoogle Fit連携を使う（Androidはこっちが自動）
-      if (!IS_IOS) {
-        const btn = document.getElementById('steps-send-btn');
-        const msg = document.getElementById('steps-msg');
-        if (localStorage.getItem('putters_fit_token')) {
-          btn.textContent = '歩数を送る';
-          btn.setAttribute('onclick', 'sendStepsFit()');
-          msg.textContent = 'Google Fitから取り込みます';
-        } else {
-          btn.textContent = 'Google Fitとつなぐ';
-          btn.setAttribute('onclick', 'connectGoogleFit()');
-          msg.textContent = '最初の1回だけ連携が必要です';
-        }
-        document.getElementById('steps-manual-link').style.display = 'block';
-      }
+      // その人専用のショートカット（名前が埋め込んである＝入力させない）
+      document.getElementById('steps-install-link').href =
+        `/shortcuts/${encodeURIComponent(getUserName())}/${encodeURIComponent(SHORTCUT_NAME)}.shortcut`;
+
       if (!showSetup) loadStepsSummary();
     }
 
@@ -1177,50 +1170,6 @@
         msg.textContent = '追加していない場合は、下の「準備をやり直す」から';
         document.getElementById('steps-redo').style.display = 'block';
       }, 2500);
-    }
-
-    async function connectGoogleFit() {
-      const name = getUserName();
-      const msg = document.getElementById('steps-msg');
-      msg.textContent = '連携画面を開いています...';
-      try {
-        const res = await fetch(`/api/google-fit?action=auth_url&userName=${encodeURIComponent(name)}`);
-        const d = await res.json();
-        location.href = d.url;
-      } catch (e) { msg.textContent = '連携を開けませんでした'; }
-    }
-
-    async function sendStepsFit() {
-      const msg = document.getElementById('steps-msg');
-      const refreshToken = localStorage.getItem('putters_fit_token');
-      if (!refreshToken) return renderStepsSection();
-      msg.textContent = '取り込み中...';
-      try {
-        const res = await fetch('/api/google-fit?action=sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken, userName: getUserName() })
-        });
-        const d = await res.json();
-        if (d.ok) { msg.textContent = `${Number(d.steps).toLocaleString()}歩 入りました`; loadStepsSummary(); }
-        else { msg.textContent = '取り込めませんでした（連携し直してください）'; }
-      } catch (e) { msg.textContent = '取り込みに失敗しました'; }
-    }
-
-    async function sendStepsManual() {
-      const name = getUserName();
-      const input = prompt('今日の歩数を入れてください（スマホのヘルスケアアプリの数字）');
-      if (!input) return;
-      const steps = parseInt(String(input).replace(/[^0-9]/g, ''), 10);
-      if (!steps) return;
-      const today = new Date(Date.now() - 2 * 3600 * 1000).toISOString().slice(0, 10);
-      const msg = document.getElementById('steps-msg');
-      msg.textContent = '送信中...';
-      try {
-        await fetch(`${GAS_URL}?action=saveStepsBulk&name=${encodeURIComponent(name)}&days=${today}:${steps}`);
-        msg.textContent = '入りました';
-        loadStepsSummary();
-      } catch (e) { msg.textContent = '送信に失敗しました'; }
     }
 
     // ショートカットから戻ってきた時に数字を最新にする
@@ -1956,7 +1905,6 @@
         setTimeout(() => { document.getElementById('message').textContent = ''; }, 3000);
       } catch (e) { console.error('autoSubmitYesterday error:', e); }
     }
-
 
     async function submitData(dateStr) {
       const weight = document.getElementById('weight').value;

@@ -1,26 +1,32 @@
 #!/usr/bin/env python3
-"""PUTTERS歩数ショートカットを生成して署名する。
+"""PUTTERS歩数ショートカットを、お客さん1人ずつ生成して署名する。
 
   python3 scripts/build_steps_shortcut.py
 
-出力: public/shortcuts/PUTTERS歩数.shortcut（署名済み）
+出力: public/shortcuts/<名前>/PUTTERS歩数.shortcut（署名済み）
 
-ファイル名がそのまま取り込み後のショートカット名になるので、
-アプリ側が呼ぶ SHORTCUT_NAME と必ず一致させること。
+名前は宿題シートから取る。名前をURLに埋め込むので、お客さんは
+一度も名前を打たない（追加して押すだけ）。
 
-中身は4アクション:
+ファイル名がそのまま取り込み後のショートカット名になるため、
+全員ぶん同じ `PUTTERS歩数.shortcut` にして人ごとのフォルダに分ける。
+こうするとアプリ側は誰に対しても同じ名前で呼べる。
+
+中身は3アクション:
   1. ヘルスケアサンプルを検索（歩数・過去7日・日ごとに集計）
-  2. 名前を尋ねる（初回のみ。以降はショートカット内に保存されない=毎回聞く代わりに
-     アプリ側から名前をURLで渡せないため、ここで一度だけ入力してもらう）
-  3. URLの内容を取得（GASへ送信）
-  4. アプリを開く
+  2. URLの内容を取得（GASへ送信）
+  3. アプリを開く
 
 アクションIDは松本さんのiPhoneで実際に作ったショートカットから採取した実物:
   is.workflow.actions.filter.health.quantity
 """
+import json
 import plistlib
+import shutil
 import subprocess
 import sys
+import urllib.parse
+import urllib.request
 import uuid
 from pathlib import Path
 
@@ -28,6 +34,9 @@ GAS_URL = ('https://script.google.com/macros/s/'
            'AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec')
 APP_URL = 'https://liff-app-weld.vercel.app/'
 SHORTCUT_NAME = 'PUTTERS歩数'
+
+# 宿題シートの見出し行。人ではない
+SKIP_NAMES = {'カレンダー名', ''}
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / 'public' / 'shortcuts'
@@ -37,30 +46,36 @@ def uid():
     return str(uuid.uuid4()).upper()
 
 
-def var(action_uuid, name):
-    """他アクションの出力を参照するトークン。"""
-    return {
-        'Value': {'OutputUUID': action_uuid, 'OutputName': name, 'Type': 'ActionOutput'},
-        'WFSerializationType': 'WFTextTokenAttachment',
-    }
+def fetch_names():
+    with urllib.request.urlopen(f'{GAS_URL}?action=admin_homework') as r:
+        rows = json.load(r)
+    names = [str(row.get('name', '')).strip() for row in rows]
+    return [n for n in names if n and n not in SKIP_NAMES]
 
 
-def text_with_vars(template, attachments):
-    """'歩数は￼' のような、変数を埋め込んだテキスト。
+def build(name):
+    """1人ぶんのショートカット定義。name はURLに埋め込み済みで届く。"""
+    health_uuid = uid()
 
-    attachments = {文字位置: トークン}
-    """
-    return {
+    # 歩数の集計結果をそのままURLに差し込む
+    url_prefix = (f'{GAS_URL}?action=saveStepsBulk'
+                  f'&name={urllib.parse.quote(name)}&days=')
+    url_value = {
         'Value': {
-            'string': template,
-            'attachmentsByRange': {f'{{{pos}, 1}}': tok for pos, tok in attachments.items()},
+            'string': url_prefix + '￼',
+            'attachmentsByRange': {
+                f'{{{len(url_prefix)}, 1}}': {
+                    'Value': {
+                        'OutputUUID': health_uuid,
+                        'OutputName': 'ヘルスケアサンプル',
+                        'Type': 'ActionOutput',
+                    },
+                    'WFSerializationType': 'WFTextTokenAttachment',
+                },
+            },
         },
         'WFSerializationType': 'WFTextTokenString',
     }
-
-
-def build():
-    health_uuid, name_uuid = uid(), uid()
 
     actions = [
         # 1. 歩数を過去7日ぶん、日ごとに取得
@@ -69,6 +84,7 @@ def build():
             'WFWorkflowActionParameters': {
                 'UUID': health_uuid,
                 'WFHKSampleFilteringUnit': 'count',
+                'WFHKSampleClassGrouping': 'Day',
                 'WFContentItemFilter': {
                     'Value': {
                         'WFActionParameterFilterPrefix': 1,   # すべてが真
@@ -92,32 +108,18 @@ def build():
                     },
                     'WFSerializationType': 'WFContentPredicateTableTemplate',
                 },
-                'WFHKSampleClassGrouping': 'Day',            # 日ごとにまとめる
             },
         },
-        # 2. 名前（お客さんが1回だけ入力）
-        {
-            'WFWorkflowActionIdentifier': 'is.workflow.actions.ask',
-            'WFWorkflowActionParameters': {
-                'UUID': name_uuid,
-                'WFAskActionPrompt': 'お名前は？（PUTTERSに登録している名前）',
-                'WFInputType': 'Text',
-            },
-        },
-        # 3. GASへ送信
+        # 2. GASへ送信
         {
             'WFWorkflowActionIdentifier': 'is.workflow.actions.downloadurl',
             'WFWorkflowActionParameters': {
                 'WFHTTPMethod': 'GET',
                 'ShowHeaders': False,
-                'WFURL': text_with_vars(
-                    f'{GAS_URL}?action=saveStepsBulk&name=￼&days=￼',
-                    {len(GAS_URL) + len('?action=saveStepsBulk&name='): var(name_uuid, '入力を要求'),
-                     len(GAS_URL) + len('?action=saveStepsBulk&name=￼&days='): var(health_uuid, 'ヘルスケアサンプル')},
-                ),
+                'WFURL': url_value,
             },
         },
-        # 4. アプリに戻る
+        # 3. アプリに戻る
         {
             'WFWorkflowActionIdentifier': 'is.workflow.actions.openurl',
             'WFWorkflowActionParameters': {'WFInput': APP_URL},
@@ -144,24 +146,40 @@ def build():
 
 
 def main():
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    unsigned = OUT_DIR / '_unsigned.shortcut'
-    signed = OUT_DIR / f'{SHORTCUT_NAME}.shortcut'
+    names = fetch_names()
+    print(f'{len(names)}人ぶん作ります')
 
-    with unsigned.open('wb') as f:
-        plistlib.dump(build(), f)
+    if OUT_DIR.exists():
+        shutil.rmtree(OUT_DIR)
+    OUT_DIR.mkdir(parents=True)
 
-    r = subprocess.run(
-        ['shortcuts', 'sign', '--mode', 'anyone', '--input', str(unsigned), '--output', str(signed)],
-        capture_output=True, text=True,
-    )
-    if r.returncode != 0:
-        print('署名に失敗:', r.stderr, file=sys.stderr)
+    made, failed = 0, []
+    for name in names:
+        person_dir = OUT_DIR / name
+        person_dir.mkdir(parents=True, exist_ok=True)
+        unsigned = person_dir / '_unsigned.shortcut'
+        signed = person_dir / f'{SHORTCUT_NAME}.shortcut'
+
+        with unsigned.open('wb') as f:
+            plistlib.dump(build(name), f)
+
+        r = subprocess.run(
+            ['shortcuts', 'sign', '--mode', 'anyone',
+             '--input', str(unsigned), '--output', str(signed)],
+            capture_output=True, text=True,
+        )
+        unsigned.unlink(missing_ok=True)
+        if r.returncode != 0:
+            failed.append((name, r.stderr.strip()))
+        else:
+            made += 1
+
+    print(f'できました: {made}人ぶん → {OUT_DIR}')
+    if failed:
+        print(f'失敗 {len(failed)}件:', file=sys.stderr)
+        for name, err in failed:
+            print(f'  {name}: {err}', file=sys.stderr)
         return 1
-
-    unsigned.unlink()
-    print(f'できました: {signed} ({signed.stat().st_size:,} bytes)')
-    print(f'取り込み後の名前は「{SHORTCUT_NAME}」になります（ファイル名＝名前）')
     return 0
 
 
