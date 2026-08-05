@@ -82,9 +82,15 @@
   <div id="page-summary" class="page active">
     <div class="stats-row" id="stats-row">
       <div class="stat-card"><div class="stat-val" id="stat-total">-</div><div class="stat-label">登録人数</div></div>
-      <div class="stat-card"><div class="stat-val" id="stat-active">-</div><div class="stat-label">今週記録あり</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-active">-</div><div class="stat-label">今週動きあり<br><span style="font-size:10px;color:#aaa;">記録/筋肉痛/記事/教科書</span></div></div>
       <div class="stat-card"><div class="stat-val" id="stat-avg-p">-</div><div class="stat-label">平均タンパク質(g)</div></div>
       <div class="stat-card"><div class="stat-val" id="stat-avg-kcal">-</div><div class="stat-label">平均カロリー</div></div>
+    </div>
+    <div class="card">
+      <h2>今週の動き <span id="weekly-range" style="font-size:12px;color:#aaa;font-weight:normal;"></span></h2>
+      <p style="font-size:12px;color:#888;margin-bottom:12px;">体重や食事を書いてなくても、筋肉痛を付けた人・記事を読んだ人・教科書を見た人も入っています。</p>
+      <div id="weekly-loading" class="loading">読み込み中...</div>
+      <div id="weekly-content" style="display:none"></div>
     </div>
     <div class="card">
       <h2>お客さん直近記録</h2>
@@ -417,6 +423,48 @@
     }
   }
 
+  const WEEKLY_KINDS = [
+    { key: 'record',   label: '🍽️ 記録',   unit: '日', bg: '#e8f5e9', fg: '#388e3c' },
+    { key: 'soreness', label: '💪 筋肉痛', unit: '日', bg: '#fde8e8', fg: '#c62828' },
+    { key: 'article',  label: '📖 記事',   unit: '本', bg: '#e3f2fd', fg: '#1565c0' },
+    { key: 'textbook', label: '📺 教科書', unit: '本', bg: '#f3e5f5', fg: '#6a1b9a' }
+  ];
+
+  async function loadWeeklyActivity() {
+    const content = document.getElementById('weekly-content');
+    const loading = document.getElementById('weekly-loading');
+    try {
+      const res = await fetch(GAS_URL + '?action=admin_weekly_activity');
+      const data = await res.json();
+      const people = data.people || [];
+
+      document.getElementById('stat-active').textContent = people.length;
+      document.getElementById('weekly-range').textContent = `${data.from} 〜 ${data.to}`;
+
+      if (people.length === 0) {
+        content.innerHTML = '<p style="color:#aaa;">今週はまだ動きがありません</p>';
+      } else {
+        content.innerHTML = people.map(p => {
+          const chips = WEEKLY_KINDS.filter(k => p.kinds[k.key]).map(k => {
+            const detail = (p.details && p.details[k.key]) ? p.details[k.key].length : p.kinds[k.key];
+            const n = (k.key === 'record' || k.key === 'soreness') ? p.kinds[k.key] : detail;
+            return `<span style="background:${k.bg};color:${k.fg};border-radius:20px;padding:3px 10px;font-size:12px;">${k.label} ${n}${k.unit}</span>`;
+          }).join('');
+          return `
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;">
+              <strong style="min-width:100px;color:#1a1a2e;">${p.name}</strong>
+              <span style="color:#aaa;font-size:12px;min-width:80px;">${p.lastDate}</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">${chips}</div>
+            </div>`;
+        }).join('');
+      }
+      loading.style.display = 'none';
+      content.style.display = 'block';
+    } catch (e) {
+      loading.textContent = '読み込みに失敗しました';
+    }
+  }
+
   function daysSince(dateStr) {
     const d = new Date(dateStr);
     const now = new Date();
@@ -442,7 +490,7 @@
       const dl = document.getElementById('graph-name-list');
       dl.innerHTML = data.map(d => `<option value="${d.name}">`).join('');
       document.getElementById('stat-total').textContent = data.length;
-      document.getElementById('stat-active').textContent = activeUsers.length;
+      // 「今週動きあり」は loadWeeklyActivity() が入れる（記録以外も数えるため）
       const avgP = activeUsers.length > 0 ? Math.round(activeUsers.reduce((s, d) => s + Number(d.p), 0) / activeUsers.length) : '-';
       const avgKcal = activeUsers.length > 0 ? Math.round(activeUsers.reduce((s, d) => s + Number(d.kcal), 0) / activeUsers.length) : '-';
       document.getElementById('stat-avg-p').textContent = avgP;
@@ -642,6 +690,7 @@
 
   initMonthSelect();
   loadSummary();
+  loadWeeklyActivity();
   loadHomework();
   loadHolidays();
 </script>

@@ -57,6 +57,7 @@ function doGet(e) {
   if (action === 'admin_client_history') return adminClientHistory(e.parameter.name);
   if (action === 'admin_textbook_watch') return adminTextbookWatch();
   if (action === 'admin_reason_read') return adminReasonRead();
+  if (action === 'admin_weekly_activity') return adminWeeklyActivity();
   if (action === 'rental_slots') return rentalSlots(e.parameter.date);
 
   const userName = e && e.parameter && e.parameter.name;
@@ -1393,4 +1394,75 @@ function adminReasonRead() {
     result[name][slug] = read;
   }
   return json(result);
+}
+
+// 管理画面用：今週(直近7日)の動きを人ごとにまとめる
+// 記録(食事・体重)だけでなく、筋肉痛・記事既読・教科書履修も「動きあり」として拾う
+function adminWeeklyActivity() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const today = new Date();
+  const from = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+  const fromStr = Utilities.formatDate(from, 'Asia/Tokyo', 'yyyy-MM-dd');
+  const dateOf = v => {
+    if (!v) return '';
+    if (Object.prototype.toString.call(v) === '[object Date]') return Utilities.formatDate(v, 'Asia/Tokyo', 'yyyy-MM-dd');
+    return String(v).slice(0, 10);
+  };
+
+  const people = {};
+  const touch = (name, kind, date, detail) => {
+    if (!name || !date || date < fromStr) return;
+    const key = String(name).trim();
+    if (!key) return;
+    if (!people[key]) people[key] = { name: key, kinds: {}, lastDate: date, details: {} };
+    const p = people[key];
+    p.kinds[kind] = (p.kinds[kind] || 0) + 1;
+    if (date > p.lastDate) p.lastDate = date;
+    if (detail) {
+      if (!p.details[kind]) p.details[kind] = [];
+      if (p.details[kind].indexOf(detail) === -1) p.details[kind].push(detail);
+    }
+  };
+
+  // 記録（食事・体重・有酸素）
+  const rec = ss.getSheetByName('記録') || ss.getSheets()[0];
+  if (rec) {
+    const rows = rec.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) touch(rows[i][1], 'record', dateOf(rows[i][0]));
+  }
+
+  // 筋肉痛（人体図）
+  const sore = ss.getSheetByName('筋肉痛');
+  if (sore) {
+    const rows = sore.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      const parts = rows[i][2];
+      if (!parts) continue;
+      touch(rows[i][1], 'soreness', dateOf(rows[i][0]), parts === 'none' ? '痛みなし' : String(parts));
+    }
+  }
+
+  // 記事既読（松本のおすすめ）
+  const art = ss.getSheetByName('記事既読');
+  if (art) {
+    const rows = art.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][3] !== '既読') continue;
+      touch(rows[i][1], 'article', dateOf(rows[i][0]), rows[i][2]);
+    }
+  }
+
+  // 教科書履修
+  const tb = ss.getSheetByName('教科書履修');
+  if (tb) {
+    const rows = tb.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][3] !== '履修済み') continue;
+      touch(rows[i][1], 'textbook', dateOf(rows[i][0]), rows[i][2]);
+    }
+  }
+
+  const list = Object.keys(people).map(k => people[k])
+    .sort((a, b) => b.lastDate.localeCompare(a.lastDate) || a.name.localeCompare(b.name));
+  return json({ from: fromStr, to: Utilities.formatDate(today, 'Asia/Tokyo', 'yyyy-MM-dd'), people: list });
 }
