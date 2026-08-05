@@ -335,7 +335,7 @@
       </button>
 
       <p id="steps-msg" style="font-size:12px;color:#aaa;text-align:center;margin-top:8px;">押すと直近7日分がまとめて入ります</p>
-      <button id="steps-redo" onclick="redoStepsSetup()" style="display:none;width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:8px 0;cursor:pointer;text-decoration:underline;">準備をやり直す</button>
+      <button id="steps-redo" onclick="redoStepsSetup()" style="width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:8px 0;cursor:pointer;text-decoration:underline;">ショートカットを入れ直す</button>
     </div>
   </div>
 
@@ -1117,9 +1117,13 @@
       || (/Macintosh|iPad/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 
     function markStepsInstalled() {
-      localStorage.setItem(STEPS_INSTALLED_KEY, '1');
-      // ショートカットアプリに飛んでいる間に切り替えておく
-      setTimeout(renderStepsSection, 400);
+      // タップしただけでは追加済みにしない（追加せずに戻ると詰むため）。
+      // 送信が1回通った時点で初めて追加済みにする
+      setTimeout(() => {
+        document.getElementById('steps-main').style.display = 'block';
+        document.getElementById('steps-msg').textContent =
+          '追加が終わったら「歩数を送る」を押してください';
+      }, 400);
     }
 
     function redoStepsSetup() {
@@ -1152,6 +1156,9 @@
 
       // ショートカットから戻ってきた直後。GASへの書き込みが終わるのを少し待ってから読む
       if (location.search.indexOf('steps=1') !== -1) {
+        localStorage.setItem(STEPS_INSTALLED_KEY, '1');   // 実際に動いた＝入っている
+        document.getElementById('steps-setup').style.display = 'none';
+        document.getElementById('steps-main').style.display = 'block';
         document.getElementById('steps-msg').textContent = '取り込みました';
         setTimeout(loadStepsSummary, 1500);
         history.replaceState(null, '', location.pathname);
