@@ -307,8 +307,8 @@
         コレを押して
       </a>
       <p id="steps-setup-note" style="font-size:12px;color:#aaa;line-height:1.6;margin-top:10px;">
-        ①「"ショートカット"で開く」→ ②「追加」→ ③左上の「‹ Safari」で戻る<br>
-        この3つで終わりです。次からは押すだけになります。
+        ショートカットアプリが開くので「追加」を押して、左上の「‹ Safari」で戻ってください。<br>
+        次からは押すだけになります。
       </p>
     </div>
 
@@ -1112,6 +1112,9 @@
     // ========== 歩数 ==========
     const STEPS_INSTALLED_KEY = 'putters_steps_installed';
     const SHORTCUT_NAME = 'PUTTERS歩数';
+    // 全員共通。名前は実行時にアプリから渡すので1本で足りる。
+    // iCloudリンクだとSafariのダウンロード画面を経由せずショートカットアプリが開く
+    const SHORTCUT_INSTALL_URL = 'https://www.icloud.com/shortcuts/163ba8329fa34194bb21c33516dd24ba';
     // iPadOSはUAがMacになるのでタッチの有無で見分ける
     const IS_IOS = /iPhone|iPod/.test(navigator.userAgent)
       || (/Macintosh|iPad/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
@@ -1146,11 +1149,7 @@
       document.getElementById('steps-setup').style.display = showSetup ? 'block' : 'none';
       document.getElementById('steps-main').style.display = showSetup ? 'none' : 'block';
 
-      // その人専用のショートカット（名前が埋め込んである＝入力させない）。
-      // shortcuts://import-shortcut は任意のURLでは動かず「ファイルが存在しません」になるので、
-      // ファイルを直接開かせる（Safariのダウンロード画面を1枚挟むが確実に動く）
-      document.getElementById('steps-install-link').href =
-        `/shortcuts/${encodeURIComponent(getUserName())}/${encodeURIComponent(SHORTCUT_NAME)}.shortcut`;
+      document.getElementById('steps-install-link').href = SHORTCUT_INSTALL_URL;
 
       if (!showSetup) loadStepsSummary();
 
@@ -1197,6 +1196,7 @@
       const ng = encodeURIComponent(base + '?steps=err');
       location.href = `shortcuts://x-callback-url/run-shortcut`
         + `?name=${encodeURIComponent(SHORTCUT_NAME)}`
+        + `&input=text&text=${encodeURIComponent(getUserName())}`
         + `&x-success=${ok}&x-error=${ng}&x-cancel=${ng}`;
       setTimeout(() => {
         msg.textContent = '戻ってこない場合は「準備をやり直す」から入れ直してください';
