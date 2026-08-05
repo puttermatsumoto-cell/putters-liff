@@ -60,24 +60,9 @@ def build(name):
     """1人ぶんのショートカット定義。name はURLに埋め込み済みで届く。"""
     health_uuid = uid()
 
-    # 歩数の集計結果をそのままURLに差し込む
-    url_prefix = f'{POST_URL}?n={urllib.parse.quote(name)}&d='
-    url_value = {
-        'Value': {
-            'string': url_prefix + '￼',
-            'attachmentsByRange': {
-                f'{{{len(url_prefix)}, 1}}': {
-                    'Value': {
-                        'OutputUUID': health_uuid,
-                        'OutputName': 'ヘルスケアサンプル',
-                        'Type': 'ActionOutput',
-                    },
-                    'WFSerializationType': 'WFTextTokenAttachment',
-                },
-            },
-        },
-        'WFSerializationType': 'WFTextTokenString',
-    }
+    # 歩数はURLに埋め込まない。前のアクションの出力が次に自動で流れる性質を使い、
+    # POSTの本文として送る。名前はURLに焼き込む＝変数を1つも使わない
+    post_url = f'{POST_URL}?n={urllib.parse.quote(name)}'
 
     actions = [
         # 1. 歩数を過去7日ぶん、日ごとに取得
@@ -85,40 +70,36 @@ def build(name):
             'WFWorkflowActionIdentifier': 'is.workflow.actions.filter.health.quantity',
             'WFWorkflowActionParameters': {
                 'UUID': health_uuid,
-                'WFHKSampleFilteringUnit': 'count',
-                'WFHKSampleClassGrouping': 'Day',
+                'WFHKSampleFilteringGroupBy': 'Day',   # 1日ごとに合算（実物から採取）
                 'WFContentItemFilter': {
                     'Value': {
                         'WFActionParameterFilterPrefix': 1,   # すべてが真
+                        'WFContentPredicateBoundedDate': False,
                         'WFActionParameterFilterTemplates': [
-                            {
-                                'Property': 'サンプルタイプ',
-                                'Operator': 4,               # が次と等しい
-                                'Values': {'SampleType': 'HKQuantityTypeIdentifierStepCount'},
-                            },
-                            {
-                                'Property': '開始日',
-                                'Operator': 1001,            # が次の過去の期間内
-                                'Values': {
-                                    'RelativeDateBoundary': {
-                                        'Value': {'Unit': 128, 'Count': 7},
-                                        'WFSerializationType': 'WFQuantityFieldValue',
-                                    },
-                                },
-                            },
+                            # 実機で設定したものを共有して採取した実物の形。
+                            # プロパティ名は英語、値はEnumerationで包む
+                            {'Property': 'Type', 'Operator': 4,
+                             'Bounded': True, 'Removable': False,
+                             'Values': {'Enumeration': {
+                                 'Value': 'Steps',
+                                 'WFSerializationType': 'WFStringSubstitutableState'}}},
+                            {'Property': 'Start Date', 'Operator': 1001,
+                             'Bounded': True, 'Removable': False,
+                             'Values': {'Number': '7', 'Unit': 16}},   # Unit 16 = 日
                         ],
                     },
                     'WFSerializationType': 'WFContentPredicateTableTemplate',
                 },
             },
         },
-        # 2. GASへ送信
+        # 2. 送信（本文＝1つ目の出力）
         {
             'WFWorkflowActionIdentifier': 'is.workflow.actions.downloadurl',
             'WFWorkflowActionParameters': {
-                'WFHTTPMethod': 'GET',
+                'WFHTTPMethod': 'POST',
+                'WFHTTPBodyType': 'File',   # 入力をそのまま本文にする
                 'ShowHeaders': False,
-                'WFURL': url_value,
+                'WFURL': post_url,
             },
         },
     ]
