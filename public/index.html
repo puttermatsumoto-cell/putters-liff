@@ -932,20 +932,35 @@
       if (!name || !calLoaded) { if (msg) msg.textContent = '記録を読み込めていないため保存できません'; return; }
       const v = id => { const e = document.getElementById(id); return e && e.value !== '' ? Number(e.value) : ''; };
       const fields = { weight: v('cal-w'), temperature: v('cal-t'), cardio: v('cal-c') };
-      msg.style.color = '#888'; msg.textContent = '保存中…';
+
+      // 待たせない：先に画面と手元のデータを更新し、送信と照合は裏で走らせる
+      calRecords[ds] = Object.assign({}, calRecords[ds] || {}, {
+        date: ds,
+        weight: fields.weight === '' ? null : fields.weight,
+        temperature: fields.temperature === '' ? null : fields.temperature,
+        cardio: fields.cardio === '' ? 0 : fields.cardio
+      });
+      calRender();
+      msg.style.color = '#c8a97e';
+      msg.textContent = '✅ 保存しました';
+
       try {
         await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateRecordFields', name: name, date: ds, fields: fields }) });
       } catch (e) {
-        msg.style.color = '#e53935'; msg.textContent = '保存できませんでした。通信を確認してください'; return;
+        msg.style.color = '#e53935';
+        msg.textContent = '⚠️ 送信できませんでした。通信を確認してもう一度押してください';
+        return;
       }
-      // シートを読み直して、入れた値と一致しているか確認してから「保存しました」を出す
+      // 裏で読み直して、シートと画面が一致しているか確認する（ズレた時だけ知らせる）
       await calLoad();
       const after = calRecords[ds] || {};
       const eq = (a, b) => (a === '' ? !b : Math.abs(Number(a) - Number(b || 0)) < 0.001);
       const ok = eq(fields.weight, after.weight) && eq(fields.temperature, after.temperature) && eq(fields.cardio, after.cardio);
-      calPick(ds);
       const m2 = document.getElementById('cal-msg');
-      if (m2) { m2.style.color = ok ? '#c8a97e' : '#e53935'; m2.textContent = ok ? '✅ 保存しました' : '⚠️ 反映を確認できませんでした。開き直して確認してください'; }
+      if (m2 && !ok) {
+        m2.style.color = '#e53935';
+        m2.textContent = '⚠️ 反映を確認できませんでした。開き直して確認してください';
+      }
     }
 
     function calBtn(fn, label) {
