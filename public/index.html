@@ -278,7 +278,7 @@
         <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
       </div>
       <div id="cal-grid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:2px;"></div>
-      <div id="cal-legend" style="display:none; margin-top:10px; font-size:10px; color:#bbb; text-align:right;">■ 記録した日　・ ジムに行った日</div>
+      <div id="cal-legend" style="display:none; margin-top:10px; font-size:10px; color:#bbb; text-align:right;">■ 記録した日　・ ジム　● 筋肉痛</div>
       <div id="cal-month-summary" style="display:none; margin-top:18px; padding-top:16px; border-top:1px solid #f5f0eb;"></div>
       <div id="cal-detail" style="display:none; margin-top:8px; padding-top:8px; border-top:1px solid #f0e8dc; font-size:12px; color:#555; line-height:1.7; text-align:left;"></div>
     </div>
@@ -791,6 +791,71 @@
         + '<span>' + vals[vals.length - 1] + unit + '</span></div></div>';
     }
 
+
+    // 筋肉痛（別シート・別API）。記録シートとは無関係なので、ここへの保存で食事等が壊れることはない
+    const SORE_PARTS = ['肩・三角筋','胸','腹','横腹','腰','広背筋','僧帽筋','上腕二頭筋','上腕三頭筋','前腕','臀部・お尻','大腿四頭筋','ハムストリング','内転筋（内もも）','ふくらはぎ','すね'];
+    let calSore = null;
+    async function calLoadSore() {
+      const name = localStorage.getItem(NAME_KEY);
+      if (!name) return;
+      try {
+        const res = await fetch(GAS_URL + '?action=getSorenessByUser&name=' + encodeURIComponent(name));
+        const rows = await res.json();
+        if (!Array.isArray(rows)) return;
+        const map = {};
+        rows.forEach(r => { map[r.date] = r.parts || ''; });
+        calSore = map;
+        calRender();
+      } catch (e) {}
+    }
+
+    function calSoreEditor(ds) {
+      const cur = (calSore && calSore[ds]) || '';
+      const sel = cur && cur !== 'none' ? cur.split(',').map(x => x.trim()) : [];
+      const chip = (label, on) => '<button onclick="calSoreToggle(this)" data-part="' + label + '" style="border:1px solid ' + (on ? '#e57373' : '#eee4d8') + '; background:' + (on ? '#fde8e8' : '#ffffff') + '; color:' + (on ? '#c62828' : '#888888') + '; border-radius:99px; padding:5px 10px; font-size:11px; cursor:pointer;">' + label + '</button>';
+      return '<div style="margin-top:10px; padding-top:9px; border-top:1px dashed #eee4d8;">'
+        + '<div style="font-size:11px; color:#888; margin-bottom:6px;">💪 筋肉痛' + (cur === 'none' ? '（この日はなしと記録済み）' : '') + '</div>'
+        + '<div id="cal-sore-chips" style="display:flex; flex-wrap:wrap; gap:5px;">'
+        + SORE_PARTS.map(pp => chip(pp, sel.indexOf(pp) !== -1)).join('')
+        + '</div>'
+        + '<div style="display:flex; gap:8px; margin-top:8px; align-items:center;">'
+        + '<button onclick="calSoreSave(\'' + ds + '\', true)" style="background:#fff; border:1px solid #ddd; color:#888; border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer;">痛みなし</button>'
+        + '<button onclick="calSoreSave(\'' + ds + '\', false)" style="margin-left:auto; background:#1a1a2e; color:#c8a97e; border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:bold; cursor:pointer;">保存</button>'
+        + '</div><div id="cal-sore-msg" style="margin-top:6px; font-size:11px; color:#888;"></div></div>';
+    }
+
+    function calSoreToggle(btn) {
+      const on = btn.dataset.on === '1';
+      btn.dataset.on = on ? '' : '1';
+      btn.style.background = on ? '#ffffff' : '#fde8e8';
+      btn.style.borderColor = on ? '#eee4d8' : '#e57373';
+      btn.style.color = on ? '#888888' : '#c62828';
+    }
+
+    async function calSoreSave(ds, none) {
+      const name = localStorage.getItem(NAME_KEY);
+      const msg = document.getElementById('cal-sore-msg');
+      if (!name) return;
+      let parts = 'none';
+      if (!none) {
+        const on = Array.from(document.querySelectorAll('#cal-sore-chips button'))
+          .filter(b => b.dataset.on === '1')
+          .map(b => b.dataset.part);
+        parts = on.length ? on.join(',') : 'none';
+      }
+      if (!calSore) calSore = {};
+      calSore[ds] = parts;
+      calRender();
+      msg.style.color = '#c8a97e';
+      msg.textContent = parts === 'none' ? '✅ 痛みなしで記録しました' : '✅ 保存しました';
+      try {
+        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSoreness', name: name, date: ds, parts: parts }) });
+      } catch (e) {
+        msg.style.color = '#e53935';
+        msg.textContent = '⚠️ 送信できませんでした。もう一度押してください';
+      }
+    }
+
     // 表示中の月のまとめ＝記録日数と体重の推移（見るだけ・書き込みなし）
     function calMonthSummary() {
       const box = document.getElementById('cal-month-summary');
@@ -858,7 +923,9 @@
         const has = calLoaded && calRecords && calRecords[ds];
         const cell = document.createElement('button');
         const gym = (calGym[ym] || {})[ds];
-        cell.innerHTML = d + (gym ? '<div style="width:4px; height:4px; border-radius:50%; margin:1px auto 0; background:' + (has ? '#fff' : '#1a1a2e') + ';"></div>' : '');
+        const sore = calSore && calSore[ds] && calSore[ds] !== 'none';
+        cell.style.position = 'relative';
+        cell.innerHTML = (sore ? '<span style="position:absolute; top:2px; right:3px; width:5px; height:5px; border-radius:50%; background:#e57373;"></span>' : '') + d + (gym ? '<div style="width:4px; height:4px; border-radius:50%; margin:1px auto 0; background:' + (has ? '#fff' : '#1a1a2e') + ';"></div>' : '');
         cell.onclick = () => calPick(ds);
         cell.style.cssText = 'border:none; border-radius:8px; padding:6px 0; font-size:12px; cursor:pointer;'
           + (has ? 'background:#c8a97e; color:#fff; font-weight:bold;' : 'background:#f5f0eb; color:' + (ds > todayStr ? '#ddd' : '#bbb') + ';')
@@ -894,6 +961,7 @@
         if (ds === todayStr) html += calBtn('switchToToday()', '今日の入力に戻る');
         else if (ds === ydStr) html += calBtn('loadPrevDayEdit()', 'この日を書く');
         else html += calEditForm(ds, null);
+        if (ds <= todayStr) html += calSoreEditor(ds);
         box.innerHTML = html; return;
       }
       const gymType = (calGym[ds.slice(0, 7)] || {})[ds];
@@ -917,6 +985,7 @@
       if (ds === todayStr) html += calBtn('switchToToday()', '今日の入力に戻る');
       else if (ds === ydStr) html += calBtn('loadPrevDayEdit()', 'この日を書き直す');
       else html += calEditForm(ds, r);
+      html += calSoreEditor(ds);
       box.innerHTML = html;
     }
 
@@ -2571,7 +2640,7 @@
     // 下部固定バー（全員）
     document.getElementById('bottom-camera-btn').style.display = 'block';
     document.getElementById('cal-wrap').style.display = 'block';
-    calRender(); calLoad();
+    calRender(); calLoad(); calLoadSore();
     (function() {
       const d = new Date();
       if (d.getHours() < 2) d.setDate(d.getDate() - 1);
