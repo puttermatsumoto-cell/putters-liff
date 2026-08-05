@@ -1147,6 +1147,13 @@
         `/shortcuts/${encodeURIComponent(getUserName())}/${encodeURIComponent(SHORTCUT_NAME)}.shortcut`;
 
       if (!showSetup) loadStepsSummary();
+
+      // ショートカットから戻ってきた直後。GASへの書き込みが終わるのを少し待ってから読む
+      if (location.search.indexOf('steps=1') !== -1) {
+        document.getElementById('steps-msg').textContent = '取り込みました';
+        setTimeout(loadStepsSummary, 1500);
+        history.replaceState(null, '', location.pathname);
+      }
     }
 
     async function loadStepsSummary() {
@@ -1164,12 +1171,17 @@
     // iPhone：ショートカットを起動する。戻ってきたら累計を取り直す
     function sendSteps() {
       const msg = document.getElementById('steps-msg');
-      msg.textContent = 'ショートカットを開いています...';
-      location.href = `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}`;
+      msg.textContent = '取り込み中...';
+      // x-callback-url を使うと、終わった時点でこのページに勝手に戻ってくる。
+      // 素の shortcuts://run-shortcut だとショートカットアプリに置き去りになる
+      const back = encodeURIComponent(location.origin + location.pathname + '?steps=1');
+      location.href = `shortcuts://x-callback-url/run-shortcut`
+        + `?name=${encodeURIComponent(SHORTCUT_NAME)}`
+        + `&x-success=${back}&x-error=${back}&x-cancel=${back}`;
       setTimeout(() => {
-        msg.textContent = '追加していない場合は、下の「準備をやり直す」から';
+        msg.textContent = '戻ってこない場合は「準備をやり直す」から入れ直してください';
         document.getElementById('steps-redo').style.display = 'block';
-      }, 2500);
+      }, 6000);
     }
 
     // ショートカットから戻ってきた時に数字を最新にする

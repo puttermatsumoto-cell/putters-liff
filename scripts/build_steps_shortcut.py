@@ -12,10 +12,9 @@
 全員ぶん同じ `PUTTERS歩数.shortcut` にして人ごとのフォルダに分ける。
 こうするとアプリ側は誰に対しても同じ名前で呼べる。
 
-中身は3アクション:
+中身は2アクション:
   1. ヘルスケアサンプルを検索（歩数・過去7日・日ごとに集計）
   2. URLの内容を取得（GASへ送信）
-  3. アプリを開く
 
 アクションIDは松本さんのiPhoneで実際に作ったショートカットから採取した実物:
   is.workflow.actions.filter.health.quantity
@@ -32,7 +31,6 @@ from pathlib import Path
 
 GAS_URL = ('https://script.google.com/macros/s/'
            'AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec')
-APP_URL = 'https://liff-app-weld.vercel.app/'
 SHORTCUT_NAME = 'PUTTERS歩数'
 
 # 宿題シートの見出し行。人ではない
@@ -118,11 +116,6 @@ def build(name):
                 'ShowHeaders': False,
                 'WFURL': url_value,
             },
-        },
-        # 3. アプリに戻る
-        {
-            'WFWorkflowActionIdentifier': 'is.workflow.actions.openurl',
-            'WFWorkflowActionParameters': {'WFInput': APP_URL},
         },
     ]
 

@@ -60,6 +60,8 @@ function doGet(e) {
   if (action === 'admin_weekly_activity') return adminWeeklyActivity();
   if (action === 'saveStepsBulk') return saveStepsBulk(e.parameter.name, e.parameter.days);
   if (action === 'steps_summary') return getStepsSummary(e.parameter.name);
+  if (action === 'steps_debug') return getStepsDebug();
+  if (action === 'steps_build_sheet') return buildStepsSummarySheet();
   if (action === 'rental_slots') return rentalSlots(e.parameter.date);
 
   const userName = e && e.parameter && e.parameter.name;
@@ -1116,6 +1118,44 @@ function saveSteps(userId, displayName, steps, date) {
   sheet.appendRow([date, userId, displayName, Number(steps)]);
 }
 
+// 「2026/08/05」「2026-08-05」「8/5/2026」等を yyyy-MM-dd に寄せる。
+// 読めなければ fallback（＝今日）を返す
+function normalizeDate(raw, fallback) {
+  const s = String(raw).trim();
+  const iso = s.match(/(\d{4})[-\/年](\d{1,2})[-\/月](\d{1,2})/);
+  if (iso) {
+    return iso[1] + '-' + ('0' + iso[2]).slice(-2) + '-' + ('0' + iso[3]).slice(-2);
+  }
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) return Utilities.formatDate(d, 'Asia/Tokyo', 'yyyy-MM-dd');
+  return fallback;
+}
+
+// 実機から何が届いたかを確認するための記録。書式が確定したら消してよい
+function logStepsRaw(name, raw) {
+  try {
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    let sheet = ss.getSheetByName('steps_debug');
+    if (!sheet) {
+      sheet = ss.insertSheet('steps_debug');
+      sheet.appendRow(['受信時刻', '名前', '生データ']);
+    }
+    sheet.appendRow([
+      Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss'),
+      name, String(raw).slice(0, 2000)
+    ]);
+  } catch (e) { /* 記録に失敗しても本処理は続ける */ }
+}
+
+// 直近の受信内容を見る（書式確認用）
+function getStepsDebug() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName('steps_debug');
+  if (!sheet) return json({ rows: [] });
+  const rows = sheet.getDataRange().getValues().slice(1).slice(-10);
+  return json({ rows: rows.map(r => ({ at: String(r[0]), name: String(r[1]), raw: String(r[2]) })) });
+}
+
 // ショートカットから7日分まとめて受ける
 // days = "2026-08-05:8240,2026-08-04:10310,..." （日付:歩数 のカンマ区切り）
 function saveStepsBulk(name, days) {
@@ -1137,14 +1177,20 @@ function saveStepsBulk(name, days) {
     if (String(data[i][1]) === String(name)) rowOf[d] = i + 1;
   }
 
+  const today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+
+  // ショートカットが日付をどの書式で送ってくるか実機でしか分からないので生で残す
+  logStepsRaw(name, days);
+
   let updated = 0, added = 0;
   const newRows = [];
   String(days).split(',').forEach(pair => {
-    const parts = pair.split(':');
-    if (parts.length < 2) return;
-    const date = parts[0].trim().slice(0, 10);
-    const steps = Math.round(Number(parts[1]));
-    if (!date || isNaN(steps)) return;
+    const parts = String(pair).split(':');
+    // 「日付:歩数」でも「歩数」だけでも受ける。日付の書式は揺れるので正規化する
+    const rawDate = parts.length >= 2 ? parts.slice(0, -1).join(':').trim() : '';
+    const steps = Math.round(Number(parts[parts.length - 1]));
+    const date = rawDate ? normalizeDate(rawDate, today) : today;
+    if (!date || isNaN(steps) || steps <= 0) return;
     if (rowOf[date]) {
       sheet.getRange(rowOf[date], 4).setValue(steps);
       updated++;
@@ -1156,7 +1202,64 @@ function saveStepsBulk(name, days) {
   if (newRows.length) {
     sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, 4).setValues(newRows);
   }
+  // 誰が何歩か一目で見えるシートを作り直す
+  if (updated || added) {
+    try { buildStepsSummarySheet(); } catch (e) { /* まとめ作成の失敗で保存を壊さない */ }
+  }
   return json({ ok: true, updated, added });
+}
+
+// 「歩数まとめ」シートを作り直す。1人1行で、直近7日と累計を横に並べる。
+// stepsシートは1行1日で伸びていくので、人ごとの比較ができない
+function buildStepsSummarySheet() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const src = ss.getSheetByName('steps');
+  if (!src) return json({ ok: false, error: 'stepsシートがありません' });
+
+  const tz = 'Asia/Tokyo';
+  const dates = [];
+  for (let i = 6; i >= 0; i--) {
+    dates.push(Utilities.formatDate(new Date(Date.now() - i * 86400000), tz, 'yyyy-MM-dd'));
+  }
+
+  const rows = src.getDataRange().getValues();
+  const byName = {};
+  for (let i = 1; i < rows.length; i++) {
+    const name = String(rows[i][2] || rows[i][1] || '').trim();
+    if (!name) continue;
+    const d = rows[i][0] instanceof Date
+      ? Utilities.formatDate(rows[i][0], tz, 'yyyy-MM-dd')
+      : String(rows[i][0]).slice(0, 10);
+    const s = Number(rows[i][3]) || 0;
+    if (!byName[name]) byName[name] = { total: 0, days: 0, byDate: {} };
+    byName[name].total += s;
+    byName[name].days++;
+    byName[name].byDate[d] = (byName[name].byDate[d] || 0) + s;
+  }
+
+  const header = ['名前'].concat(dates.map(d => d.slice(5).replace('-', '/')))
+    .concat(['今週計', '累計', '記録日数', '1日平均']);
+  const body = Object.keys(byName).map(name => {
+    const p = byName[name];
+    const week = dates.reduce((sum, d) => sum + (p.byDate[d] || 0), 0);
+    return [name].concat(dates.map(d => p.byDate[d] || ''))
+      .concat([week, p.total, p.days, Math.round(p.total / p.days)]);
+  }).sort((a, b) => b[8] - a[8]);   // 今週計の多い順
+
+  let out = ss.getSheetByName('歩数まとめ');
+  if (!out) out = ss.insertSheet('歩数まとめ');
+  out.clear();
+  out.getRange(1, 1, 1, header.length).setValues([header])
+     .setBackground('#f5f0eb').setFontWeight('bold');
+  if (body.length) {
+    out.getRange(2, 1, body.length, header.length).setValues(body);
+  }
+  out.setFrozenRows(1);
+  out.setFrozenColumns(1);
+  out.getRange(1, 1, 1, header.length).setNote(
+    '自動生成。歩数が入るたびに更新されます');
+
+  return json({ ok: true, people: body.length });
 }
 
 // アプリ表示用：累計・今週・1日平均
