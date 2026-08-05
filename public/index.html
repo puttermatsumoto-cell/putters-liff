@@ -790,21 +790,30 @@
       const todayStr = getLocalDateISO(calToday());
       const yd = new Date(calToday()); yd.setDate(yd.getDate() - 1);
       const t2 = new Date(calToday()); t2.setDate(t2.getDate() + 1);
-      // 今日・昨日・明日＝これまで通りの入力モードへ（処理は元のボタンと同じもの）
-      if (ds === todayStr) { switchToToday(); box.style.display = 'none'; return; }
-      if (ds === getLocalDateISO(yd)) { loadPrevDayEdit(); box.style.display = 'none'; return; }
-      if (ds === getLocalDateISO(t2)) { toggleNextDay(); box.style.display = 'none'; return; }
-      // それ以外＝振り返り（表示のみ）
+      const ydStr = getLocalDateISO(yd), tmrStr = getLocalDateISO(t2);
       box.style.display = 'block';
-      if (ds > todayStr) { box.innerHTML = '<b>' + ds + '</b><br>先の日付は、前日になってから書けます。'; return; }
-      if (!calLoaded) { box.innerHTML = '<b>' + ds + '</b><br>記録を読み込み中です。'; return; }
-      const r = calRecords[ds];
-      if (!r) { box.innerHTML = '<b>' + ds + '</b><br>この日の記録はありません。'; return; }
+      // ★タップは必ず「見るだけ」。編集に入るのはパネルのボタンを押した時だけ
+      if (ds > tmrStr) { box.innerHTML = '<b>' + ds + '</b><br>先の日付は、前日になってから書けます。'; return; }
+      if (!calLoaded && ds !== todayStr) { box.innerHTML = '<b>' + ds + '</b><br>記録を読み込み中です。'; return; }
+      const r = calLoaded ? calRecords[ds] : null;
+      const label = ds === todayStr ? '今日' : ds === ydStr ? '昨日' : ds === tmrStr ? '明日' : '';
+      let html = '<b>' + ds + (label ? '（' + label + '）' : '') + '</b>';
+      if (ds === tmrStr) {
+        html += '<br><span style="color:#888;">明日のぶんを先に書いておけます。</span>'
+             + calBtn('toggleNextDay()', '明日の下書きを書く');
+        box.innerHTML = html; return;
+      }
+      if (!r) {
+        html += '<br><span style="color:#888;">この日の記録はありません。</span>';
+        if (ds === todayStr) html += calBtn('switchToToday()', '今日の入力に戻る');
+        else if (ds === ydStr) html += calBtn('loadPrevDayEdit()', 'この日を書く');
+        box.innerHTML = html; return;
+      }
       const head = [];
       if (r.weight) head.push('体重 ' + r.weight + 'kg');
       if (r.temperature) head.push('体温 ' + r.temperature + '℃');
       if (r.cardio) head.push('有酸素 ' + r.cardio + '分');
-      let html = '<b>' + ds + '</b>' + (head.length ? '<br>' + head.join('　') : '');
+      if (head.length) html += '<br>' + head.join('　');
       if (r.kcal) {
         html += '<div style="margin-top:6px; font-weight:bold; color:#1a1a2e;">' + Math.round(r.kcal) + ' kcal</div>'
              + '<div style="font-size:11px; color:#888;">P ' + Math.round(r.p) + 'g　F ' + Math.round(r.f) + 'g　C ' + Math.round(r.c) + 'g</div>';
@@ -816,7 +825,15 @@
         html += '<div style="margin-top:8px; font-size:11px; color:#bbb;">食事の中身は、この後の更新で見られるようになります</div>';
       }
       if (r.checkedTasks) html += '<div style="margin-top:8px; font-size:11px; color:#888;">✓ ' + r.checkedTasks + '</div>';
+      if (ds === todayStr) html += calBtn('switchToToday()', '今日の入力に戻る');
+      else if (ds === ydStr) html += calBtn('loadPrevDayEdit()', 'この日を書き直す');
       box.innerHTML = html;
+    }
+
+    function calBtn(fn, label) {
+      return '<button onclick="document.getElementById(\'cal-detail\').style.display=\'none\';' + fn
+        + '" style="margin-top:10px; width:100%; background:#1a1a2e; color:#c8a97e; border:none; border-radius:10px; padding:10px; font-size:13px; font-weight:bold; cursor:pointer;">'
+        + label + '</button>';
     }
 
     const HISTORY_KEY = 'putters_history';
