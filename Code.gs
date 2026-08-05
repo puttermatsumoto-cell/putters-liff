@@ -1802,3 +1802,9 @@ function hpSetupFromSheet() {
   sh.getRange('A2').clearContent();
   return 'OK：' + t[0].slice(0, 6) + '… を保存しました';
 }
+
+// 外部通信の許可を取るためだけの関数。エディタで1回実行すると承認画面が出る
+function hpPing() {
+  const res = UrlFetchApp.fetch('https://www.healthplanet.jp/', { muteHttpExceptions: true });
+  return 'HTTP ' + res.getResponseCode();
+}
