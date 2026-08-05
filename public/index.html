@@ -307,7 +307,8 @@
         コレを押して
       </a>
       <p id="steps-setup-note" style="font-size:12px;color:#aaa;line-height:1.6;margin-top:10px;">
-        ショートカットアプリが開くので、一番下の「追加」まで進んでください。
+        ①「"ショートカット"で開く」→ ②「追加」→ ③左上の「‹ Safari」で戻る<br>
+        この3つで終わりです。次からは押すだけになります。
       </p>
     </div>
 
@@ -1142,13 +1143,10 @@
       document.getElementById('steps-main').style.display = showSetup ? 'none' : 'block';
 
       // その人専用のショートカット（名前が埋め込んである＝入力させない）。
-      // ファイルURLを直接開くとSafariのダウンロード画面が挟まり「"ショートカット"で開く」を
-      // 押させることになるので、import-shortcut スキームでショートカットアプリへ直行させる
-      const fileUrl = `${location.origin}/shortcuts/`
-        + `${encodeURIComponent(getUserName())}/${encodeURIComponent(SHORTCUT_NAME)}.shortcut`;
+      // shortcuts://import-shortcut は任意のURLでは動かず「ファイルが存在しません」になるので、
+      // ファイルを直接開かせる（Safariのダウンロード画面を1枚挟むが確実に動く）
       document.getElementById('steps-install-link').href =
-        `shortcuts://import-shortcut?url=${encodeURIComponent(fileUrl)}`
-        + `&name=${encodeURIComponent(SHORTCUT_NAME)}`;
+        `/shortcuts/${encodeURIComponent(getUserName())}/${encodeURIComponent(SHORTCUT_NAME)}.shortcut`;
 
       if (!showSetup) loadStepsSummary();
 
