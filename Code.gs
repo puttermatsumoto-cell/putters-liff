@@ -51,6 +51,7 @@ function doGet(e) {
   if (action === 'checkYesterdayTraining') return json(checkYesterdayTraining(e.parameter.name));
   if (action === 'checkTomorrowTraining') return json(checkTomorrowTraining(e.parameter.name));
   if (action === 'getSorenessHistory') return json(getSorenessHistory());
+  if (action === 'getSorenessByUser') return getSorenessByUser(e.parameter.name);
   if (action === 'getIdeas') return json(getIdeas(e.parameter.name));
   if (action === 'getRandomTasks') return json(getRandomTasksList());
   if (action === 'sendNoteTheme') { sendNoteTheme(); return json({ ok: true }); }
@@ -1667,4 +1668,23 @@ function updateRecordFields(data) {
   });
   const row = sheet.getRange(target, 1, 1, 13).getValues()[0];
   return json({ ok: true, saved: { weight: row[2], temperature: row[4], cardio: row[10] } });
+}
+
+
+// アプリのカレンダー用：その人の筋肉痛を日付ごとに全部返す
+// （getSorenessHistory は「何日で回復したか」の集計なので、日ごとの生データが取れない）
+function getSorenessByUser(name) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName('筋肉痛');
+  if (!sheet || !name) return json([]);
+  const rows = sheet.getDataRange().getValues();
+  const out = [];
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][1] !== name) continue;
+    const d = rows[i][0] ? Utilities.formatDate(new Date(rows[i][0]), 'Asia/Tokyo', 'yyyy-MM-dd') : '';
+    if (!d) continue;
+    out.push({ date: d, parts: rows[i][2] || '' });
+  }
+  out.sort(function(a, b) { return a.date.localeCompare(b.date); });
+  return json(out);
 }
