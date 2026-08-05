@@ -18,8 +18,6 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; padding-bottom: 150px; min-height: 100vh; }
     h1 { font-size: 20px; color: #222; text-align: center; margin-bottom: 8px; padding-top: 12px; }
-    .goal-bar { background: #1a1a2e; color: white; border-radius: 12px; padding: 12px 20px; text-align: center; margin-bottom: 16px; font-size: 14px; }
-    .goal-bar span { font-size: 20px; font-weight: bold; color: #c8a97e; }
     .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
     .section h2 { font-size: 15px; color: #555; margin-bottom: 12px; }
     .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
@@ -290,10 +288,6 @@
   </div>
   <div id="save-toast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#1a1a2e; color:#c8a97e; padding:10px 20px; border-radius:20px; font-size:13px; z-index:999;">一時保存しました</div>
 
-  <!-- 目標体重バー -->
-  <div class="goal-bar" id="goal-bar" data-former-ok style="display:none">
-    目標まであと <span id="goal-diff">-</span> kg
-  </div>
 
   <!-- 筋肉痛チェックモーダル -->
   <div id="soreness-card" class="soreness-overlay" style="display:none">
@@ -1598,19 +1592,10 @@
       event.target.classList.add('active');
     }
 
-    // 目標体重バー更新
-    function updateGoalBar() {
-      const w = parseFloat(document.getElementById('weight').value);
-      const g = parseFloat(document.getElementById('goal-weight').value);
-      const bar = document.getElementById('goal-bar');
-      if (!isNaN(w) && !isNaN(g)) {
-        const diff = (w - g).toFixed(1);
-        document.getElementById('goal-diff').textContent = diff > 0 ? diff : '達成！';
-        bar.style.display = 'block';
-      } else {
-        bar.style.display = 'none';
-      }
-    }
+    // 「目標まであと◯kg」のバーは廃止（2026-08-05 松本判断）。
+    // 理由＝お客さんは筋肉をつけたい層が多く減量ツール的な言い方が合わない／開いた瞬間に減点が出る形になっていた。
+    // 目標体重の入力と保存は残す（レポートで使う）。呼び出し箇所を壊さないよう空関数にしてある。
+    function updateGoalBar() {}
 
     // 目標体重は別途永続保存
     function saveGoalWeight() {
