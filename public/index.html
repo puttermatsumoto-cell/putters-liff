@@ -756,6 +756,41 @@
     }
 
 
+
+    // 月まとめの中の小さい折れ線（体重・体温で共用）。lowerIsBetter=1なら減少が緑
+    function calSpark(days, key, color, unit, mode) {
+      const ws = days.map(d => ({ d: d, v: calRecords[d][key] })).filter(x => x.v);
+      if (ws.length === 0) return '';
+      const label = key === 'weight' ? '体重' : '体温';
+      if (ws.length === 1) {
+        return '<div style="margin-top:6px; font-size:11px; color:#888;">' + label + ' ' + ws[0].v + unit + '（1日ぶん）</div>';
+      }
+      const vals = ws.map(x => x.v);
+      const min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+      const range = max === min ? 1 : max - min;
+      const W = 300, H = 30;
+      const pts = ws.map((x, i) => {
+        const px = i / (ws.length - 1) * W;
+        const py = 3 + (1 - (x.v - min) / range) * (H - 6);
+        return px.toFixed(1) + ',' + py.toFixed(1);
+      }).join(' ');
+      const diff = (vals[vals.length - 1] - vals[0]).toFixed(1);
+      const diffColor = mode === 1
+        ? (diff < 0 ? '#388e3c' : diff > 0 ? '#c62828' : '#888')   // 体重は減ったら緑
+        : '#888';                                                   // 体温は良し悪しを付けない
+      const avg = (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
+      return '<div style="margin-top:10px;">'
+        + '<div style="display:flex; justify-content:space-between; font-size:10px; color:#aaa;">'
+        + '<span>' + label + '（' + ws.length + '日）</span><span>平均 ' + avg + unit + '</span></div>'
+        + '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" style="width:100%; height:30px; overflow:visible;">'
+        + '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'
+        + '</svg>'
+        + '<div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:2px;">'
+        + '<span>' + vals[0] + unit + '</span>'
+        + '<span style="color:' + diffColor + '; font-weight:bold;">' + (diff > 0 ? '+' : '') + diff + unit + '</span>'
+        + '<span>' + vals[vals.length - 1] + unit + '</span></div></div>';
+    }
+
     // 表示中の月のまとめ＝記録日数と体重の推移（見るだけ・書き込みなし）
     function calMonthSummary() {
       const box = document.getElementById('cal-month-summary');
@@ -768,32 +803,7 @@
       box.style.display = 'block';
       const lg = document.getElementById('cal-legend'); if (lg) lg.style.display = 'block';
 
-      const ws = days.map(d => ({ d: d, w: calRecords[d].weight })).filter(x => x.w);
-      let line = '';
-      if (ws.length >= 2) {
-        const vals = ws.map(x => x.w);
-        const min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
-        const range = max === min ? 1 : max - min;
-        const W = 300, H = 34;
-        const pts = ws.map((x, i) => {
-          const px = (ws.length === 1 ? W / 2 : i / (ws.length - 1) * W);
-          const py = 3 + (1 - (x.w - min) / range) * (H - 6);
-          return px.toFixed(1) + ',' + py.toFixed(1);
-        }).join(' ');
-        const diff = (vals[vals.length - 1] - vals[0]).toFixed(1);
-        const color = diff < 0 ? '#388e3c' : diff > 0 ? '#c62828' : '#888';
-        line = '<div style="margin-top:8px;">'
-          + '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" style="width:100%; height:34px; overflow:visible;">'
-          + '<polyline points="' + pts + '" fill="none" stroke="#c8a97e" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'
-          + '</svg>'
-          + '<div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-top:2px;">'
-          + '<span>' + vals[0] + 'kg</span>'
-          + '<span style="color:' + color + '; font-weight:bold;">' + (diff > 0 ? '+' : '') + diff + 'kg</span>'
-          + '<span>' + vals[vals.length - 1] + 'kg</span>'
-          + '</div></div>';
-      } else if (ws.length === 1) {
-        line = '<div style="margin-top:6px; font-size:11px; color:#888;">体重 ' + ws[0].w + 'kg（1日ぶん）</div>';
-      }
+      const line = calSpark(days, 'weight', '#c8a97e', 'kg', 1) + calSpark(days, 'temperature', '#e57373', '℃', 2);
 
       const pct = Math.round(days.length / lastDay * 100);
       box.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:baseline; font-size:11px; color:#888;">'
