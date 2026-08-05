@@ -52,9 +52,8 @@ function doGet(e) {
   if (action === 'checkTomorrowTraining') return json(checkTomorrowTraining(e.parameter.name));
   if (action === 'getSorenessHistory') return json(getSorenessHistory());
   if (action === 'getSorenessByUser') return getSorenessByUser(e.parameter.name);
-  if (action === 'hp_auth_url') return json({ url: hpAuthUrl() });
-  if (action === 'hp_callback') return hpCallback(e.parameter.code);
-  if (action === 'hp_import') return json(hpImport(Number(e.parameter.days || 2)));
+  if (action === 'hp_token_get') return json({ access_token: PropertiesService.getScriptProperties().getProperty('HP_ACCESS_TOKEN') || '' });
+  if (action === 'hp_name_at') return json({ name: hpNameAtStr(e.parameter.at) });
   if (action === 'getIdeas') return json(getIdeas(e.parameter.name));
   if (action === 'getRandomTasks') return json(getRandomTasksList());
   if (action === 'sendNoteTheme') { sendNoteTheme(); return json({ ok: true }); }
@@ -87,6 +86,11 @@ function doPost(e) {
   if (data.action === 'saveReasonRead') { saveReasonRead(data.name, data.slug, data.read); return json({ ok: true }); }
   if (data.action === 'book_rental') return bookRental(data);
   if (data.action === 'updateRecordFields') return updateRecordFields(data);
+  if (data.action === 'hp_token_save') {
+    PropertiesService.getScriptProperties().setProperty('HP_ACCESS_TOKEN', data.access_token || '');
+    if (data.refresh_token) PropertiesService.getScriptProperties().setProperty('HP_REFRESH_TOKEN', data.refresh_token);
+    return json({ ok: true });
+  }
   // 日々の記録保存
   if (data.name && data.date) return saveRecord(data);
   return json({ ok: false });
@@ -1704,107 +1708,24 @@ var HP_REDIRECT = 'https://putters-liff.vercel.app/api/healthplanet-callback';
 
 // 鍵の置き場所は「スクリプトプロパティ」。まだ空なら「アイデア」シートのA2から自動で読み込む
 // （松本に関数を実行させないため。読み込めたらプロパティに移してA2は空にする）
-// タニタの鍵。松本の判断でコードに直接書いている（GitHubは公開なので、気が変わったら
-// ヘルスプラネットの「Reset Client secret」で作り直せば無効化できる）
-var HP_CLIENT_ID_FIXED     = '51791.5fsal39phO.apps.healthplanet.jp';
-var HP_CLIENT_SECRET_FIXED = '1785942369221-zlleNK3QyXGLNa521H9Hnes7vC7eRaBG5mL5HLby';
+// ============================================================
+// タニタ Health Planet 連携（GASは外部通信しない。通信はアプリ側=Vercelが担当）
+// GASの役割は3つだけ：トークンの保管／取り出し／測定時刻から予約者の名前を返す
+// ============================================================
 
-function hpProp(key) {
-  if (key === 'HP_CLIENT_ID') return HP_CLIENT_ID_FIXED;
-  if (key === 'HP_CLIENT_SECRET') return HP_CLIENT_SECRET_FIXED;
-  return PropertiesService.getScriptProperties().getProperty(key);
-}
-
-// 最初の1回だけ：このURLを開いてタニタにログイン→許可すると連携が完了する
-function hpAuthUrl() {
-  return 'https://www.healthplanet.jp/oauth/auth'
-    + '?client_id=' + encodeURIComponent(hpProp('HP_CLIENT_ID'))
-    + '&redirect_uri=' + encodeURIComponent(HP_REDIRECT)
-    + '&scope=innerscan&response_type=code';
-}
-
-function hpCallback(code) {
-  if (!code) return json({ ok: false, error: 'code がありません' });
-  const res = UrlFetchApp.fetch('https://www.healthplanet.jp/oauth/token', {
-    method: 'post',
-    payload: {
-      client_id: hpProp('HP_CLIENT_ID'),
-      client_secret: hpProp('HP_CLIENT_SECRET'),
-      redirect_uri: HP_REDIRECT,
-      code: code,
-      grant_type: 'authorization_code'
-    },
-    muteHttpExceptions: true
-  });
-  const body = res.getContentText();
-  let data = {};
-  try { data = JSON.parse(body); } catch (e) { return json({ ok: false, error: body.slice(0, 300) }); }
-  if (!data.access_token) return json({ ok: false, error: body.slice(0, 300) });
-  hpSetProp('HP_ACCESS_TOKEN', data.access_token);
-  if (data.refresh_token) hpSetProp('HP_REFRESH_TOKEN', data.refresh_token);
-  return json({ ok: true });
-}
-
-// 毎朝のトリガーで呼ぶ。直近days日ぶんの測定を取り込む
-function hpImport(days) {
-  const token = hpProp('HP_ACCESS_TOKEN');
-  if (!token) return { ok: false, error: '未連携です（hpAuthUrl を開いて連携してください）' };
-  const tz = 'Asia/Tokyo';
-  const to = new Date();
-  const from = new Date(to.getTime() - (days || 2) * 24 * 60 * 60 * 1000);
-  const f = d => Utilities.formatDate(d, tz, 'yyyyMMddHHmmss');
-  const url = 'https://www.healthplanet.jp/status/innerscan.json'
-    + '?access_token=' + encodeURIComponent(token)
-    + '&date=1&tag=6021&from=' + f(from) + '&to=' + f(to);   // date=1 は「測定日時」で絞る指定
-  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-  let data = {};
-  try { data = JSON.parse(res.getContentText()); } catch (e) { return { ok: false, error: res.getContentText().slice(0, 300) }; }
-  if (!data.data) return { ok: false, error: res.getContentText().slice(0, 300) };
-
-  const cal = CalendarApp.getCalendarById(CALENDAR_ID);
-  const results = [];
-  data.data.forEach(function(m) {
-    if (String(m.tag) !== '6021') return;
-    const t = String(m.date);   // yyyyMMddHHmm
-    const when = new Date(
-      Number(t.slice(0, 4)), Number(t.slice(4, 6)) - 1, Number(t.slice(6, 8)),
-      Number(t.slice(8, 10)), Number(t.slice(10, 12))
-    );
-    const name = hpNameAt(cal, when);
-    const dateStr = Utilities.formatDate(when, tz, 'yyyy-MM-dd');
-    if (!name) { results.push({ at: t, weight: m.keydata, name: null, skipped: '枠なし' }); return; }
-    updateRecordFields({ name: name, date: dateStr, fields: { weight: Number(m.keydata) } });
-    results.push({ at: t, weight: m.keydata, name: name });
-  });
-  return { ok: true, count: results.length, results: results };
-}
-
-// その時刻の予約枠に入っている人を返す（レンタルジムは対象外。前後15分の余裕を見る）
-function hpNameAt(cal, when) {
+// 測定時刻（yyyyMMddHHmm）に、その枠を予約していた人の名前を返す。前後15分を見る。
+// 誰もいない、または複数重なっている時は空を返す＝紐づけない（誤爆させない）
+function hpNameAtStr(at) {
+  if (!at || String(at).length < 12) return '';
+  const t = String(at);
+  const when = new Date(
+    Number(t.slice(0, 4)), Number(t.slice(4, 6)) - 1, Number(t.slice(6, 8)),
+    Number(t.slice(8, 10)), Number(t.slice(10, 12))
+  );
   const pad = 15 * 60 * 1000;
+  const cal = CalendarApp.getCalendarById(CALENDAR_ID);
   const events = cal.getEvents(new Date(when.getTime() - pad), new Date(when.getTime() + pad));
   const hit = events.filter(function(ev) { return ev.getTitle().indexOf('レンタルジム') !== 0; });
-  if (hit.length !== 1) return null;   // 誰もいない／複数重なっている時は紐づけない
+  if (hit.length !== 1) return '';
   return hit[0].getTitle();
-}
-
-// タニタのClient ID/Secretを、シートのセルから読んでスクリプトプロパティに保存する。
-// チャットやコードに秘密を書かないための入り口。読み終わったらセルは空にする。
-function hpSetupFromSheet() {
-  const ss = SpreadsheetApp.openById(SHEET_ID);
-  const sh = ss.getSheetByName('アイデア') || ss.getSheetByName('アイディア');
-  if (!sh) throw new Error('「アイデア」シートが見つかりません');
-  const raw = String(sh.getRange('A2').getValue() || '').trim();
-  if (!raw) throw new Error('A2が空です');
-  const t = raw.split(/[\s,、\r\n]+/).filter(function(x) { return x; });
-  if (t.length < 2) throw new Error('IDとSecretの2つが読み取れません：' + raw.slice(0, 40));
-  PropertiesService.getScriptProperties().setProperties({ HP_CLIENT_ID: t[0], HP_CLIENT_SECRET: t[1] });
-  sh.getRange('A2').clearContent();
-  return 'OK：' + t[0].slice(0, 6) + '… を保存しました';
-}
-
-// 外部通信の許可を取るためだけの関数。エディタで1回実行すると承認画面が出る
-function hpPing() {
-  const res = UrlFetchApp.fetch('https://www.healthplanet.jp/', { muteHttpExceptions: true });
-  return 'HTTP ' + res.getResponseCode();
 }
