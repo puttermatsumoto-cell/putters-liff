@@ -1777,3 +1777,18 @@ function hpNameAt(cal, when) {
   if (hit.length !== 1) return null;   // 誰もいない／複数重なっている時は紐づけない
   return hit[0].getTitle();
 }
+
+// タニタのClient ID/Secretを、シートのセルから読んでスクリプトプロパティに保存する。
+// チャットやコードに秘密を書かないための入り口。読み終わったらセルは空にする。
+function hpSetupFromSheet() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sh = ss.getSheetByName('アイデア') || ss.getSheetByName('アイディア');
+  if (!sh) throw new Error('「アイデア」シートが見つかりません');
+  const raw = String(sh.getRange('A2').getValue() || '').trim();
+  if (!raw) throw new Error('A2が空です');
+  const t = raw.split(/[\s,、\r\n]+/).filter(function(x) { return x; });
+  if (t.length < 2) throw new Error('IDとSecretの2つが読み取れません：' + raw.slice(0, 40));
+  PropertiesService.getScriptProperties().setProperties({ HP_CLIENT_ID: t[0], HP_CLIENT_SECRET: t[1] });
+  sh.getRange('A2').clearContent();
+  return 'OK：' + t[0].slice(0, 6) + '… を保存しました';
+}
