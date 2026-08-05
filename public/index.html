@@ -278,6 +278,7 @@
         <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
       </div>
       <div id="cal-grid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:2px;"></div>
+      <div id="cal-legend" style="display:none; margin-top:6px; font-size:10px; color:#bbb; text-align:right;">■ 記録した日　・ ジムに行った日</div>
       <div id="cal-month-summary" style="display:none; margin-top:10px; padding-top:9px; border-top:1px solid #f5f0eb;"></div>
       <div id="cal-detail" style="display:none; margin-top:8px; padding-top:8px; border-top:1px solid #f0e8dc; font-size:12px; color:#555; line-height:1.7; text-align:left;"></div>
     </div>
@@ -765,6 +766,7 @@
       const lastDay = new Date(y, m + 1, 0).getDate();
       if (days.length === 0) { box.style.display = 'none'; return; }
       box.style.display = 'block';
+      const lg = document.getElementById('cal-legend'); if (lg) lg.style.display = 'block';
 
       const ws = days.map(d => ({ d: d, w: calRecords[d].weight })).filter(x => x.w);
       let line = '';
@@ -802,6 +804,25 @@
         + line;
     }
 
+
+    // ジムに行った日＝予約カレンダー（user_schedule）から月ごとに取る。GAS側の追加は不要
+    const calGym = {};   // { '2026-08': { '2026-08-05': 'gym'|'rental' } }
+    async function calLoadGym(ym) {
+      if (calGym[ym]) return;
+      const name = localStorage.getItem(NAME_KEY);
+      if (!name) return;
+      calGym[ym] = {};                  // 二重取得を防ぐ
+      try {
+        const res = await fetch(GAS_URL + '?action=user_schedule&name=' + encodeURIComponent(name) + '&month=' + ym);
+        const rows = await res.json();
+        if (!Array.isArray(rows)) { delete calGym[ym]; return; }
+        const map = {};
+        rows.forEach(r => { map[r.date] = r.type || 'gym'; });
+        calGym[ym] = map;
+        calRender();
+      } catch (e) { delete calGym[ym]; }
+    }
+
     function calMove(diff) {
       calMonth.setMonth(calMonth.getMonth() + diff);
       document.getElementById('cal-detail').style.display = 'none';
@@ -817,6 +838,8 @@
       const todayStr = getLocalDateISO(calToday());
       const t2 = new Date(calToday()); t2.setDate(t2.getDate() + 1);
       const tomorrowStr = getLocalDateISO(t2);
+      const ym = y + '-' + String(m + 1).padStart(2, '0');
+      calLoadGym(ym);
       const first = new Date(y, m, 1).getDay();
       const last = new Date(y, m + 1, 0).getDate();
       for (let i = 0; i < first; i++) grid.appendChild(document.createElement('div'));
@@ -824,7 +847,8 @@
         const ds = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
         const has = calLoaded && calRecords && calRecords[ds];
         const cell = document.createElement('button');
-        cell.textContent = d;
+        const gym = (calGym[ym] || {})[ds];
+        cell.innerHTML = d + (gym ? '<div style="width:4px; height:4px; border-radius:50%; margin:1px auto 0; background:' + (has ? '#fff' : '#1a1a2e') + ';"></div>' : '');
         cell.onclick = () => calPick(ds);
         cell.style.cssText = 'border:none; border-radius:8px; padding:6px 0; font-size:12px; cursor:pointer;'
           + (has ? 'background:#c8a97e; color:#fff; font-weight:bold;' : 'background:#f5f0eb; color:' + (ds > todayStr ? '#ddd' : '#bbb') + ';')
@@ -854,12 +878,16 @@
         box.innerHTML = html; return;
       }
       if (!r) {
+        const g0 = (calGym[ds.slice(0, 7)] || {})[ds];
+        if (g0) html += '<div style="margin-top:4px; font-size:12px; color:#c8a97e; font-weight:bold;">🏋️ ' + (g0 === 'rental' ? 'レンタルジムを使った日' : 'ジムに来た日') + '</div>';
         html += '<br><span style="color:#888;">この日の記録はありません。</span>';
         if (ds === todayStr) html += calBtn('switchToToday()', '今日の入力に戻る');
         else if (ds === ydStr) html += calBtn('loadPrevDayEdit()', 'この日を書く');
         else html += calEditForm(ds, null);
         box.innerHTML = html; return;
       }
+      const gymType = (calGym[ds.slice(0, 7)] || {})[ds];
+      if (gymType) html += '<div style="margin-top:4px; font-size:12px; color:#c8a97e; font-weight:bold;">🏋️ ' + (gymType === 'rental' ? 'レンタルジムを使った日' : 'ジムに来た日') + '</div>';
       const head = [];
       if (r.weight) head.push('体重 ' + r.weight + 'kg');
       if (r.temperature) head.push('体温 ' + r.temperature + '℃');
