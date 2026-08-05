@@ -1702,7 +1702,25 @@ function getSorenessByUser(name) {
 // ============================================================
 var HP_REDIRECT = 'https://putters-liff.vercel.app/api/healthplanet-callback';
 
-function hpProp(key) { return PropertiesService.getScriptProperties().getProperty(key); }
+// 鍵の置き場所は「スクリプトプロパティ」。まだ空なら「アイデア」シートのA2から自動で読み込む
+// （松本に関数を実行させないため。読み込めたらプロパティに移してA2は空にする）
+function hpProp(key) {
+  const sp = PropertiesService.getScriptProperties();
+  let v = sp.getProperty(key);
+  if (v) return v;
+  try {
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    const sh = ss.getSheetByName('アイデア') || ss.getSheetByName('アイディア');
+    if (!sh) return null;
+    const raw = String(sh.getRange('A2').getValue() || '').trim();
+    if (!raw) return null;
+    const t = raw.split(/[\s,、\r\n]+/).filter(function(x) { return x; });
+    if (t.length < 2) return null;
+    sp.setProperties({ HP_CLIENT_ID: t[0], HP_CLIENT_SECRET: t[1] });
+    sh.getRange('A2').clearContent();
+    return sp.getProperty(key);
+  } catch (e) { return null; }
+}
 function hpSetProp(key, val) { PropertiesService.getScriptProperties().setProperty(key, val); }
 
 // 最初の1回だけ：このURLを開いてタニタにログイン→許可すると連携が完了する
