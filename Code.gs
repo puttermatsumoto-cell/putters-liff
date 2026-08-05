@@ -1704,27 +1704,16 @@ var HP_REDIRECT = 'https://putters-liff.vercel.app/api/healthplanet-callback';
 
 // 鍵の置き場所は「スクリプトプロパティ」。まだ空なら「アイデア」シートのA2から自動で読み込む
 // （松本に関数を実行させないため。読み込めたらプロパティに移してA2は空にする）
-function hpProp(key) {
-  const sp = PropertiesService.getScriptProperties();
-  // A2に値が入っていたら、それを正として毎回上書きする（前に変な値が入っていても直せる）
-  try {
-    const ss = SpreadsheetApp.openById(SHEET_ID);
-    const sh = ss.getSheetByName('アイデア') || ss.getSheetByName('アイディア');
-    if (sh) {
-      const raw = String(sh.getRange('A2').getValue() || '').trim();
-      if (raw) {
-        const t = raw.split(/[\s,、\r\n]+/).filter(function(x) { return x; })
-                     .filter(function(x) { return x.indexOf('API') !== 0 && x.length > 5; });
-        if (t.length >= 2) {
-          sp.setProperties({ HP_CLIENT_ID: t[0], HP_CLIENT_SECRET: t[1] });
-          sh.getRange('A2').clearContent();
-        }
-      }
-    }
-  } catch (e) {}
-  return sp.getProperty(key);
-}
+// タニタの鍵。松本の判断でコードに直接書いている（GitHubは公開なので、気が変わったら
+// ヘルスプラネットの「Reset Client secret」で作り直せば無効化できる）
+var HP_CLIENT_ID_FIXED     = '51791.5fsal39phO.apps.healthplanet.jp';
+var HP_CLIENT_SECRET_FIXED = '1785942369221-zlleNK3QyXGLNa521H9Hnes7vC7eRaBG5mL5HLby';
 
+function hpProp(key) {
+  if (key === 'HP_CLIENT_ID') return HP_CLIENT_ID_FIXED;
+  if (key === 'HP_CLIENT_SECRET') return HP_CLIENT_SECRET_FIXED;
+  return PropertiesService.getScriptProperties().getProperty(key);
+}
 
 // 最初の1回だけ：このURLを開いてタニタにログイン→許可すると連携が完了する
 function hpAuthUrl() {
