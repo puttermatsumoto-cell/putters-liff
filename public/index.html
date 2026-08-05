@@ -764,6 +764,8 @@
       const grid = document.getElementById('cal-grid');
       grid.innerHTML = '';
       const todayStr = getLocalDateISO(calToday());
+      const _t = new Date(calToday()); _t.setDate(_t.getDate() + 1);
+      const tomorrowStr = getLocalDateISO(_t);
       const first = new Date(y, m, 1).getDay();
       const last = new Date(y, m + 1, 0).getDate();
       for (let i = 0; i < first; i++) grid.appendChild(document.createElement('div'));
@@ -773,9 +775,12 @@
         const cell = document.createElement('button');
         cell.textContent = d;
         cell.onclick = () => calPick(ds);
+        const isFuture = ds > todayStr;
+        const isTomorrow = ds === tomorrowStr;
         cell.style.cssText = 'border:none; border-radius:8px; padding:6px 0; font-size:12px; cursor:pointer;'
-          + (has ? 'background:#c8a97e; color:#fff; font-weight:bold;' : 'background:#f5f0eb; color:#bbb;')
-          + (ds === todayStr ? ' box-shadow:0 0 0 2px #1a1a2e inset;' : '');
+          + (has ? 'background:#c8a97e; color:#fff; font-weight:bold;' : 'background:#f5f0eb; color:' + (isFuture ? '#ddd' : '#bbb') + ';')
+          + (ds === todayStr ? ' box-shadow:0 0 0 2px #1a1a2e inset;' : '')
+          + (isTomorrow ? ' outline:1px dashed #c8a97e; outline-offset:-2px;' : '');
         grid.appendChild(cell);
       }
     }
@@ -786,8 +791,12 @@
       const todayStr = getLocalDateISO(calToday());
       const y = new Date(calToday()); y.setDate(y.getDate() - 1);
       const yStr = getLocalDateISO(y);
+      const t2 = new Date(calToday()); t2.setDate(t2.getDate() + 1);
+      const tmrStr = getLocalDateISO(t2);
       if (ds === todayStr) { switchToToday(); box.style.display = 'none'; return; }
       if (ds === yStr) { loadPrevDayEdit(); box.style.display = 'none'; return; }
+      if (ds === tmrStr) { toggleNextDay(); box.style.display = 'none'; return; }
+      if (ds > todayStr) { box.style.display = 'block'; box.innerHTML = '<b>' + ds + '</b><br>先の日付は、前日になってから書けます。'; return; }
       box.style.display = 'block';
       const inp = (id, val, ph, step) => '<input id="' + id + '" type="number" inputmode="decimal" step="' + step + '" value="' + (val != null && val !== '' ? val : '') + '" placeholder="' + ph + '" style="width:72px; padding:6px 8px; border:1px solid #ddd; border-radius:8px; font-size:13px;">';
       const meal = r && r.foods ? '<div style="margin-top:8px; font-size:11px; color:#999; line-height:1.6;">🍽 ' + String(r.foods).slice(0, 120) + (String(r.foods).length > 120 ? '…' : '') + '</div>' : '';
@@ -2428,13 +2437,8 @@
 
     // 下部固定バー（全員）
     document.getElementById('bottom-camera-btn').style.display = 'block';
-    document.getElementById('day-nav-btns').style.display = 'flex';
     document.getElementById('cal-wrap').style.display = 'block';
     calRender(); calLoad();
-    document.getElementById('today-btn').style.display = 'block';
-    document.getElementById('next-day-btn').style.display = 'block';
-    { const pb = document.getElementById('prev-day-btn'); pb.style.display = 'block'; pb.dataset.enabled = '1'; }
-    setDayNavActive('today');
     (function() {
       const d = new Date();
       if (d.getHours() < 2) d.setDate(d.getDate() - 1);
