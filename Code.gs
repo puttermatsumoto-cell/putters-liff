@@ -1706,22 +1706,25 @@ var HP_REDIRECT = 'https://putters-liff.vercel.app/api/healthplanet-callback';
 // （松本に関数を実行させないため。読み込めたらプロパティに移してA2は空にする）
 function hpProp(key) {
   const sp = PropertiesService.getScriptProperties();
-  let v = sp.getProperty(key);
-  if (v) return v;
+  // A2に値が入っていたら、それを正として毎回上書きする（前に変な値が入っていても直せる）
   try {
     const ss = SpreadsheetApp.openById(SHEET_ID);
     const sh = ss.getSheetByName('アイデア') || ss.getSheetByName('アイディア');
-    if (!sh) return null;
-    const raw = String(sh.getRange('A2').getValue() || '').trim();
-    if (!raw) return null;
-    const t = raw.split(/[\s,、\r\n]+/).filter(function(x) { return x; });
-    if (t.length < 2) return null;
-    sp.setProperties({ HP_CLIENT_ID: t[0], HP_CLIENT_SECRET: t[1] });
-    sh.getRange('A2').clearContent();
-    return sp.getProperty(key);
-  } catch (e) { return null; }
+    if (sh) {
+      const raw = String(sh.getRange('A2').getValue() || '').trim();
+      if (raw) {
+        const t = raw.split(/[\s,、\r\n]+/).filter(function(x) { return x; })
+                     .filter(function(x) { return x.indexOf('API') !== 0 && x.length > 5; });
+        if (t.length >= 2) {
+          sp.setProperties({ HP_CLIENT_ID: t[0], HP_CLIENT_SECRET: t[1] });
+          sh.getRange('A2').clearContent();
+        }
+      }
+    }
+  } catch (e) {}
+  return sp.getProperty(key);
 }
-function hpSetProp(key, val) { PropertiesService.getScriptProperties().setProperty(key, val); }
+
 
 // 最初の1回だけ：このURLを開いてタニタにログイン→許可すると連携が完了する
 function hpAuthUrl() {
