@@ -430,6 +430,53 @@
     </div>
   </div>
 
+  <!-- 歩数 -->
+  <div class="section" id="steps-section" data-former-ok style="display:none">
+    <h2>🚶 歩数</h2>
+
+    <!-- 初回だけ出る導入。追加したら二度と出ない -->
+    <div id="steps-setup" style="display:none">
+      <p style="font-size:13px;color:#666;line-height:1.7;margin-bottom:12px;">
+        iPhoneの歩数を自動で取り込めます。<strong>最初の1回だけ</strong>この準備が必要です。
+      </p>
+      <a id="steps-install-link" href="/shortcuts/putters-steps.shortcut"
+         onclick="markStepsInstalled()"
+         style="display:block;text-align:center;background:#1a1a2e;color:white;border-radius:12px;padding:16px;font-size:16px;font-weight:bold;text-decoration:none;">
+        コレを押して
+      </a>
+      <p style="font-size:12px;color:#aaa;line-height:1.6;margin-top:10px;">
+        ショートカットアプリが開くので「追加」を押すだけです。終わったらこの案内は消えます。
+      </p>
+      <button onclick="markStepsInstalled()" style="width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:10px 0;margin-top:2px;cursor:pointer;">追加できたので閉じる</button>
+    </div>
+
+    <!-- 追加済みの人が見る画面 -->
+    <div id="steps-main" style="display:none">
+      <div style="text-align:center;padding:8px 0 16px;">
+        <div style="font-size:12px;color:#888;">累計</div>
+        <div id="steps-total" style="font-size:34px;font-weight:bold;color:#1a1a2e;line-height:1.2;">-</div>
+        <div style="font-size:12px;color:#888;">歩</div>
+      </div>
+      <div style="display:flex;gap:8px;text-align:center;margin-bottom:14px;">
+        <div style="flex:1;background:#f5f0eb;border-radius:10px;padding:10px;">
+          <div id="steps-week" style="font-size:17px;font-weight:bold;color:#1a1a2e;">-</div>
+          <div style="font-size:11px;color:#888;">今週</div>
+        </div>
+        <div style="flex:1;background:#f5f0eb;border-radius:10px;padding:10px;">
+          <div id="steps-avg" style="font-size:17px;font-weight:bold;color:#1a1a2e;">-</div>
+          <div style="font-size:11px;color:#888;">1日平均</div>
+        </div>
+      </div>
+      <button id="steps-send-btn" onclick="sendSteps()"
+              style="width:100%;background:#c8a97e;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:bold;cursor:pointer;">
+        歩数を送る
+      </button>
+      <p id="steps-msg" style="font-size:12px;color:#aaa;text-align:center;margin-top:8px;">押すと直近7日分がまとめて入ります</p>
+      <button id="steps-manual-link" onclick="sendStepsManual()" style="display:none;width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:8px 0;cursor:pointer;text-decoration:underline;">うまくいかない時は手入力</button>
+      <button id="steps-redo" onclick="redoStepsSetup()" style="display:none;width:100%;background:none;border:none;color:#bbb;font-size:12px;padding:8px 0;cursor:pointer;text-decoration:underline;">準備をやり直す</button>
+    </div>
+  </div>
+
   <!-- 宿題チェックリスト -->
   <div class="section" data-former-ok>
     <h2>📋 今日の宿題</h2>
@@ -1061,6 +1108,125 @@
 
     const LIFF_ID = '2009746243-PAAQuZkb';
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+
+    // ========== 歩数 ==========
+    const STEPS_INSTALLED_KEY = 'putters_steps_installed';
+    const SHORTCUT_NAME = 'PUTTERS歩数';
+    // iPadOSはUAがMacになるのでタッチの有無で見分ける
+    const IS_IOS = /iPhone|iPod/.test(navigator.userAgent)
+      || (/Macintosh|iPad/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+
+    function markStepsInstalled() {
+      localStorage.setItem(STEPS_INSTALLED_KEY, '1');
+      // ショートカットアプリに飛んでいる間に切り替えておく
+      setTimeout(renderStepsSection, 400);
+    }
+
+    function redoStepsSetup() {
+      localStorage.removeItem(STEPS_INSTALLED_KEY);
+      document.getElementById('steps-redo').style.display = 'none';
+      renderStepsSection();
+    }
+
+    function renderStepsSection() {
+      const sec = document.getElementById('steps-section');
+      if (!sec) return;
+      sec.style.display = 'block';
+      const installed = localStorage.getItem(STEPS_INSTALLED_KEY) === '1';
+      // iPhone以外はショートカットが使えないので、最初から手入力に寄せる
+      const showSetup = IS_IOS && !installed;
+      document.getElementById('steps-setup').style.display = showSetup ? 'block' : 'none';
+      document.getElementById('steps-main').style.display = showSetup ? 'none' : 'block';
+
+      // iPhone以外は既存のGoogle Fit連携を使う（Androidはこっちが自動）
+      if (!IS_IOS) {
+        const btn = document.getElementById('steps-send-btn');
+        const msg = document.getElementById('steps-msg');
+        if (localStorage.getItem('putters_fit_token')) {
+          btn.textContent = '歩数を送る';
+          btn.setAttribute('onclick', 'sendStepsFit()');
+          msg.textContent = 'Google Fitから取り込みます';
+        } else {
+          btn.textContent = 'Google Fitとつなぐ';
+          btn.setAttribute('onclick', 'connectGoogleFit()');
+          msg.textContent = '最初の1回だけ連携が必要です';
+        }
+        document.getElementById('steps-manual-link').style.display = 'block';
+      }
+      if (!showSetup) loadStepsSummary();
+    }
+
+    async function loadStepsSummary() {
+      const name = getUserName();
+      if (!name) return;
+      try {
+        const res = await fetch(`${GAS_URL}?action=steps_summary&name=${encodeURIComponent(name)}`);
+        const d = await res.json();
+        document.getElementById('steps-total').textContent = (d.total || 0).toLocaleString();
+        document.getElementById('steps-week').textContent = (d.week || 0).toLocaleString();
+        document.getElementById('steps-avg').textContent = (d.avg || 0).toLocaleString();
+      } catch (e) { /* 表示だけなので黙って諦める */ }
+    }
+
+    // iPhone：ショートカットを起動する。戻ってきたら累計を取り直す
+    function sendSteps() {
+      const msg = document.getElementById('steps-msg');
+      msg.textContent = 'ショートカットを開いています...';
+      location.href = `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}`;
+      setTimeout(() => {
+        msg.textContent = '追加していない場合は、下の「準備をやり直す」から';
+        document.getElementById('steps-redo').style.display = 'block';
+      }, 2500);
+    }
+
+    async function connectGoogleFit() {
+      const name = getUserName();
+      const msg = document.getElementById('steps-msg');
+      msg.textContent = '連携画面を開いています...';
+      try {
+        const res = await fetch(`/api/google-fit?action=auth_url&userName=${encodeURIComponent(name)}`);
+        const d = await res.json();
+        location.href = d.url;
+      } catch (e) { msg.textContent = '連携を開けませんでした'; }
+    }
+
+    async function sendStepsFit() {
+      const msg = document.getElementById('steps-msg');
+      const refreshToken = localStorage.getItem('putters_fit_token');
+      if (!refreshToken) return renderStepsSection();
+      msg.textContent = '取り込み中...';
+      try {
+        const res = await fetch('/api/google-fit?action=sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken, userName: getUserName() })
+        });
+        const d = await res.json();
+        if (d.ok) { msg.textContent = `${Number(d.steps).toLocaleString()}歩 入りました`; loadStepsSummary(); }
+        else { msg.textContent = '取り込めませんでした（連携し直してください）'; }
+      } catch (e) { msg.textContent = '取り込みに失敗しました'; }
+    }
+
+    async function sendStepsManual() {
+      const name = getUserName();
+      const input = prompt('今日の歩数を入れてください（スマホのヘルスケアアプリの数字）');
+      if (!input) return;
+      const steps = parseInt(String(input).replace(/[^0-9]/g, ''), 10);
+      if (!steps) return;
+      const today = new Date(Date.now() - 2 * 3600 * 1000).toISOString().slice(0, 10);
+      const msg = document.getElementById('steps-msg');
+      msg.textContent = '送信中...';
+      try {
+        await fetch(`${GAS_URL}?action=saveStepsBulk&name=${encodeURIComponent(name)}&days=${today}:${steps}`);
+        msg.textContent = '入りました';
+        loadStepsSummary();
+      } catch (e) { msg.textContent = '送信に失敗しました'; }
+    }
+
+    // ショートカットから戻ってきた時に数字を最新にする
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && localStorage.getItem(STEPS_INSTALLED_KEY) === '1') loadStepsSummary();
+    });
 
     let _sorenessSubmitting = false;
     async function submitSoreness() {
@@ -2139,6 +2305,7 @@
     }
 
     if (_n !== '不明') checkSoreness(_n);
+    if (_n !== '不明') renderStepsSection();
     // 松本大樹のみ表示
     if (_n === '松本大樹') {
       document.getElementById('ideas-menu-link').style.display = 'flex';

@@ -58,6 +58,8 @@ function doGet(e) {
   if (action === 'admin_textbook_watch') return adminTextbookWatch();
   if (action === 'admin_reason_read') return adminReasonRead();
   if (action === 'admin_weekly_activity') return adminWeeklyActivity();
+  if (action === 'saveStepsBulk') return saveStepsBulk(e.parameter.name, e.parameter.days);
+  if (action === 'steps_summary') return getStepsSummary(e.parameter.name);
   if (action === 'rental_slots') return rentalSlots(e.parameter.date);
 
   const userName = e && e.parameter && e.parameter.name;
@@ -1112,6 +1114,74 @@ function saveSteps(userId, displayName, steps, date) {
     }
   }
   sheet.appendRow([date, userId, displayName, Number(steps)]);
+}
+
+// ショートカットから7日分まとめて受ける
+// days = "2026-08-05:8240,2026-08-04:10310,..." （日付:歩数 のカンマ区切り）
+function saveStepsBulk(name, days) {
+  if (!name || !days) return json({ ok: false, error: 'name/days がありません' });
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sheet = ss.getSheetByName('steps');
+  if (!sheet) {
+    sheet = ss.insertSheet('steps');
+    sheet.getRange(1,1,1,4).setValues([['date','userId','displayName','steps']]);
+  }
+  const data = sheet.getDataRange().getValues();
+
+  // 既存行の位置を引けるようにしておく（1件ずつ全走査しない）
+  const rowOf = {};
+  for (let i = 1; i < data.length; i++) {
+    const d = data[i][0] instanceof Date
+      ? Utilities.formatDate(data[i][0], 'Asia/Tokyo', 'yyyy-MM-dd')
+      : String(data[i][0]).slice(0, 10);
+    if (String(data[i][1]) === String(name)) rowOf[d] = i + 1;
+  }
+
+  let updated = 0, added = 0;
+  const newRows = [];
+  String(days).split(',').forEach(pair => {
+    const parts = pair.split(':');
+    if (parts.length < 2) return;
+    const date = parts[0].trim().slice(0, 10);
+    const steps = Math.round(Number(parts[1]));
+    if (!date || isNaN(steps)) return;
+    if (rowOf[date]) {
+      sheet.getRange(rowOf[date], 4).setValue(steps);
+      updated++;
+    } else {
+      newRows.push([date, name, name, steps]);
+      added++;
+    }
+  });
+  if (newRows.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, 4).setValues(newRows);
+  }
+  return json({ ok: true, updated, added });
+}
+
+// アプリ表示用：累計・今週・1日平均
+function getStepsSummary(name) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName('steps');
+  if (!sheet || !name) return json({ total: 0, week: 0, avg: 0, today: 0, days: 0 });
+
+  const today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+  const weekAgo = Utilities.formatDate(new Date(Date.now() - 6 * 86400000), 'Asia/Tokyo', 'yyyy-MM-dd');
+
+  const rows = sheet.getDataRange().getValues();
+  let total = 0, week = 0, todaySteps = 0, days = 0;
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][1]) !== String(name)) continue;
+    const d = rows[i][0] instanceof Date
+      ? Utilities.formatDate(rows[i][0], 'Asia/Tokyo', 'yyyy-MM-dd')
+      : String(rows[i][0]).slice(0, 10);
+    const s = Number(rows[i][3]) || 0;
+    total += s;
+    days++;
+    if (d >= weekAgo) week += s;
+    if (d === today) todaySteps = s;
+  }
+  return json({ total, week, avg: days ? Math.round(total / days) : 0, today: todaySteps, days });
 }
 
 function getWeeklyRanking() {
