@@ -52,6 +52,9 @@ function doGet(e) {
   if (action === 'checkTomorrowTraining') return json(checkTomorrowTraining(e.parameter.name));
   if (action === 'getSorenessHistory') return json(getSorenessHistory());
   if (action === 'getSorenessByUser') return getSorenessByUser(e.parameter.name);
+  if (action === 'hp_auth_url') return json({ url: hpAuthUrl() });
+  if (action === 'hp_callback') return hpCallback(e.parameter.code);
+  if (action === 'hp_import') return json(hpImport(Number(e.parameter.days || 2)));
   if (action === 'getIdeas') return json(getIdeas(e.parameter.name));
   if (action === 'getRandomTasks') return json(getRandomTasksList());
   if (action === 'sendNoteTheme') { sendNoteTheme(); return json({ ok: true }); }
@@ -1687,4 +1690,90 @@ function getSorenessByUser(name) {
   }
   out.sort(function(a, b) { return a.date.localeCompare(b.date); });
   return json(out);
+}
+
+
+// ============================================================
+// タニタ Health Planet 連携（ジムの体組成計 → 予約時刻から本人に紐づけて記録）
+// ・Client ID / Secret は「プロジェクトの設定 → スクリプト プロパティ」に置く
+//   HP_CLIENT_ID / HP_CLIENT_SECRET（コードに直接書かない）
+// ・体重(タグ6021)だけ使う。体脂肪率は登録者のプロフィールで計算されるため使わない
+// ・誰の測定かは、測定時刻を含む予約カレンダーの枠から決める。枠が無ければ捨てる
+// ============================================================
+var HP_REDIRECT = 'https://putters-liff.vercel.app/api/healthplanet-callback';
+
+function hpProp(key) { return PropertiesService.getScriptProperties().getProperty(key); }
+function hpSetProp(key, val) { PropertiesService.getScriptProperties().setProperty(key, val); }
+
+// 最初の1回だけ：このURLを開いてタニタにログイン→許可すると連携が完了する
+function hpAuthUrl() {
+  return 'https://www.healthplanet.jp/oauth/auth'
+    + '?client_id=' + encodeURIComponent(hpProp('HP_CLIENT_ID'))
+    + '&redirect_uri=' + encodeURIComponent(HP_REDIRECT)
+    + '&scope=innerscan&response_type=code';
+}
+
+function hpCallback(code) {
+  if (!code) return json({ ok: false, error: 'code がありません' });
+  const res = UrlFetchApp.fetch('https://www.healthplanet.jp/oauth/token', {
+    method: 'post',
+    payload: {
+      client_id: hpProp('HP_CLIENT_ID'),
+      client_secret: hpProp('HP_CLIENT_SECRET'),
+      redirect_uri: HP_REDIRECT,
+      code: code,
+      grant_type: 'authorization_code'
+    },
+    muteHttpExceptions: true
+  });
+  const body = res.getContentText();
+  let data = {};
+  try { data = JSON.parse(body); } catch (e) { return json({ ok: false, error: body.slice(0, 300) }); }
+  if (!data.access_token) return json({ ok: false, error: body.slice(0, 300) });
+  hpSetProp('HP_ACCESS_TOKEN', data.access_token);
+  if (data.refresh_token) hpSetProp('HP_REFRESH_TOKEN', data.refresh_token);
+  return json({ ok: true });
+}
+
+// 毎朝のトリガーで呼ぶ。直近days日ぶんの測定を取り込む
+function hpImport(days) {
+  const token = hpProp('HP_ACCESS_TOKEN');
+  if (!token) return { ok: false, error: '未連携です（hpAuthUrl を開いて連携してください）' };
+  const tz = 'Asia/Tokyo';
+  const to = new Date();
+  const from = new Date(to.getTime() - (days || 2) * 24 * 60 * 60 * 1000);
+  const f = d => Utilities.formatDate(d, tz, 'yyyyMMddHHmmss');
+  const url = 'https://www.healthplanet.jp/status/innerscan.json'
+    + '?access_token=' + encodeURIComponent(token)
+    + '&date=1&tag=6021&from=' + f(from) + '&to=' + f(to);   // date=1 は「測定日時」で絞る指定
+  const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  let data = {};
+  try { data = JSON.parse(res.getContentText()); } catch (e) { return { ok: false, error: res.getContentText().slice(0, 300) }; }
+  if (!data.data) return { ok: false, error: res.getContentText().slice(0, 300) };
+
+  const cal = CalendarApp.getCalendarById(CALENDAR_ID);
+  const results = [];
+  data.data.forEach(function(m) {
+    if (String(m.tag) !== '6021') return;
+    const t = String(m.date);   // yyyyMMddHHmm
+    const when = new Date(
+      Number(t.slice(0, 4)), Number(t.slice(4, 6)) - 1, Number(t.slice(6, 8)),
+      Number(t.slice(8, 10)), Number(t.slice(10, 12))
+    );
+    const name = hpNameAt(cal, when);
+    const dateStr = Utilities.formatDate(when, tz, 'yyyy-MM-dd');
+    if (!name) { results.push({ at: t, weight: m.keydata, name: null, skipped: '枠なし' }); return; }
+    updateRecordFields({ name: name, date: dateStr, fields: { weight: Number(m.keydata) } });
+    results.push({ at: t, weight: m.keydata, name: name });
+  });
+  return { ok: true, count: results.length, results: results };
+}
+
+// その時刻の予約枠に入っている人を返す（レンタルジムは対象外。前後15分の余裕を見る）
+function hpNameAt(cal, when) {
+  const pad = 15 * 60 * 1000;
+  const events = cal.getEvents(new Date(when.getTime() - pad), new Date(when.getTime() + pad));
+  const hit = events.filter(function(ev) { return ev.getTitle().indexOf('レンタルジム') !== 0; });
+  if (hit.length !== 1) return null;   // 誰もいない／複数重なっている時は紐づけない
+  return hit[0].getTitle();
 }
