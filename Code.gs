@@ -93,6 +93,7 @@ function doPost(e) {
   if (data.action === 'book_rental') return bookRental(data);
   if (data.action === 'updateRecordFields') return updateRecordFields(data);
   if (data.action === 'saveGymWeight') return saveGymWeight(data);
+  if (data.action === 'saveGymWeightBulk') return saveGymWeightBulk(data);
   if (data.action === 'scale_token_save') {
     const sp = PropertiesService.getScriptProperties();
     if (data.access_token) sp.setProperty('SCALE_ACCESS_TOKEN', data.access_token);
@@ -1738,31 +1739,84 @@ function getGymWeightSheet() {
   let sheet = ss.getSheetByName('ジム体重');
   if (!sheet) {
     sheet = ss.insertSheet('ジム体重');
-    sheet.getRange(1, 1, 1, 5).setValues([['日付', '名前', '体重', '測定時刻', '入力元']]);
     sheet.setFrozenRows(1);
+  }
+  // ウエスト列は後から足したので、無ければここで作る
+  if (sheet.getLastColumn() < 6 || String(sheet.getRange(1, 6).getValue()) !== 'ウエスト') {
+    sheet.getRange(1, 1, 1, 6).setValues([['日付', '名前', '体重', '測定時刻', '入力元', 'ウエスト']]);
   }
   return sheet;
 }
 
 // 同じ人の同じ日は上書き（1日に2回乗っても行が増えない）
+// ★ウエストは手でシートに入れる運用なので、体重だけの保存で消さないこと。
+//   渡されなかった項目は既存の値を残す
 function saveGymWeight(data) {
   const name = data.name, date = data.date;
   const weight = Number(data.weight);
   if (!name || !date || !weight) return json({ ok: false, error: 'name/date/weight が必要です' });
   const sheet = getGymWeightSheet();
   const rows = sheet.getDataRange().getValues();
-  const row = [date, name, weight, data.at || '', data.source || 'タニタ'];
   for (let i = 1; i < rows.length; i++) {
     const d = rows[i][0] instanceof Date
       ? Utilities.formatDate(rows[i][0], 'Asia/Tokyo', 'yyyy-MM-dd')
       : String(rows[i][0]).slice(0, 10);
     if (d === date && rows[i][1] === name) {
-      sheet.getRange(i + 1, 1, 1, 5).setValues([row]);
+      sheet.getRange(i + 1, 1, 1, 6).setValues([[
+        date, name, weight,
+        data.at || rows[i][3] || '',
+        data.source || rows[i][4] || 'タニタ',
+        (data.waist === undefined || data.waist === '') ? (rows[i][5] || '') : Number(data.waist)
+      ]]);
       return json({ ok: true, updated: true });
     }
   }
-  sheet.appendRow(row);
+  sheet.appendRow([date, name, weight, data.at || '', data.source || 'タニタ',
+                   (data.waist === undefined || data.waist === '') ? '' : Number(data.waist)]);
   return json({ ok: true, created: true });
+}
+
+// 過去ログの流し込み用：1人分をまとめて受ける。
+// 1件ずつPOSTするとシートを毎回読み直すので、件数が増えるほど遅くなって終わらない。
+// rows = [{date, weight, waist}, ...]
+function saveGymWeightBulk(data) {
+  const name = data.name;
+  const rows = data.rows || [];
+  if (!name || !rows.length) return json({ ok: false, error: 'name/rows が必要です' });
+  const sheet = getGymWeightSheet();
+  const cur = sheet.getDataRange().getValues();
+
+  const rowOf = {};
+  for (let i = 1; i < cur.length; i++) {
+    if (cur[i][1] !== name) continue;
+    const d = cur[i][0] instanceof Date
+      ? Utilities.formatDate(cur[i][0], 'Asia/Tokyo', 'yyyy-MM-dd')
+      : String(cur[i][0]).slice(0, 10);
+    rowOf[d] = i;
+  }
+
+  const src = data.source || '過去ログ';
+  const add = [];
+  let updated = 0;
+  rows.forEach(function (r) {
+    const w = Number(r.weight);
+    if (!r.date || !w) return;
+    const waist = (r.waist === undefined || r.waist === null || r.waist === '') ? '' : Number(r.waist);
+    const i = rowOf[r.date];
+    if (i !== undefined) {
+      // 既にある日は上書き。ウエストは渡されなかった時だけ既存を残す
+      sheet.getRange(i + 1, 1, 1, 6).setValues([[
+        r.date, name, w, cur[i][3] || '', src, waist === '' ? (cur[i][5] || '') : waist
+      ]]);
+      updated++;
+    } else {
+      add.push([r.date, name, w, '', src, waist]);
+    }
+  });
+  if (add.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, add.length, 6).setValues(add);
+  }
+  return json({ ok: true, added: add.length, updated: updated });
 }
 
 // アプリのジムページ用：その人の測定を古い順に全部返す
@@ -1778,7 +1832,10 @@ function getGymWeights(name) {
       : String(rows[i][0]).slice(0, 10);
     const w = Number(rows[i][2]);
     if (!d || !w) continue;
-    out.push({ date: d, weight: w, at: String(rows[i][3] || ''), source: String(rows[i][4] || '') });
+    // ウエストは入っている日だけ。空なら null（グラフ側で点を打たない）
+    const waist = Number(rows[i][5]);
+    out.push({ date: d, weight: w, waist: waist ? waist : null,
+               at: String(rows[i][3] || ''), source: String(rows[i][4] || '') });
   }
   out.sort(function(a, b) { return a.date.localeCompare(b.date); });
   return json(out);

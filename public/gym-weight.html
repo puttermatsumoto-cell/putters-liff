@@ -59,6 +59,20 @@
     <canvas id="chart" style="display:none"></canvas>
   </div>
 
+  <!-- ウエストは取っている人だけ。無い人にはこの枠ごと出さない -->
+  <div class="section" id="waist-section" style="display:none">
+    <h2>📏 ウエスト</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val" id="wst-first">-</div><div class="stat-label">はじめ</div></div>
+      <div class="stat"><div class="stat-val" id="wst-latest">-</div><div class="stat-label">最新</div></div>
+      <div class="stat"><div class="stat-val" id="wst-change">-</div><div class="stat-label">はじめから</div></div>
+    </div>
+    <canvas id="chart-waist"></canvas>
+    <p style="color:#888; font-size:12px; line-height:1.8; margin-top:12px;">
+      体重が同じでも、ウエストは変わります。逆に体重が増えていても、ウエストが減っていれば中身が入れ替わっています。
+    </p>
+  </div>
+
   <div class="section" id="list-section" style="display:none">
     <h2>📋 最近の測定</h2>
     <table>
@@ -121,6 +135,8 @@
       }
     });
 
+    renderWaist(rows.filter(function (r) { return r.waist; }));
+
     // 新しい順。★全部は並べない＝通った回数が数えられる「通院履歴」になってしまうため。
     // 直近10回だけ見せる。長い変化はグラフが担当する
     const tb = document.getElementById('list');
@@ -133,6 +149,33 @@
         + '<td class="num">' + r.weight + 'kg</td>'
         + '<td class="diff" style="color:' + color + '">' + (d === null ? '—' : fmtDiff(d)) + '</td></tr>';
     }).join('');
+  }
+
+  // ウエストは「たまに入れる」ものなので、点が2つ未満なら線にならない＝出さない
+  function renderWaist(rows) {
+    if (rows.length < 2) return;
+    document.getElementById('waist-section').style.display = 'block';
+    const f = rows[0].waist, l = rows[rows.length - 1].waist, d = l - f;
+    document.getElementById('wst-first').textContent = f + 'cm';
+    document.getElementById('wst-latest').textContent = l + 'cm';
+    document.getElementById('wst-change').textContent = (d > 0 ? '+' : '') + d.toFixed(1) + 'cm';
+    new Chart(document.getElementById('chart-waist'), {
+      type: 'line',
+      data: {
+        labels: rows.map(r => r.date.slice(2).replace(/-/g, '/')),
+        datasets: [{
+          label: 'ウエスト', data: rows.map(r => r.waist),
+          borderColor: '#c8a97e', backgroundColor: 'rgba(200,169,126,0.12)',
+          tension: 0.3, pointBackgroundColor: '#1a1a2e',
+          pointRadius: rows.length > 40 ? 2 : 4, fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { ticks: { callback: v => v + 'cm' } } }
+      }
+    });
   }
 
   // 右へスワイプで元のページに戻る（index側は左スワイプでここに来る）
