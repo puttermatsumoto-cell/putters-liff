@@ -71,6 +71,7 @@
   <div class="tab" onclick="switchTab('holiday')">🗓️ 休み管理</div>
   <div class="tab" onclick="switchTab('random-hw')">🎲 ランダム宿題</div>
   <div class="tab" onclick="switchTab('soreness')">💪 筋肉痛</div>
+  <div class="tab" onclick="switchTab('gym-weight')">🏋️ ジム体重</div>
   <div class="tab" onclick="switchTab('graph')">📈 個人グラフ</div>
   <div class="tab" onclick="switchTab('textbook')">📺 教科書履修</div>
   <div class="tab" onclick="switchTab('articles')">📖 記事既読</div>
@@ -216,6 +217,16 @@
     </div>
   </div>
 
+  <!-- ジム体重（体組成計）。★お客さんの画面(gym-weight.html)では回数・期間を出さないが、
+       ここは松本しか見ないので、誰がどれだけ溜まっているか分かるように出す -->
+  <div id="page-gym-weight" class="page">
+    <div class="card">
+      <h2>🏋️ ジム体重（体組成計）</h2>
+      <div id="gym-weight-loading" class="loading">読み込み中...</div>
+      <div id="gym-weight-content" style="display:none"></div>
+    </div>
+  </div>
+
   <div id="page-textbook" class="page">
     <div class="card">
       <h2>📺 教科書履修状況</h2>
@@ -309,6 +320,7 @@
     if (tab === 'soreness') loadSoreness();
     if (tab === 'random-hw') loadRandomHw();
     if (tab === 'graph') document.getElementById('graph-name-input').focus();
+    if (tab === 'gym-weight') loadGymWeight();
     if (tab === 'textbook') loadTextbookWatch();
     if (tab === 'articles') loadArticleRead();
   }
@@ -391,6 +403,47 @@
       renderWatchTable(data, id => true, ARTICLE_LABELS, 'articles-content', 'articles-loading', 'まだ既読データがありません');
     } catch(e) {
       document.getElementById('articles-loading').textContent = '読み込みエラー';
+    }
+  }
+
+  async function loadGymWeight() {
+    try {
+      const res = await fetch(GAS_URL + '?action=admin_gym_weight');
+      const data = await res.json();
+      const content = document.getElementById('gym-weight-content');
+      const names = Object.keys(data);
+      if (names.length === 0) {
+        content.innerHTML = '<p style="color:#aaa;text-align:center;padding:20px;">まだ測定がありません</p>';
+      } else {
+        // 最後に測った日が新しい順＝最近来てる人が上
+        names.sort((a, b) => data[b][data[b].length - 1].date.localeCompare(data[a][data[a].length - 1].date));
+        content.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+          + '<tr style="background:#f5f0eb;">'
+          + ['名前', '初回', '最新', '変化', '回数', '期間'].map(h =>
+              `<th style="padding:8px;text-align:left;color:#888;font-weight:normal;font-size:12px;">${h}</th>`).join('')
+          + '</tr>'
+          + names.map(n => {
+              const rows = data[n];
+              const f = rows[0], l = rows[rows.length - 1];
+              const diff = l.weight - f.weight;
+              const color = diff < 0 ? '#388e3c' : diff > 0 ? '#c62828' : '#333';
+              const months = Math.round((new Date(l.date) - new Date(f.date)) / (30 * 24 * 60 * 60 * 1000));
+              const span = months >= 12 ? (months / 12).toFixed(1) + '年' : months + 'ヶ月';
+              return `<tr style="border-bottom:1px solid #f0f0f0;">
+                <td style="padding:8px;font-weight:bold;color:#1a1a2e;">${n}</td>
+                <td style="padding:8px;color:#888;">${f.date.slice(2)}<br>${f.weight}kg</td>
+                <td style="padding:8px;color:#555;">${l.date.slice(2)}<br><b>${l.weight}kg</b></td>
+                <td style="padding:8px;font-weight:bold;color:${color};">${diff > 0 ? '+' : ''}${diff.toFixed(1)}kg</td>
+                <td style="padding:8px;color:#888;">${rows.length}回</td>
+                <td style="padding:8px;color:#888;">${span}</td>
+              </tr>`;
+            }).join('')
+          + '</table>';
+      }
+      document.getElementById('gym-weight-loading').style.display = 'none';
+      content.style.display = 'block';
+    } catch (e) {
+      document.getElementById('gym-weight-loading').textContent = '読み込みに失敗しました';
     }
   }
 
