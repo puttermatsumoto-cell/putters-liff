@@ -27,9 +27,11 @@ export default async function handler(req, res) {
       const nm = await (await fetch(`${GAS_URL}?action=hp_name_at&at=${at}`)).json();
       const date = at.slice(0, 4) + '-' + at.slice(4, 6) + '-' + at.slice(6, 8);
       if (!nm.name) { results.push({ at, weight: m.keydata, name: null, skipped: '枠なし' }); continue; }
+      // ★書き先は「ジム体重」シート。記録シートの体重列（＝本人が家で入力する値）には触らない。
+      //   家はほぼ裸・朝、ジムは服のまま来店時なので1kg近くズレる。混ぜると家のグラフが壊れる
       await fetch(GAS_URL, {
         method: 'POST',
-        body: JSON.stringify({ action: 'updateRecordFields', name: nm.name, date, fields: { weight: Number(m.keydata) } })
+        body: JSON.stringify({ action: 'saveGymWeight', name: nm.name, date, weight: Number(m.keydata), at })
       });
       results.push({ at, weight: m.keydata, name: nm.name });
     }

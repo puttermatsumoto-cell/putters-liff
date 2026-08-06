@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUTTERS ジムの記録</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; min-height: 100vh; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 16px; }
+    h1 { font-size: 20px; color: #222; text-align: center; margin-bottom: 6px; padding-top: 12px; }
+    .sub { text-align: center; color: #888; font-size: 12px; margin-bottom: 20px; }
+    .section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .section h2 { font-size: 14px; color: #555; margin-bottom: 12px; }
+    .empty { text-align: center; color: #aaa; font-size: 13px; padding: 24px 0; line-height: 1.9; }
+    .stat-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .stat { flex: 1; background: #f5f0eb; border-radius: 10px; padding: 12px; text-align: center; }
+    .stat-val { font-size: 18px; font-weight: bold; color: #1a1a2e; }
+    .stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #f5f0eb; color: #888; font-weight: normal; padding: 8px; text-align: left; font-size: 12px; }
+    td { padding: 8px; border-bottom: 1px solid #f0f0f0; color: #555; }
+    td.num { text-align: right; font-weight: bold; color: #1a1a2e; }
+    td.diff { text-align: right; font-size: 12px; }
+    .note { background: #fff; border-radius: 16px; padding: 20px; color: #666; font-size: 13px; line-height: 1.9; }
+    .note b { color: #1a1a2e; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back">← 戻る</a>
+  <div style="position:fixed; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:50; pointer-events:none;">
+    <span style="width:6px; height:6px; border-radius:50%; background:#d8cec2;"></span>
+    <span style="width:6px; height:6px; border-radius:50%; background:#1a1a2e;"></span>
+  </div>
+  <h1>🏋️ ジムの記録</h1>
+  <div class="sub" id="sub">ジムの体組成計で測った体重</div>
+
+  <div class="section">
+    <h2>⚖️ 体重の推移</h2>
+    <!-- ★出すのは「差」だけ。回数・年数のような積み上がる数字は出さない。
+         節目（1年経った・◯回通った）を作ると、それが卒業の口実になるし、
+         回数が見えると料金を逆算して体重の話が金の話にすり替わる -->
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val" id="s-first">-</div><div class="stat-label">はじめ</div></div>
+      <div class="stat"><div class="stat-val" id="s-latest">-</div><div class="stat-label">最新</div></div>
+      <div class="stat"><div class="stat-val" id="s-change">-</div><div class="stat-label">はじめから</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val" id="s-prev">-</div><div class="stat-label">前回から</div></div>
+    </div>
+    <div id="empty" class="empty">
+      まだ測定がありません。<br>
+      来店したときに体組成計に乗ると、<br>ここに自動で溜まっていきます。
+    </div>
+    <canvas id="chart" style="display:none"></canvas>
+  </div>
+
+  <div class="section" id="list-section" style="display:none">
+    <h2>📋 最近の測定</h2>
+    <table>
+      <thead><tr><th>日付</th><th style="text-align:right">体重</th><th style="text-align:right">前回比</th></tr></thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <b>家で測った体重とは、少しズレます。</b><br>
+    家はほぼ裸で朝に測る人が多く、ジムは運動できる服装で来店時に測ります。それだけで1kg近く変わります。どちらかが間違っているわけではなく、<b>測る条件が違うだけ</b>です。<br><br>
+    体重は1日の中でも食事や水分で1kgくらい動くので、1回の数字を追いかけても分かりません。ジムの測定は<b>毎回おなじ条件（同じ服装・同じ機械・来店時）</b>で測るので、点は少なくても長い変化がまっすぐ見えます。<br><br>
+    見るのは<b>数字そのものより、数ヶ月かけてどっちに動いたか</b>です。
+  </div>
+
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+  const name = localStorage.getItem('putters_user_name') || '';
+
+  function fmtDiff(v) {
+    if (v === null) return '-';
+    const s = (v > 0 ? '+' : '') + v.toFixed(1) + 'kg';
+    return s;
+  }
+  function diffColor(v) {
+    return v < 0 ? '#388e3c' : v > 0 ? '#c62828' : '#333';
+  }
+
+  function render(rows) {
+    if (!rows.length) return;
+    document.getElementById('empty').style.display = 'none';
+    document.getElementById('chart').style.display = 'block';
+    document.getElementById('list-section').style.display = 'block';
+
+    const first = rows[0].weight, latest = rows[rows.length - 1].weight;
+    const change = latest - first;
+    const prev = rows.length >= 2 ? latest - rows[rows.length - 2].weight : null;
+
+    document.getElementById('s-first').textContent = first + 'kg';
+    document.getElementById('s-latest').textContent = latest + 'kg';
+    const ce = document.getElementById('s-change');
+    ce.textContent = fmtDiff(change); ce.style.color = diffColor(change);
+    const pe = document.getElementById('s-prev');
+    pe.textContent = fmtDiff(prev); if (prev !== null) pe.style.color = diffColor(prev);
+    new Chart(document.getElementById('chart'), {
+      type: 'line',
+      data: {
+        labels: rows.map(r => r.date.slice(2).replace(/-/g, '/')),
+        datasets: [{
+          label: '体重', data: rows.map(r => r.weight),
+          borderColor: '#1a1a2e', backgroundColor: 'rgba(26,26,46,0.08)',
+          tension: 0.3, pointBackgroundColor: '#c8a97e',
+          pointRadius: rows.length > 40 ? 2 : 4, fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { ticks: { callback: v => v + 'kg' } } }
+      }
+    });
+
+    // 新しい順。★全部は並べない＝通った回数が数えられる「通院履歴」になってしまうため。
+    // 直近10回だけ見せる。長い変化はグラフが担当する
+    const tb = document.getElementById('list');
+    const desc = rows.slice().reverse();
+    tb.innerHTML = desc.slice(0, 10).map(function(r, i) {
+      const older = desc[i + 1];
+      const d = older ? r.weight - older.weight : null;
+      const color = d === null ? '#aaa' : diffColor(d);
+      return '<tr><td>' + r.date.replace(/-/g, '/') + '</td>'
+        + '<td class="num">' + r.weight + 'kg</td>'
+        + '<td class="diff" style="color:' + color + '">' + (d === null ? '—' : fmtDiff(d)) + '</td></tr>';
+    }).join('');
+  }
+
+  // 右へスワイプで元のページに戻る（index側は左スワイプでここに来る）
+  (function () {
+    let x0 = null, y0 = null;
+    document.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) { x0 = null; return; }
+      const t = e.touches[0];
+      if (t.clientX < 40 || t.clientX > window.innerWidth - 40) { x0 = null; return; }
+      x0 = t.clientX; y0 = t.clientY;
+    }, { passive: true });
+    document.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - x0, dy = t.clientY - y0;
+      x0 = null;
+      if (dx < 70 || Math.abs(dx) < Math.abs(dy) * 2) return;
+      location.href = '/';
+    }, { passive: true });
+  })();
+
+  (async function () {
+    if (!name) {
+      document.getElementById('sub').textContent = 'お名前が未設定です';
+      return;
+    }
+    document.getElementById('sub').textContent = name + 'さん｜ジムの体組成計で測った体重';
+    try {
+      const res = await fetch(GAS_URL + '?action=gym_weight&name=' + encodeURIComponent(name));
+      render(await res.json());
+    } catch (e) {
+      document.getElementById('empty').textContent = '読み込みに失敗しました';
+    }
+  })();
+</script>
+</body>
+</html>

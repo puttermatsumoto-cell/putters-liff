@@ -58,6 +58,8 @@ function doGet(e) {
     refresh_token: PropertiesService.getScriptProperties().getProperty('SCALE_REFRESH_TOKEN') || ''
   });
   if (action === 'hp_name_at') return json({ name: hpNameAtStr(e.parameter.at) });
+  if (action === 'gym_weight') return getGymWeights(e.parameter.name);
+  if (action === 'admin_gym_weight') return adminGymWeights();
   if (action === 'getIdeas') return json(getIdeas(e.parameter.name));
   if (action === 'getRandomTasks') return json(getRandomTasksList());
   if (action === 'sendNoteTheme') { sendNoteTheme(); return json({ ok: true }); }
@@ -90,6 +92,7 @@ function doPost(e) {
   if (data.action === 'saveReasonRead') { saveReasonRead(data.name, data.slug, data.read); return json({ ok: true }); }
   if (data.action === 'book_rental') return bookRental(data);
   if (data.action === 'updateRecordFields') return updateRecordFields(data);
+  if (data.action === 'saveGymWeight') return saveGymWeight(data);
   if (data.action === 'scale_token_save') {
     const sp = PropertiesService.getScriptProperties();
     if (data.access_token) sp.setProperty('SCALE_ACCESS_TOKEN', data.access_token);
@@ -1723,8 +1726,96 @@ var HP_REDIRECT = 'https://putters-liff.vercel.app/api/healthplanet-callback';
 // GASの役割は3つだけ：トークンの保管／取り出し／測定時刻から予約者の名前を返す
 // ============================================================
 
-// 測定時刻（yyyyMMddHHmm）に、その枠を予約していた人の名前を返す。前後15分を見る。
-// 誰もいない、または複数重なっている時は空を返す＝紐づけない（誤爆させない）
+// ============================================================
+// ジム体重（体組成計で測った値）
+// ★家の体重とは別のシートに貯める。混ぜない。
+//   家＝ほぼ裸・朝・毎日／ジム＝ジムの服装・来店時・月数回。1kgくらい平気でズレる。
+//   同じ列に入れると家のグラフに高い点が刺さり、上書きで家の値が消える日も出る。
+//   条件を固定した系列は別々に持って、別々に見る（比べるのは変化であって、絶対値ではない）
+// ============================================================
+function getGymWeightSheet() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sheet = ss.getSheetByName('ジム体重');
+  if (!sheet) {
+    sheet = ss.insertSheet('ジム体重');
+    sheet.getRange(1, 1, 1, 5).setValues([['日付', '名前', '体重', '測定時刻', '入力元']]);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+// 同じ人の同じ日は上書き（1日に2回乗っても行が増えない）
+function saveGymWeight(data) {
+  const name = data.name, date = data.date;
+  const weight = Number(data.weight);
+  if (!name || !date || !weight) return json({ ok: false, error: 'name/date/weight が必要です' });
+  const sheet = getGymWeightSheet();
+  const rows = sheet.getDataRange().getValues();
+  const row = [date, name, weight, data.at || '', data.source || 'タニタ'];
+  for (let i = 1; i < rows.length; i++) {
+    const d = rows[i][0] instanceof Date
+      ? Utilities.formatDate(rows[i][0], 'Asia/Tokyo', 'yyyy-MM-dd')
+      : String(rows[i][0]).slice(0, 10);
+    if (d === date && rows[i][1] === name) {
+      sheet.getRange(i + 1, 1, 1, 5).setValues([row]);
+      return json({ ok: true, updated: true });
+    }
+  }
+  sheet.appendRow(row);
+  return json({ ok: true, created: true });
+}
+
+// アプリのジムページ用：その人の測定を古い順に全部返す
+function getGymWeights(name) {
+  if (!name) return json([]);
+  const sheet = getGymWeightSheet();
+  const rows = sheet.getDataRange().getValues();
+  const out = [];
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][1] !== name) continue;
+    const d = rows[i][0] instanceof Date
+      ? Utilities.formatDate(rows[i][0], 'Asia/Tokyo', 'yyyy-MM-dd')
+      : String(rows[i][0]).slice(0, 10);
+    const w = Number(rows[i][2]);
+    if (!d || !w) continue;
+    out.push({ date: d, weight: w, at: String(rows[i][3] || ''), source: String(rows[i][4] || '') });
+  }
+  out.sort(function(a, b) { return a.date.localeCompare(b.date); });
+  return json(out);
+}
+
+// 管理画面用：全員分をまとめて
+function adminGymWeights() {
+  const sheet = getGymWeightSheet();
+  const rows = sheet.getDataRange().getValues();
+  const by = {};
+  for (let i = 1; i < rows.length; i++) {
+    const name = rows[i][1];
+    const w = Number(rows[i][2]);
+    if (!name || !w) continue;
+    const d = rows[i][0] instanceof Date
+      ? Utilities.formatDate(rows[i][0], 'Asia/Tokyo', 'yyyy-MM-dd')
+      : String(rows[i][0]).slice(0, 10);
+    if (!by[name]) by[name] = [];
+    by[name].push({ date: d, weight: w });
+  }
+  Object.keys(by).forEach(function(k) {
+    by[k].sort(function(a, b) { return a.date.localeCompare(b.date); });
+  });
+  return json(by);
+}
+
+
+// 測定時刻（yyyyMMddHHmm）から、その体重が誰のものかを予約カレンダーで決める。
+//
+// ★運用の前提＝「体重計に乗るのはセッションの最初」（2026-08-06に松本と決定）。
+//   これがあるので「開始時刻が一番近い枠の人」で判定できる。
+//   10:00の人が9:50に来て乗っても、9:00の枠(差50分)より10:00の枠(差10分)が近いので正しく本人に入る。
+//   「枠の中に居るか」で判定すると、9:50はまだ前のお客さんの枠の中なので前の人に入ってしまう。
+//
+// 誰にも寄せられない・同着で決められない時は空を返す＝紐づけない（誤爆させない）
+var HP_EARLY_MS = 20 * 60 * 1000;   // 開始何分前までを「その人が早く来た」と見るか
+
 function hpNameAtStr(at) {
   if (!at || String(at).length < 12) return '';
   const t = String(at);
@@ -1732,10 +1823,22 @@ function hpNameAtStr(at) {
     Number(t.slice(0, 4)), Number(t.slice(4, 6)) - 1, Number(t.slice(6, 8)),
     Number(t.slice(8, 10)), Number(t.slice(10, 12))
   );
-  const pad = 15 * 60 * 1000;
   const cal = CalendarApp.getCalendarById(CALENDAR_ID);
-  const events = cal.getEvents(new Date(when.getTime() - pad), new Date(when.getTime() + pad));
-  const hit = events.filter(function(ev) { return ev.getTitle().indexOf('レンタルジム') !== 0; });
-  if (hit.length !== 1) return '';
-  return hit[0].getTitle();
+  const events = cal.getEvents(new Date(when.getTime() - 2 * 60 * 60 * 1000),
+                               new Date(when.getTime() + 60 * 60 * 1000))
+    .filter(function(ev) { return ev.getTitle().indexOf('レンタルジム') !== 0; });
+
+  // 候補＝「開始20分前〜終了まで」に測定が入っている枠。早く来た人も拾える
+  const cands = events.filter(function(ev) {
+    return when.getTime() >= ev.getStartTime().getTime() - HP_EARLY_MS
+        && when.getTime() <  ev.getEndTime().getTime();
+  });
+  if (cands.length === 0) return '';
+  if (cands.length === 1) return cands[0].getTitle();
+
+  // 複数該当（＝連続予約の境目）は、開始時刻が近い方に寄せる。同着なら諦める
+  const gap = function(ev) { return Math.abs(ev.getStartTime().getTime() - when.getTime()); };
+  cands.sort(function(a, b) { return gap(a) - gap(b); });
+  if (gap(cands[0]) === gap(cands[1])) return '';
+  return cands[0].getTitle();
 }

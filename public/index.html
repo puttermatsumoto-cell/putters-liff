@@ -260,7 +260,6 @@
   </div>
 
   <div style="text-align:center; padding-top:12px; position:relative;">
-    <button onclick="saveTempAndClose()" style="position:absolute; top:12px; right:0; background:#e0e0e0; border:none; border-radius:50%; width:32px; height:32px; font-size:16px; color:#555; cursor:pointer;">×</button>
     <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
       <button class="hamburger" onclick="openMenu()" style="flex-shrink:0;"><span></span><span></span><span></span></button>
       <h1 id="page-title" style="margin:0;">PUTTERSアプリ</h1>
@@ -704,14 +703,32 @@
       closeMysetModal();
     }
 
-    function saveTempAndClose() {
-      saveCache();
-      const toast = document.getElementById('save-toast');
-      toast.style.display = 'block';
-      setTimeout(() => {
-        try { liff.closeWindow(); } catch(e) {}
-      }, 800);
-    }
+    // ===== 横スワイプで右のページへ =====
+    // ★「ジムの記録」はメニューに出さない。点が増えて嬉しい人もいれば、
+    //   変わらなくて萎える人もいる。毎日開く導線に置くと後者に効いてしまう。
+    //   見たい時に左スワイプで行ける、くらいの距離に置く
+    (function () {
+      const RIGHT_PAGE = '/gym-weight.html';
+      let x0 = null, y0 = null;
+      document.addEventListener('touchstart', function (e) {
+        if (e.touches.length !== 1) { x0 = null; return; }
+        const ov = document.getElementById('menu-overlay');
+        if (ov && ov.style.display === 'block') { x0 = null; return; }
+        const t = e.touches[0];
+        // 画面の端はiOSの「戻る」に譲る
+        if (t.clientX < 40 || t.clientX > window.innerWidth - 40) { x0 = null; return; }
+        x0 = t.clientX; y0 = t.clientY;
+      }, { passive: true });
+      document.addEventListener('touchend', function (e) {
+        if (x0 === null) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - x0, dy = t.clientY - y0;
+        x0 = null;
+        // 縦スクロールと区別する。横が縦の2倍以上動いた時だけ
+        if (dx > -70 || Math.abs(dx) < Math.abs(dy) * 2) return;
+        location.href = RIGHT_PAGE;
+      }, { passive: true });
+    })();
 
 
     // ===== 記録カレンダー =====
@@ -2743,5 +2760,11 @@
       }
     })();
   </script>
+
+  <!-- 右にもう1枚あることだけ示す。文字は出さない（気づいた人だけが行けばいい） -->
+  <div style="position:fixed; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:50; pointer-events:none;">
+    <span style="width:6px; height:6px; border-radius:50%; background:#1a1a2e;"></span>
+    <span style="width:6px; height:6px; border-radius:50%; background:#d8cec2;"></span>
+  </div>
 </body>
 </html>
