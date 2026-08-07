@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ジム体重を入れる</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f0eb; padding: 20px; }
+    .back { display: inline-flex; color: #888; font-size: 14px; text-decoration: none; margin-bottom: 16px; }
+    h1 { font-size: 20px; color: #222; text-align: center; margin-bottom: 4px; }
+    .sub { text-align: center; color: #888; font-size: 12px; margin-bottom: 20px; }
+    .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .who { font-size: 13px; color: #888; margin-bottom: 4px; }
+    .name { font-size: 26px; font-weight: bold; color: #1a1a2e; margin-bottom: 4px; }
+    .name.none { font-size: 16px; color: #c62828; font-weight: normal; }
+    .at { font-size: 12px; color: #aaa; }
+    input, select { width: 100%; padding: 14px; font-size: 20px; border: 1px solid #ddd; border-radius: 10px; margin-top: 10px; }
+    input[type=number] { font-size: 28px; text-align: center; font-weight: bold; }
+    button { width: 100%; padding: 16px; background: #1a1a2e; color: #c8a97e; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; margin-top: 12px; }
+    button:disabled { opacity: .4; }
+    .msg { text-align: center; padding: 12px; border-radius: 10px; margin-top: 12px; font-size: 14px; display: none; }
+    .ok { background: #e8f5e9; color: #2e7d32; }
+    .ng { background: #fdecea; color: #c62828; }
+    .hint { color: #888; font-size: 12px; line-height: 1.8; margin-top: 10px; }
+    .recent { font-size: 13px; color: #555; line-height: 2; }
+  </style>
+</head>
+<body>
+  <a href="/admin.html" class="back">← 管理画面</a>
+  <h1>⚖️ ジム体重を入れる</h1>
+  <div class="sub">体重計に出た数字を打つだけ</div>
+
+  <div class="card">
+    <div class="who">いまの時間の予約</div>
+    <div class="name" id="who">確認中…</div>
+    <div class="at" id="at"></div>
+
+    <!-- 予約から自動で決まるが、違う人・別の日にも入れられるようにしておく -->
+    <input type="text" id="name" placeholder="名前（自動で入ります）">
+    <input type="date" id="date">
+    <input type="number" id="weight" inputmode="decimal" step="0.05" placeholder="体重 kg">
+    <input type="number" id="waist" inputmode="decimal" step="0.1" placeholder="ウエスト cm（任意）">
+    <button id="save">保存する</button>
+    <div class="msg" id="msg"></div>
+    <div class="hint">
+      靴下のままでかまいません。体重はそのままの数字で正確です。<br>
+      同じ人の同じ日に入れ直すと、上書きされます。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="who" style="margin-bottom:8px;">直近に入れた分</div>
+    <div class="recent" id="recent">—</div>
+  </div>
+
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
+  const pad = n => String(n).padStart(2, '0');
+  const now = () => new Date();
+  const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const stamp = d => d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + pad(d.getHours()) + pad(d.getMinutes());
+
+  // いま誰の枠か＝体重計が自動でやるはずだった判定を、そのまま使う
+  async function whoNow() {
+    const d = now();
+    document.getElementById('date').value = ymd(d);
+    document.getElementById('at').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' 時点';
+    try {
+      const r = await (await fetch(GAS_URL + '?action=hp_name_at&at=' + stamp(d))).json();
+      const el = document.getElementById('who');
+      if (r.name) {
+        el.textContent = r.name;
+        el.classList.remove('none');
+        document.getElementById('name').value = r.name;
+      } else {
+        el.textContent = 'この時間に予約がありません';
+        el.classList.add('none');
+      }
+    } catch (e) {
+      document.getElementById('who').textContent = '取得できませんでした';
+    }
+  }
+
+  function show(text, ok) {
+    const m = document.getElementById('msg');
+    m.textContent = text;
+    m.className = 'msg ' + (ok ? 'ok' : 'ng');
+    m.style.display = 'block';
+  }
+
+  document.getElementById('save').onclick = async function () {
+    const name = document.getElementById('name').value.trim();
+    const date = document.getElementById('date').value;
+    const weight = parseFloat(document.getElementById('weight').value);
+    const waist = parseFloat(document.getElementById('waist').value);
+    if (!name || !date || !weight) { show('名前・日付・体重を入れてください', false); return; }
+    this.disabled = true;
+    try {
+      const body = { action: 'saveGymWeight', name, date, weight, source: '手入力' };
+      if (waist) body.waist = waist;
+      await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) });
+      show(name + ' ' + weight + 'kg を保存しました', true);
+      document.getElementById('weight').value = '';
+      document.getElementById('waist').value = '';
+      loadRecent(name);
+    } catch (e) {
+      show('保存できませんでした', false);
+    }
+    this.disabled = false;
+  };
+
+  // 入れた直後に、その人の直近が見えると打ち間違いに気づける
+  async function loadRecent(name) {
+    if (!name) return;
+    try {
+      const rows = await (await fetch(GAS_URL + '?action=gym_weight&name=' + encodeURIComponent(name))).json();
+      document.getElementById('recent').innerHTML = rows.slice(-5).reverse()
+        .map(r => r.date.replace(/-/g, '/') + '　<b>' + r.weight + 'kg</b>' + (r.waist ? '　' + r.waist + 'cm' : ''))
+        .join('<br>') || '—';
+    } catch (e) { /* 表示だけなので黙って諦める */ }
+  }
+
+  whoNow().then(() => loadRecent(document.getElementById('name').value));
+</script>
+</body>
+</html>
