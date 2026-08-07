@@ -94,6 +94,7 @@ function doPost(e) {
   if (data.action === 'updateRecordFields') return updateRecordFields(data);
   if (data.action === 'saveGymWeight') return saveGymWeight(data);
   if (data.action === 'saveGymWeightBulk') return saveGymWeightBulk(data);
+  if (data.action === 'deleteGymWeight') return deleteGymWeight(data);
   if (data.action === 'scale_token_save') {
     const sp = PropertiesService.getScriptProperties();
     if (data.access_token) sp.setProperty('SCALE_ACCESS_TOKEN', data.access_token);
@@ -1774,6 +1775,23 @@ function saveGymWeight(data) {
   sheet.appendRow([date, name, weight, data.at || '', data.source || 'タニタ',
                    (data.waist === undefined || data.waist === '') ? '' : Number(data.waist)]);
   return json({ ok: true, created: true });
+}
+
+// 測定を1件消す。打ち間違いを直す時に使う（消してから入れ直す）
+function deleteGymWeight(data) {
+  const name = data.name, date = data.date;
+  if (!name || !date) return json({ ok: false, error: 'name/date が必要です' });
+  const sheet = getGymWeightSheet();
+  const rows = sheet.getDataRange().getValues();
+  // 下から消す。上から消すと行番号がずれる
+  let removed = 0;
+  for (let i = rows.length - 1; i >= 1; i--) {
+    const d = rows[i][0] instanceof Date
+      ? Utilities.formatDate(rows[i][0], 'Asia/Tokyo', 'yyyy-MM-dd')
+      : String(rows[i][0]).slice(0, 10);
+    if (d === date && rows[i][1] === name) { sheet.deleteRow(i + 1); removed++; }
+  }
+  return json({ ok: true, removed: removed });
 }
 
 // 過去ログの流し込み用：1人分をまとめて受ける。

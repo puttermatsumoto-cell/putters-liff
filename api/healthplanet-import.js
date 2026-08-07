@@ -8,11 +8,18 @@ export default async function handler(req, res) {
     const tk = await (await fetch(`${GAS_URL}?action=hp_token_get`)).json();
     if (!tk.access_token) return res.json({ ok: false, error: '未連携（先に /api/healthplanet-callback を開く）' });
 
-    const f = d => d.getFullYear()
-      + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0')
-      + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + '00';
-    const to = new Date();
-    const from = new Date(to.getTime() - days * 24 * 60 * 60 * 1000);
+    // ★タニタは日本時間で from/to を受け取る。VercelはUTCで動くので、
+    //   9時間足してからUTCの値を読む＝日本時間の年月日時分になる。
+    //   これをしないと、さっき測ったばかりのデータが「未来」扱いで範囲から外れる
+    const f = d => {
+      const j = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+      return j.getUTCFullYear()
+        + String(j.getUTCMonth() + 1).padStart(2, '0') + String(j.getUTCDate()).padStart(2, '0')
+        + String(j.getUTCHours()).padStart(2, '0') + String(j.getUTCMinutes()).padStart(2, '0') + '00';
+    };
+    // 体重計の時計が少し進んでいても拾えるように、終わりは1時間先まで見る
+    const to = new Date(Date.now() + 60 * 60 * 1000);
+    const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const url = 'https://www.healthplanet.jp/status/innerscan.json?access_token=' + encodeURIComponent(tk.access_token)
       + '&date=1&tag=6021&from=' + f(from) + '&to=' + f(to);   // date=1 は「測定日時」で絞る／6021 は体重
     const text = await (await fetch(url)).text();
