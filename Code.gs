@@ -52,7 +52,11 @@ function doGet(e) {
   if (action === 'checkTomorrowTraining') return json(checkTomorrowTraining(e.parameter.name));
   if (action === 'getSorenessHistory') return json(getSorenessHistory());
   if (action === 'getSorenessByUser') return getSorenessByUser(e.parameter.name);
-  if (action === 'hp_token_get') return json({ access_token: PropertiesService.getScriptProperties().getProperty('HP_ACCESS_TOKEN') || '' });
+  // refresh_token も返す＝アクセストークンが切れた時にアプリ側が自分で取り直せるように
+  if (action === 'hp_token_get') return json({
+    access_token: PropertiesService.getScriptProperties().getProperty('HP_ACCESS_TOKEN') || '',
+    refresh_token: PropertiesService.getScriptProperties().getProperty('HP_REFRESH_TOKEN') || ''
+  });
   if (action === 'scale_token_get') return json({
     access_token: PropertiesService.getScriptProperties().getProperty('SCALE_ACCESS_TOKEN') || '',
     refresh_token: PropertiesService.getScriptProperties().getProperty('SCALE_REFRESH_TOKEN') || ''

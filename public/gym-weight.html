@@ -203,6 +203,11 @@
       return;
     }
     document.getElementById('sub').textContent = name + 'さん｜ジムの体組成計で測った体重';
+    // 開いた時にタニタから取り込む。夜の自動実行を待たずに、乗った直後でも今日の点が出る。
+    // 失敗しても下の読み込みは続ける（取り込みは夜に走るので、ここで落ちても最終的には入る）
+    try {
+      await fetch('/api/healthplanet-import?days=2');
+    } catch (e) { /* 取り込めなくても表示は出す */ }
     try {
       const res = await fetch(GAS_URL + '?action=gym_weight&name=' + encodeURIComponent(name));
       render(await res.json());
