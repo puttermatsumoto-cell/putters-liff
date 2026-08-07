@@ -1,8 +1,5 @@
 {
   "outputDirectory": "public",
-  "crons": [
-    { "path": "/api/healthplanet-import?days=3", "schedule": "0 14 * * *" }
-  ],
   "headers": [
     {
       "source": "/(.*)",

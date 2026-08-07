@@ -37,7 +37,9 @@
     <div class="at" id="at"></div>
 
     <!-- 予約から自動で決まるが、違う人・別の日にも入れられるようにしておく -->
-    <input type="text" id="name" placeholder="名前（自動で入ります）">
+    <!-- 予約から自動で入るが、外れた時のために宿題シートの名前から選べるようにしておく -->
+    <input type="text" id="name" list="names" placeholder="名前（自動で入ります）">
+    <datalist id="names"></datalist>
     <input type="date" id="date">
     <input type="number" id="weight" inputmode="decimal" step="0.05" placeholder="体重 kg">
     <input type="number" id="waist" inputmode="decimal" step="0.1" placeholder="ウエスト cm（任意）">
@@ -121,6 +123,16 @@
     } catch (e) { /* 表示だけなので黙って諦める */ }
   }
 
+  // 名前の候補は宿題シートから。予約が無い人・時間がずれた人でも選ぶだけで入る
+  async function loadNames() {
+    try {
+      const rows = await (await fetch(GAS_URL + '?action=admin_homework')).json();
+      document.getElementById('names').innerHTML =
+        rows.map(r => '<option value="' + r.name + '">').join('');
+    } catch (e) { /* 候補が出なくても手で打てる */ }
+  }
+
+  loadNames();
   whoNow().then(() => loadRecent(document.getElementById('name').value));
 </script>
 </body>
