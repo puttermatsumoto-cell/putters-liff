@@ -30,6 +30,17 @@
     .parts li:last-child { margin-bottom: 0; }
     .parts b { color: #1a1a2e; }
 
+    .card { background: #fff; border-radius: 14px; padding: 14px; margin: 10px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; gap: 12px; align-items: flex-start; }
+    .card-img { width: 80px; height: 80px; object-fit: contain; border-radius: 8px; flex-shrink: 0; background: #f5f0eb; }
+    .card-body { flex: 1; }
+    .card-label { font-size: 11px; color: #c8a97e; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; }
+    .card-title { font-size: 14px; font-weight: bold; color: #1a1a2e; margin-bottom: 4px; line-height: 1.4; }
+    .card-desc { font-size: 12px; color: #888; margin-bottom: 8px; line-height: 1.65; }
+    .btn-row { display: flex; gap: 6px; }
+    .btn-amazon { flex: 1; display: block; background: #FF9900; color: #fff; text-align: center; border-radius: 80px; padding: 8px 6px; font-size: 12px; font-weight: bold; text-decoration: none; }
+    .btn-rakuten { flex: 1; display: block; background: #bf0000; color: #fff; text-align: center; border-radius: 80px; padding: 8px 6px; font-size: 12px; font-weight: bold; text-decoration: none; }
+    .btn-amazon:active, .btn-rakuten:active { opacity: 0.8; }
+
     .buy { display: block; background: #c8a97e; color: #fff; text-align: center; font-weight: 700; text-decoration: none; border-radius: 12px; padding: 13px; margin: 8px 0 4px; font-size: 14px; }
     .buy.sub { background: #fff; color: #a9834e; border: 1.5px solid #dcc39c; }
     .buy-cap { font-size: 12px; color: #999; margin: 2px 2px 12px; line-height: 1.6; }
@@ -86,8 +97,19 @@
     <h2>50代女性はビタミンD。あとはタンパク質と休養</h2>
     <p>とくに<span class="strong">50代の女性</span>は、日焼け対策・屋内中心で<span class="strong">ビタミンD</span>が低い人が多い。Dは免疫の土台なので、風邪をひきやすい人はここが効いている可能性が高いです。動く量を増やす時期は、<span class="em">D・タンパク質・休養</span>の3つで守る。これが端境期を短くするコツです。</p>
 
-    <a class="buy" href="https://www.amazon.co.jp/dp/B084R75RL3?tag=index712-22" target="_blank" rel="nofollow sponsored">ビタミンD3（5,000IU・約3ヶ月）を見る →</a>
-    <div class="buy-cap">屋内中心・日焼け対策をしている・50代女性に。骨とDの詳しい話は <a href="/bone.html" style="color:#a9834e;font-weight:700;text-decoration:none;">こちらの記事</a>。</div>
+    <div class="card">
+      <img class="card-img" src="https://thumbnail.image.rakuten.co.jp/@0_mall/zenn-store/cabinet/biiino/item/main-image/20260208003330_1.jpg?_ex=240x240" alt="ビタミンD3">
+      <div class="card-body">
+        <div class="card-label">VITAMIN D3</div>
+        <div class="card-title">California Gold Nutrition ビタミンD3 5,000IU（90粒）</div>
+        <div class="card-desc">1粒で5,000IU、約3ヶ月分。免疫・骨・筋肉の土台。屋内中心・日焼け対策をしている人ほど足りません。食後に1粒。</div>
+        <div class="btn-row">
+          <a href="https://www.amazon.co.jp/dp/B084R75RL3?tag=index712-22" target="_blank" rel="nofollow sponsored noopener" class="btn-amazon">Amazon</a>
+          <a href="https://hb.afl.rakuten.co.jp/ichiba/5305b453.3c29b23f.5305b454.c59fe106/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fzenn-store%2Fvitamind3_125mcg_90%2F%3Fscid%3Daf_pc_bbtn&link_type=picttext&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0dGV4dCIsInNpemUiOiIyNDB4MjQwIiwibmFtIjoxLCJuYW1wIjoicmlnaHQiLCJjb20iOjEsImNvbXAiOiJkb3duIiwicHJpY2UiOjEsImJvciI6MSwiY29sIjoxLCJiYnRuIjoxLCJwcm9kIjowLCJhbXAiOmZhbHNlfQ==" target="_blank" rel="nofollow sponsored noopener" class="btn-rakuten">楽天</a>
+        </div>
+      </div>
+    </div>
+    <div class="buy-cap">骨とDの詳しい話は <a href="/bone.html" style="color:#a9834e;font-weight:700;text-decoration:none;">こちらの記事</a>。</div>
 
     <p style="margin-top:8px;">最後に大事なこと。これは<span class="em">“動いている人”に起きる一過性の不調</span>です。工場を増やしている証拠でもある。数週間で体は順応します。だるいからと止めず、材料と休養で支えながら続ける――そこを越えると、前より疲れにくい体になっています。</p>
   </div>
