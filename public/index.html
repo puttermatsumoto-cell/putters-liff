@@ -583,12 +583,13 @@
         .then(function(posts) {
           if (!posts || !posts.length) throw new Error('empty');
           var asc = posts.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
-          var prev = null;
+          // 同じ日に公開されたぶんだけ1日ずつ後ろへ（過去のズレを持ち越さない＝今日出した1本目は今日出る）
+          var seen = {};
           asc.forEach(function(p) {
-            var d = midnight(p.date);
-            if (prev !== null && d <= prev) d = prev + DAY;   // 同日に複数あったら1日ずつ後ろへ
-            p.appAt = d;
-            prev = d;
+            var key = p.date.slice(0, 10);
+            var n = seen[key] || 0;
+            seen[key] = n + 1;
+            p.appAt = midnight(p.date) + n * DAY;
           });
           var today = midnight(new Date());
           var visible = asc.filter(function(p) { return p.appAt <= today; })
