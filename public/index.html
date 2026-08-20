@@ -574,11 +574,27 @@
 
       var decode = function(s) { var t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
 
-      fetch('https://poritanfitness.com/wp-json/wp/v2/posts?categories=15&per_page=5&_fields=link,title,date')
+      // ★ブログは書けたら即公開する運用（日付を調整しない）。
+      // 同じ日にまとめて公開されても、アプリ側では1日1本ずつ出す＝ここで時間差を持つ。
+      var DAY = 86400000;
+      var midnight = function(d) { var x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
+      fetch('https://poritanfitness.com/wp-json/wp/v2/posts?categories=15&per_page=20&_fields=link,title,date')
         .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function(posts) {
           if (!posts || !posts.length) throw new Error('empty');
-          list.innerHTML = posts.map(function(p) {
+          var asc = posts.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+          var prev = null;
+          asc.forEach(function(p) {
+            var d = midnight(p.date);
+            if (prev !== null && d <= prev) d = prev + DAY;   // 同日に複数あったら1日ずつ後ろへ
+            p.appAt = d;
+            prev = d;
+          });
+          var today = midnight(new Date());
+          var visible = asc.filter(function(p) { return p.appAt <= today; })
+                           .sort(function(a, b) { return b.appAt - a.appAt; });
+          if (!visible.length) throw new Error('not yet');
+          list.innerHTML = visible.slice(0, 5).map(function(p) {
             return row(p.date.slice(0, 10).replace(/-/g, '.'), decode(p.title.rendered), p.link, true);
           }).join('');
           box.style.display = 'block';
