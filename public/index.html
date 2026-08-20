@@ -2730,7 +2730,7 @@
     })();
 
     // お客さんからの質問：未読バッジ（メニュー）— 質問が増えたらこのリストに追加
-    const QUESTION_SLUGS = ['q-jibun-release', 'q-shagamu-oto', 'q-kyotsui-5kai', 'q-warui-ugoki-interval', 'q-pilates', 'q-fukuatsu-fukuramasu', 'q-fukuatsu-kyoushiki', 'q-ashibumi-aruku', 'q-lunge-30kai'];
+    const QUESTION_SLUGS = ['q-jibun-release', 'q-shagamu-oto', 'q-kyotsui-5kai', 'q-warui-ugoki-interval', 'q-pilates', 'q-fukuatsu-fukuramasu', 'q-fukuatsu-kyoushiki', 'q-ashibumi-aruku', 'q-lunge-30kai', 'q-kintore-alcohol'];
     (function() {
       const read = JSON.parse(localStorage.getItem('putters_questions_read') || '{}');
       const unread = QUESTION_SLUGS.filter(s => !read[s]).length;
