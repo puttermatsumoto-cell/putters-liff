@@ -1,6 +1,6 @@
 // ジムの体重計（Xiaomi S200）が飛ばした体重を受け取って、予約時刻から本人に紐づけて記録する。
 // 拾う箱（Raspberry Pi Zero W）が、乗るたびにここへ1回POSTしてくる。
-// タニタ版（healthplanet-import.js）の下半分と同じ流れ＝時刻→名前→ジム体重シート。
+// 流れはタニタ版と同じ＝時刻→名前→ジム体重シート（取り込み側は返金に伴い削除済み）。
 // 違うのは「取りに行く」のではなく「送られてくる」こと。トークンの期限切れが無い。
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
 const SECRET = process.env.SCALE_SECRET || '';
