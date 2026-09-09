@@ -40,7 +40,8 @@ export default async function handler(req, res) {
 
     await fetch(GAS_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'saveGymWeight', name: nm.name, date, weight, at })
+      // source＝どこから来た値か。手入力・タニタ（返金済み）と混ざらないように印を付ける
+      body: JSON.stringify({ action: 'saveGymWeight', name: nm.name, date, weight, at, source: '体重計' })
     });
     return res.json({ ok: true, at, weight, name: nm.name });
   } catch (e) {
