@@ -24,12 +24,18 @@
     .ng { background: #fdecea; color: #c62828; }
     .hint { color: #888; font-size: 12px; line-height: 1.8; margin-top: 10px; }
     .recent { font-size: 13px; color: #555; line-height: 2; }
+    .auto { background: #f7f4f0; border-radius: 10px; padding: 14px; margin-top: 10px; text-align: center; }
+    .autolabel { font-size: 12px; color: #888; }
+    .autoval { font-size: 32px; font-weight: bold; color: #1a1a2e; margin: 4px 0; }
+    .autoval.waiting { font-size: 15px; font-weight: normal; color: #c62828; }
+    .link { width: auto; display: inline-block; padding: 6px 12px; margin: 4px 4px 0; background: none;
+            color: #888; font-size: 12px; font-weight: normal; border: 1px solid #ddd; }
   </style>
 </head>
 <body>
   <a href="/admin.html" class="back">← 管理画面</a>
-  <h1>⚖️ ジム体重を入れる</h1>
-  <div class="sub">体重計に出た数字を打つだけ</div>
+  <h1>📏 ウエストを入れる</h1>
+  <div class="sub">体重は体重計から自動で入ります</div>
 
   <div class="card">
     <div class="who">いまの時間の予約</div>
@@ -41,12 +47,23 @@
     <input type="text" id="name" list="names" placeholder="名前（自動で入ります）">
     <datalist id="names"></datalist>
     <input type="date" id="date">
-    <input type="number" id="weight" inputmode="decimal" step="0.05" placeholder="体重 kg">
-    <input type="number" id="waist" inputmode="decimal" step="0.1" placeholder="ウエスト cm（任意）">
+
+    <!-- 体重＝体重計から入った値を見せるだけ。届いていない時だけ手で打てるように開く -->
+    <div class="auto" id="autobox">
+      <div class="autolabel" id="autolabel">今日の体重</div>
+      <div class="autoval" id="autoval">確認中…</div>
+      <button type="button" class="link" id="reload">読み直す</button>
+    </div>
+    <!-- ★体重の欄は絶対に隠さない。体重計・Wi-Fi・ラズパイのどれが落ちても、
+         ここに打てば今までどおり記録できる。自動は上乗せであって、置き換えではない -->
+    <input type="number" id="weight" inputmode="decimal" step="0.05" placeholder="体重 kg（手で入れる時）">
+
+    <input type="number" id="waist" inputmode="decimal" step="0.1" placeholder="ウエスト cm">
     <button id="save">保存する</button>
     <div class="msg" id="msg"></div>
     <div class="hint">
-      靴下のままでかまいません。体重はそのままの数字で正確です。<br>
+      体重は乗るだけで入ります。届いていれば上に出るので、打つのはウエストだけ。<br>
+      <b>届いていない時は体重の欄に打てば、今までどおり記録されます。</b><br>
       同じ人の同じ日に入れ直すと、上書きされます。
     </div>
   </div>
@@ -91,21 +108,57 @@
     m.style.display = 'block';
   }
 
+  // その人の今日の体重を見に行く。体重計から入っていれば、それを使う（打たせない）
+  let autoWeight = null;
+  let autoSource = '';
+  async function loadToday() {
+    const name = document.getElementById('name').value.trim();
+    const date = document.getElementById('date').value;
+    const val = document.getElementById('autoval');
+    if (!name) { val.textContent = '名前が決まっていません'; val.className = 'autoval waiting'; return; }
+    try {
+      const rows = await (await fetch(GAS_URL + '?action=gym_weight&name=' + encodeURIComponent(name))).json();
+      const today = rows.filter(r => r.date === date).pop();
+      if (today && today.weight) {
+        autoWeight = Number(today.weight);
+        autoSource = today.source || '';
+        val.textContent = autoWeight.toFixed(2) + ' kg';
+        val.className = 'autoval';
+        document.getElementById('autolabel').textContent =
+          '今日の体重' + (autoSource ? '（' + autoSource + '）' : '');
+      } else {
+        autoWeight = null;
+        val.textContent = 'まだ届いていません（乗ってもらってください）';
+        val.className = 'autoval waiting';
+      }
+    } catch (e) {
+      val.textContent = '取得できませんでした';
+      val.className = 'autoval waiting';
+    }
+  }
+
+  document.getElementById('reload').onclick = loadToday;
+
   document.getElementById('save').onclick = async function () {
     const name = document.getElementById('name').value.trim();
     const date = document.getElementById('date').value;
-    const weight = parseFloat(document.getElementById('weight').value);
+    const typed = parseFloat(document.getElementById('weight').value);
+    // 打った値があればそれが優先。無ければ体重計から来た値を、印ごと残す
+    const weight = typed || autoWeight;
     const waist = parseFloat(document.getElementById('waist').value);
-    if (!name || !date || !weight) { show('名前・日付・体重を入れてください', false); return; }
+    if (!name || !date) { show('名前と日付を入れてください', false); return; }
+    if (!weight) { show('体重がまだ届いていません。「手で入れる」から打つこともできます', false); return; }
     this.disabled = true;
     try {
-      const body = { action: 'saveGymWeight', name, date, weight, source: '手入力' };
+      const body = { action: 'saveGymWeight', name, date, weight };
+      // 手で打った時だけ印を付け替える。自動で入った行の「体重計」を消さない
+      if (typed) body.source = '手入力';
       if (waist) body.waist = waist;
       await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(body) });
-      show(name + ' ' + weight + 'kg を保存しました', true);
-      document.getElementById('weight').value = '';
+      show(name + '　' + weight + 'kg' + (waist ? ' / ' + waist + 'cm' : '') + ' を保存しました', true);
       document.getElementById('waist').value = '';
       loadRecent(name);
+      loadToday();
     } catch (e) {
       show('保存できませんでした', false);
     }
@@ -133,7 +186,13 @@
   }
 
   loadNames();
-  whoNow().then(() => loadRecent(document.getElementById('name').value));
+  whoNow().then(() => {
+    const name = document.getElementById('name').value;
+    loadRecent(name);
+    loadToday();
+  });
+  // 開いたまま待てるように。乗ってもらった数秒後に、自分で気づいて表示が変わる
+  setInterval(function () { if (!autoWeight) loadToday(); }, 20000);
 </script>
 </body>
 </html>
