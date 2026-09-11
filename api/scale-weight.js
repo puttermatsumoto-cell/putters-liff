@@ -5,6 +5,9 @@
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwnDYL8RT3pFxetCwig3LtDIatUvruamQrGF2B99zPVDfVBeN6KgtZobpLFj2T8ZQfe/exec';
 const SECRET = process.env.SCALE_SECRET || '';
 
+// 予約枠が無い時間に乗るのは松本さん本人だけ（2026-09-11に確認）。その分も捨てずに残す
+const OWNER = process.env.SCALE_OWNER || '松本大樹';
+
 // 体重として受け付ける範囲。電波が化けた時に変な値を書き込まないための最後の砦
 const MIN_KG = 20;
 const MAX_KG = 250;
@@ -34,16 +37,15 @@ export default async function handler(req, res) {
 
   try {
     const nm = await (await fetch(`${GAS_URL}?action=hp_name_at&at=${at}`)).json();
-    // 枠が無い＝松本さん自身の試し乗りや、予約外の時間。書かずに捨てる。
-    // 間違った人の行に入れるくらいなら、入れない（GAS側の hpNameAtStr も同じ考え方）
-    if (!nm.name) return res.json({ ok: true, at, weight, name: null, skipped: '枠なし' });
+    // 枠が無い＝予約外の時間。その時間に乗るのは松本さん本人なので、本人の記録として残す
+    const name = nm.name || OWNER;
 
     await fetch(GAS_URL, {
       method: 'POST',
       // source＝どこから来た値か。手入力・タニタ（返金済み）と混ざらないように印を付ける
-      body: JSON.stringify({ action: 'saveGymWeight', name: nm.name, date, weight, at, source: '体重計' })
+      body: JSON.stringify({ action: 'saveGymWeight', name, date, weight, at, source: '体重計' })
     });
-    return res.json({ ok: true, at, weight, name: nm.name });
+    return res.json({ ok: true, at, weight, name, waku: nm.name ? 'あり' : 'なし' });
   } catch (e) {
     return res.json({ ok: false, error: String(e.message) });
   }
