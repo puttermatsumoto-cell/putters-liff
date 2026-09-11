@@ -1921,3 +1921,52 @@ function hpNameAtStr(at) {
   if (gap(cands[0]) === gap(cands[1])) return '';
   return cands[0].getTitle();
 }
+
+// ─────────────────────────────────────────────
+// 体重計が黙っていないかを、毎朝ひとりで確かめる。
+// ★見るのは「機械が生きているか」ではなく「結果が出たか」。
+//   電池切れ・電源抜け・Wi-Fi変更・入口の故障、どれで止まっても同じ1本で捕まる。
+// ★異常な日だけ送る。毎日届くメールは読まなくなる。
+// 使い方＝GASのトリガーで「時間主導型・日付ベース・午前7〜8時」に checkScaleAlive を1本。
+// ─────────────────────────────────────────────
+function checkScaleAlive() {
+  var tz = 'Asia/Tokyo';
+  var y = new Date(Date.now() - 24 * 60 * 60 * 1000);            // 昨日
+  var ymd = Utilities.formatDate(y, tz, 'yyyy-MM-dd');
+
+  // 昨日の予約数（レンタルジムと休憩は数えない＝体重計に乗る人ではない）
+  var s = new Date(y); s.setHours(0, 0, 0, 0);
+  var e = new Date(y); e.setHours(23, 59, 59, 0);
+  var events = CalendarApp.getCalendarById(CALENDAR_ID).getEvents(s, e).filter(function (ev) {
+    var t = ev.getTitle();
+    return t.indexOf('レンタルジム') !== 0 && t.indexOf('休憩') !== 0;
+  });
+  if (events.length === 0) return;                                // 休みの日は何も言わない
+
+  // 昨日ぶんのうち、体重計から入った行を数える
+  var rows = getGymWeightSheet().getDataRange().getValues();
+  var auto = 0, byHand = 0, lastAuto = '';
+  for (var i = 1; i < rows.length; i++) {
+    var d = rows[i][0] instanceof Date
+      ? Utilities.formatDate(rows[i][0], tz, 'yyyy-MM-dd')
+      : String(rows[i][0]).slice(0, 10);
+    if (String(rows[i][4]) === '体重計') {
+      if (d > lastAuto) lastAuto = d;                             // 最後に届いた日
+      if (d === ymd) auto++;
+    } else if (d === ymd) {
+      byHand++;
+    }
+  }
+  if (auto > 0) return;                                           // 1件でも届いていれば正常
+
+  var body = ymd + ' は予約が ' + events.length + ' 件ありましたが、'
+    + '体重計から1件も届いていません。\n\n'
+    + '手入力ぶん：' + byHand + ' 件\n'
+    + '体重計から最後に届いた日：' + (lastAuto || 'まだ一度もありません') + '\n\n'
+    + '見るところ（Macで scale_status.command をダブルクリック）\n'
+    + '・箱が動いているか（active か）\n'
+    + '・体重計の電池（単4×3）\n'
+    + '・Wi-Fiの名前かパスワードを変えていないか\n\n'
+    + '直るまでは、今までどおり gym-input.html に手で打てば記録されます。';
+  MailApp.sendEmail(NOTIFY_EMAIL, '【体重計】昨日ぶんが届いていません', body);
+}
