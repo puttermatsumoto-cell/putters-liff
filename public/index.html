@@ -566,7 +566,7 @@
         var visible = HITORIGOTO.filter(function(e){ return hgKey(e.date) <= today; })
           .sort(function(a, b){ return hgKey(b.date) - hgKey(a.date); });
         if (!visible.length) return;
-        list.innerHTML = visible.slice(0, 5).map(function(e) {
+        list.innerHTML = visible.slice(0, 3).map(function(e) {
           return row(e.date, e.title, '/hitorigoto.html?id=' + e.id, false);
         }).join('');
         box.style.display = 'block';
@@ -599,7 +599,7 @@
           var visible = asc.filter(function(p) { return p.appAt <= today; })
                            .sort(function(a, b) { return b.appAt - a.appAt; });
           if (!visible.length) throw new Error('not yet');
-          list.innerHTML = visible.slice(0, 5).map(function(p) {
+          list.innerHTML = visible.slice(0, 3).map(function(p) {
             return row(p.date.slice(0, 10).replace(/-/g, '.'), decode(p.title.rendered), p.link, true);
           }).join('');
           box.style.display = 'block';
