@@ -50,7 +50,19 @@ def extract_video_id(url: str) -> str:
     raise ValueError(f"Invalid YouTube URL: {url}")
 
 
+DESC_MAX = 65  # カードの紹介文は3行まで（2026-09-20：598字まで伸びていたので上限を固定）
+
+
+def check_desc(desc: str) -> None:
+    if len(desc) > DESC_MAX:
+        raise ValueError(
+            f"紹介文が長すぎる（{len(desc)}字／上限{DESC_MAX}字）。"
+            "アプリのカードは3行まで＝持ち帰り一個だけ残して削る:\n" + desc
+        )
+
+
 def update_textbook(slug, number, title, desc, url):
+    check_desc(desc)
     path = LIFF_APP / "public" / "textbook.html"
     content = path.read_text(encoding="utf-8")
 
